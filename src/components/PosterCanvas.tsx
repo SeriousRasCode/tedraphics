@@ -41,7 +41,8 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
           
           ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
           
-          // Apply template styling
+          // Apply gradient rectangles and template styling
+          drawGradientOverlays(ctx);
           drawTemplate(ctx, currentTemplate, title, mainText, quotedText);
         };
         img.src = backgroundImage;
@@ -54,29 +55,31 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
+        // Apply gradient rectangles and template styling
+        drawGradientOverlays(ctx);
         drawTemplate(ctx, currentTemplate, title, mainText, quotedText);
       }
     }, [backgroundImage, title, mainText, quotedText, template]);
 
+    const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
+      // Top gradient rectangle - from #083765 to transparent
+      const topGradient = ctx.createLinearGradient(0, 0, 0, 400);
+      topGradient.addColorStop(0, '#083765');
+      topGradient.addColorStop(1, 'rgba(8, 55, 101, 0)');
+      
+      ctx.fillStyle = topGradient;
+      ctx.fillRect(0, 0, 1080, 400);
+
+      // Bottom gradient rectangle - from transparent to #083765
+      const bottomGradient = ctx.createLinearGradient(0, 680, 0, 1080);
+      bottomGradient.addColorStop(0, 'rgba(8, 55, 101, 0)');
+      bottomGradient.addColorStop(1, '#083765');
+      
+      ctx.fillStyle = bottomGradient;
+      ctx.fillRect(0, 680, 1080, 400);
+    };
+
     const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
-      // Apply top gradient
-      if (template.gradients) {
-        const topGradient = ctx.createLinearGradient(0, 0, 0, 400);
-        topGradient.addColorStop(0, template.gradients.top.start);
-        topGradient.addColorStop(1, template.gradients.top.end);
-        
-        ctx.fillStyle = topGradient;
-        ctx.fillRect(0, 0, 1080, 400);
-
-        // Apply bottom gradient
-        const bottomGradient = ctx.createLinearGradient(0, 680, 0, 1080);
-        bottomGradient.addColorStop(0, template.gradients.bottom.start);
-        bottomGradient.addColorStop(1, template.gradients.bottom.end);
-        
-        ctx.fillStyle = bottomGradient;
-        ctx.fillRect(0, 680, 1080, 400);
-      }
-
       // Draw decorative elements
       if (template.decorations) {
         template.decorations.forEach((decoration: any) => {
