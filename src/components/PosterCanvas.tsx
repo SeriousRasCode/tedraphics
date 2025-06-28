@@ -1,3 +1,4 @@
+// PosterCanvas.tsx
 import React, { useRef, useEffect, forwardRef } from 'react';
 import { templates } from '@/utils/posterTemplates';
 
