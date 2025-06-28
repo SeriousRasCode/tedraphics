@@ -130,15 +130,15 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
         </Select>
       </div>
 
-      {/* Gradient Height Control */}
+      {/* Gradient Height Control - Extended Range */}
       <div>
         <Label className="text-white text-sm font-medium">
-          Gradient Height: {gradientHeight}px
+          Gradient Height: {gradientHeight}px (covers {Math.round((gradientHeight / 1080) * 100)}% of poster)
         </Label>
         <Slider
           value={[gradientHeight]}
           onValueChange={(value) => onGradientHeightChange(value[0])}
-          max={500}
+          max={540}
           min={200}
           step={20}
           className="mt-2"
@@ -147,7 +147,7 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
 
       {/* Social Media Links */}
       <div className="space-y-3">
-        <Label className="text-white text-sm font-medium">Social Media Links</Label>
+        <Label className="text-white text-sm font-medium">Social Media Links (Centered)</Label>
         <div className="space-y-2">
           <Input
             value={socialLinks.telegram}
@@ -170,7 +170,7 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
         </div>
       </div>
 
-      {/* Text Positions */}
+      {/* Text Positions - Extended Ranges */}
       <div className="space-y-3">
         <Label className="text-white text-sm font-medium">Text Positions</Label>
         <div className="space-y-2">
@@ -179,7 +179,7 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
             <Slider
               value={[textPositions.titleY]}
               onValueChange={(value) => onTextPositionsChange({ ...textPositions, titleY: value[0] })}
-              max={400}
+              max={500}
               min={80}
               step={10}
               className="mt-1"
@@ -190,7 +190,7 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
             <Slider
               value={[textPositions.textY]}
               onValueChange={(value) => onTextPositionsChange({ ...textPositions, textY: value[0] })}
-              max={600}
+              max={700}
               min={300}
               step={10}
               className="mt-1"
@@ -201,7 +201,7 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
             <Slider
               value={[textPositions.quoteY]}
               onValueChange={(value) => onTextPositionsChange({ ...textPositions, quoteY: value[0] })}
-              max={900}
+              max={950}
               min={600}
               step={10}
               className="mt-1"
@@ -219,7 +219,7 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
             <Slider
               value={[quoteBoxSize.width]}
               onValueChange={(value) => onQuoteBoxSizeChange({ ...quoteBoxSize, width: value[0] })}
-              max={800}
+              max={900}
               min={400}
               step={20}
               className="mt-1"
@@ -230,7 +230,7 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
             <Slider
               value={[quoteBoxSize.height]}
               onValueChange={(value) => onQuoteBoxSizeChange({ ...quoteBoxSize, height: value[0] })}
-              max={300}
+              max={350}
               min={100}
               step={20}
               className="mt-1"

@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, forwardRef } from 'react';
 import { templates } from '@/utils/posterTemplates';
 
@@ -74,7 +73,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Draw background
+      // Draw background - for all templates
       if (backgroundImage) {
         const img = new Image();
         img.onload = () => {
@@ -93,7 +92,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         };
         img.src = backgroundImage;
       } else {
-        // Draw default gradient background
+        // Draw default gradient background for all templates
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
         gradient.addColorStop(0, currentTemplate.colors.primary);
         gradient.addColorStop(1, currentTemplate.colors.secondary);
@@ -130,19 +129,21 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
       const texts = bilingualTexts[language];
       
-      // Top text
+      // Top text - with better visibility
       ctx.fillStyle = '#ffd700';
-      ctx.font = `24px ${fonts.textFont}`;
+      ctx.font = `28px ${fonts.textFont}`;
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 4;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
       
-      ctx.fillText(texts.top, 540, 40);
+      // Wrap text to prevent overflow
+      wrapText(ctx, texts.top, 540, 40, 900, 35);
       
-      // Bottom text
-      ctx.fillText(texts.bottom, 540, 950);
+      // Bottom text - with better visibility
+      ctx.font = `28px ${fonts.textFont}`;
+      wrapText(ctx, texts.bottom, 540, 950, 900, 35);
       
       // Reset shadow
       ctx.shadowColor = 'transparent';
@@ -152,22 +153,32 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     };
 
     const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
-      const linkY = 1000;
-      const linkSpacing = 300;
-      const startX = 240;
+      const linkY = 1020;
+      const linkSpacing = 280;
+      const startX = 200; // Centering the links
       
       ctx.fillStyle = '#ffd700';
-      ctx.font = `20px ${fonts.textFont}`;
-      ctx.textAlign = 'left';
+      ctx.font = `22px ${fonts.textFont}`;
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
       
-      // Telegram
-      ctx.fillText('📱 ' + socialLinks.telegram, startX, linkY);
+      // Telegram with icon
+      ctx.fillText('✈️ ' + socialLinks.telegram, startX + linkSpacing, linkY);
       
-      // Instagram  
-      ctx.fillText('📷 ' + socialLinks.instagram, startX + linkSpacing, linkY);
+      // Instagram with icon
+      ctx.fillText('📷 ' + socialLinks.instagram, startX + (linkSpacing * 2), linkY);
       
-      // TikTok
-      ctx.fillText('🎵 ' + socialLinks.tiktok, startX + (linkSpacing * 2), linkY);
+      // TikTok with icon
+      ctx.fillText('🎵 ' + socialLinks.tiktok, startX + (linkSpacing * 3), linkY);
+      
+      // Reset shadow
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
     };
 
     const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
