@@ -7,8 +7,7 @@ interface PosterCanvasProps {
   mainText: string;
   quotedText: string;
   template: number;
-  topGradientHeight: number;
-  bottomGradientHeight: number;
+  gradientHeight: number;
   language: 'amharic' | 'oromic';
   socialLinks: {
     telegram: string;
@@ -32,34 +31,30 @@ interface PosterCanvasProps {
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
-  (
-    {
-      backgroundImage,
-      title,
-      mainText,
-      quotedText,
-      template,
-      topGradientHeight,
-      bottomGradientHeight,
-      language,
-      socialLinks,
-      textPositions,
-      quoteBoxSize,
-      fonts,
-    },
-    ref
-  ) => {
+  ({
+    backgroundImage,
+    title,
+    mainText,
+    quotedText,
+    template,
+    gradientHeight,
+    language,
+    socialLinks,
+    textPositions,
+    quoteBoxSize,
+    fonts
+  }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const bilingualTexts = {
       amharic: {
         top: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ አሐዱ አምላክ አሜን',
-        bottom: 'የጅማ ዩንቨርስቲ ቴክኖሎጂ ኢንስቲትዩት ግቢ ጉባኤ',
+        bottom: 'የጅማ ዩንቨርስቲ ቴክኖሎጂ ኢንስቲትዩት ግቢ ጉባኤ'
       },
       oromic: {
         top: 'Maqaa Abbaa kan ilmaa kan afuura qulqulluu waaqa tokko ameen',
-        bottom: "Yaa'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa",
-      },
+        bottom: 'Yaa\'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa'
+      }
     };
 
     useEffect(() => {
@@ -99,33 +94,20 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [
-      backgroundImage,
-      title,
-      mainText,
-      quotedText,
-      template,
-      topGradientHeight,
-      bottomGradientHeight,
-      language,
-      socialLinks,
-      textPositions,
-      quoteBoxSize,
-      fonts,
-    ]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, language, socialLinks, textPositions, quoteBoxSize, fonts]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
-      const top = ctx.createLinearGradient(0, 0, 0, topGradientHeight);
+      const top = ctx.createLinearGradient(0, 0, 0, gradientHeight);
       top.addColorStop(0, '#083765');
       top.addColorStop(1, 'rgba(8, 55, 101, 0)');
       ctx.fillStyle = top;
-      ctx.fillRect(0, 0, 1080, topGradientHeight);
+      ctx.fillRect(0, 0, 1080, gradientHeight);
 
-      const bottom = ctx.createLinearGradient(0, 1080 - bottomGradientHeight, 0, 1080);
+      const bottom = ctx.createLinearGradient(0, 1080 - gradientHeight, 0, 1080);
       bottom.addColorStop(0, 'rgba(8, 55, 101, 0)');
       bottom.addColorStop(1, '#083765');
       ctx.fillStyle = bottom;
-      ctx.fillRect(0, 1080 - bottomGradientHeight, 1080, bottomGradientHeight);
+      ctx.fillRect(0, 1080 - gradientHeight, 1080, gradientHeight);
     };
 
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
@@ -155,9 +137,9 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       const links = [
         { icon: '📩', text: socialLinks.telegram },
         { icon: '📸', text: socialLinks.instagram },
-        { icon: '🎶', text: socialLinks.tiktok },
+        { icon: '🎶', text: socialLinks.tiktok }
       ];
-      const widths = links.map((l) => ctx.measureText(`${l.icon} ${l.text}`).width);
+      const widths = links.map(l => ctx.measureText(`${l.icon} ${l.text}`).width);
       const totalWidth = widths.reduce((a, b) => a + b, 0) + gap * (links.length - 1);
       let x = (1080 - totalWidth) / 2;
 
@@ -179,30 +161,15 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetY = 0;
     };
 
-    const drawTemplate = (
-      ctx: CanvasRenderingContext2D,
-      template: any,
-      title: string,
-      mainText: string,
-      quotedText: string
-    ) => {
+    const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
+      // Skip halo decorations (unwanted circle)
       if (template.decorations) {
         template.decorations.forEach((d: any) => {
           if (d.type === 'border') drawBorder(ctx, d);
         });
       }
 
-      drawGoldenText(
-        ctx,
-        title,
-        template.fonts.titleSize,
-        fonts.titleFont,
-        540,
-        textPositions.titleY,
-        800,
-        template.fonts.titleSize * 1.2,
-        true
-      );
+      drawGoldenText(ctx, title, template.fonts.titleSize, fonts.titleFont, 540, textPositions.titleY, 800, template.fonts.titleSize * 1.2, true);
 
       ctx.fillStyle = template.colors.textColor;
       ctx.font = `${template.fonts.textSize}px ${fonts.textFont}`;
@@ -295,14 +262,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       );
     };
 
-    const wrapText = (
-      ctx: CanvasRenderingContext2D,
-      text: string,
-      x: number,
-      y: number,
-      maxWidth: number,
-      lineHeight: number
-    ) => {
+    const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
       const words = text.split(' ');
       let line = '';
       let currentY = y;
