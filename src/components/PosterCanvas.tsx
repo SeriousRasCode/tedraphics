@@ -1,4 +1,3 @@
-// PosterCanvas.tsx
 import React, { useRef, useEffect, forwardRef } from 'react';
 import { templates } from '@/utils/posterTemplates';
 
@@ -8,8 +7,7 @@ interface PosterCanvasProps {
   mainText: string;
   quotedText: string;
   template: number;
-  topGradientHeight: number;
-  bottomGradientHeight: number;
+  gradientHeight: number;
   language: 'amharic' | 'oromic';
   socialLinks: {
     telegram: string;
@@ -39,8 +37,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     mainText,
     quotedText,
     template,
-    topGradientHeight,
-    bottomGradientHeight,
+    gradientHeight,
     language,
     socialLinks,
     textPositions,
@@ -56,7 +53,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       },
       oromic: {
         top: 'Maqaa Abbaa kan ilmaa kan afuura qulqulluu waaqa tokko ameen',
-        bottom: "Yaa'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa"
+        bottom: 'Yaa\'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa'
       }
     };
 
@@ -73,7 +70,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const draw = () => {
-        drawGradientOverlays(ctx, currentTemplate);
+        drawGradientOverlays(ctx);
         drawTemplate(ctx, currentTemplate, title, mainText, quotedText);
         drawBilingualTexts(ctx);
         drawSocialLinks(ctx);
@@ -97,20 +94,20 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, topGradientHeight, bottomGradientHeight, language, socialLinks, textPositions, quoteBoxSize, fonts]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, language, socialLinks, textPositions, quoteBoxSize, fonts]);
 
-    const drawGradientOverlays = (ctx: CanvasRenderingContext2D, template: any) => {
-      const top = ctx.createLinearGradient(0, 0, 0, topGradientHeight);
-      top.addColorStop(0, template.gradients.top.start);
-      top.addColorStop(1, template.gradients.top.end);
+    const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
+      const top = ctx.createLinearGradient(0, 0, 0, gradientHeight);
+      top.addColorStop(0, '#083765');
+      top.addColorStop(1, 'rgba(8, 55, 101, 0)');
       ctx.fillStyle = top;
-      ctx.fillRect(0, 0, 1080, topGradientHeight);
+      ctx.fillRect(0, 0, 1080, gradientHeight);
 
-      const bottom = ctx.createLinearGradient(0, 1080 - bottomGradientHeight, 0, 1080);
-      bottom.addColorStop(0, template.gradients.bottom.start);
-      bottom.addColorStop(1, template.gradients.bottom.end);
+      const bottom = ctx.createLinearGradient(0, 1080 - gradientHeight, 0, 1080);
+      bottom.addColorStop(0, 'rgba(8, 55, 101, 0)');
+      bottom.addColorStop(1, '#083765');
       ctx.fillStyle = bottom;
-      ctx.fillRect(0, 1080 - bottomGradientHeight, 1080, bottomGradientHeight);
+      ctx.fillRect(0, 1080 - gradientHeight, 1080, gradientHeight);
     };
 
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
@@ -165,13 +162,14 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     };
 
     const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
+      // Skip halo decorations (unwanted circle)
       if (template.decorations) {
         template.decorations.forEach((d: any) => {
           if (d.type === 'border') drawBorder(ctx, d);
         });
       }
 
-      drawGoldenText(ctx, title, template.fonts.titleSize, fonts.titleFont, 540, textPositions.titleY, 800, template.fonts.titleSize * 1.2);
+      drawGoldenText(ctx, title, template.fonts.titleSize, fonts.titleFont, 540, textPositions.titleY, 800, template.fonts.titleSize * 1.2, true);
 
       ctx.fillStyle = template.colors.textColor;
       ctx.font = `${template.fonts.textSize}px ${fonts.textFont}`;
@@ -202,9 +200,10 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       x: number,
       y: number,
       maxWidth: number,
-      lineHeight: number
+      lineHeight: number,
+      isTitle: boolean = false
     ) => {
-      ctx.font = `bold ${fontSize}px ${fontFamily}`;
+      ctx.font = `${isTitle ? 'bold' : ''} ${fontSize}px ${fontFamily}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       const gradient = ctx.createLinearGradient(0, y, 0, y + fontSize);
@@ -213,6 +212,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       gradient.addColorStop(0.7, '#d97706');
       gradient.addColorStop(1, '#b45309');
       ctx.fillStyle = gradient;
+
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 3;
@@ -235,18 +235,31 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     const drawQuoteBox = (ctx: CanvasRenderingContext2D, template: any, text: string) => {
       const boxX = (1080 - quoteBoxSize.width) / 2;
       const boxY = textPositions.quoteY;
+
       ctx.fillStyle = template.colors.quoteBackground;
       ctx.beginPath();
       ctx.roundRect(boxX, boxY, quoteBoxSize.width, quoteBoxSize.height, 20);
       ctx.fill();
+
       ctx.strokeStyle = template.colors.quoteBorder;
       ctx.lineWidth = 3;
       ctx.shadowColor = template.colors.quoteBorder;
       ctx.shadowBlur = 10;
       ctx.stroke();
+
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
-      drawGoldenText(ctx, `"${text}"`, template.fonts.quoteSize, fonts.quoteFont, boxX + quoteBoxSize.width / 2, boxY + 50, quoteBoxSize.width - 40, template.fonts.quoteSize * 1.4);
+
+      drawGoldenText(
+        ctx,
+        `"${text}"`,
+        template.fonts.quoteSize,
+        fonts.quoteFont,
+        boxX + quoteBoxSize.width / 2,
+        boxY + 50,
+        quoteBoxSize.width - 40,
+        template.fonts.quoteSize * 1.4
+      );
     };
 
     const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
