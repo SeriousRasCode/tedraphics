@@ -13,20 +13,30 @@ export const templates = {
     },
     fonts: {
       titleFamily: "Georgia, serif",
-      titleSize: 72,
-      textFamily: "Georgia, serif",
-      textSize: 32,
+      titleSize: 84,
+      textFamily: "Georgia, serif", 
+      textSize: 36,
       quoteFamily: "Georgia, serif",
-      quoteSize: 28
+      quoteSize: 32
     },
     layout: {
-      titleY: 80,
-      textY: 300,
+      titleY: 120,
+      textY: 400,
       quoteY: 750
     },
     overlay: {
       start: "rgba(30, 58, 138, 0.7)",
       end: "rgba(30, 58, 138, 0.4)"
+    },
+    gradients: {
+      top: {
+        start: "rgba(8, 55, 101, 0.8)",
+        end: "rgba(8, 55, 101, 0)"
+      },
+      bottom: {
+        start: "rgba(8, 55, 101, 0)",
+        end: "rgba(8, 55, 101, 0.8)"
+      }
     },
     decorations: [
       {
@@ -60,20 +70,30 @@ export const templates = {
     },
     fonts: {
       titleFamily: "Georgia, serif",
-      titleSize: 68,
+      titleSize: 80,
       textFamily: "Arial, sans-serif",
-      textSize: 30,
+      textSize: 34,
       quoteFamily: "Georgia, serif",
-      quoteSize: 26
+      quoteSize: 30
     },
     layout: {
-      titleY: 100,
-      textY: 350,
+      titleY: 140,
+      textY: 420,
       quoteY: 780
     },
     overlay: {
       start: "rgba(146, 64, 14, 0.8)",
       end: "rgba(251, 191, 36, 0.3)"
+    },
+    gradients: {
+      top: {
+        start: "rgba(8, 55, 101, 0.8)",
+        end: "rgba(8, 55, 101, 0)"
+      },
+      bottom: {
+        start: "rgba(8, 55, 101, 0)",
+        end: "rgba(8, 55, 101, 0.8)"
+      }
     },
     decorations: [
       {
@@ -99,20 +119,30 @@ export const templates = {
     },
     fonts: {
       titleFamily: "Georgia, serif",
-      titleSize: 70,
+      titleSize: 82,
       textFamily: "Georgia, serif",
-      textSize: 32,
+      textSize: 36,
       quoteFamily: "Georgia, serif",
-      quoteSize: 28
+      quoteSize: 32
     },
     layout: {
-      titleY: 90,
-      textY: 320,
+      titleY: 130,
+      textY: 410,
       quoteY: 760
     },
     overlay: {
       start: "rgba(88, 28, 135, 0.7)",
       end: "rgba(168, 85, 247, 0.4)"
+    },
+    gradients: {
+      top: {
+        start: "rgba(8, 55, 101, 0.8)",
+        end: "rgba(8, 55, 101, 0)"
+      },
+      bottom: {
+        start: "rgba(8, 55, 101, 0)",
+        end: "rgba(8, 55, 101, 0.8)"
+      }
     },
     decorations: [
       {

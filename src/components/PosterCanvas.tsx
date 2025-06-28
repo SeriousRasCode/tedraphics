@@ -59,14 +59,22 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     }, [backgroundImage, title, mainText, quotedText, template]);
 
     const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
-      // Apply overlay
-      if (template.overlay) {
-        const overlayGradient = ctx.createLinearGradient(0, 0, 0, 1080);
-        overlayGradient.addColorStop(0, template.overlay.start);
-        overlayGradient.addColorStop(1, template.overlay.end);
+      // Apply top gradient
+      if (template.gradients) {
+        const topGradient = ctx.createLinearGradient(0, 0, 0, 400);
+        topGradient.addColorStop(0, template.gradients.top.start);
+        topGradient.addColorStop(1, template.gradients.top.end);
         
-        ctx.fillStyle = overlayGradient;
-        ctx.fillRect(0, 0, 1080, 1080);
+        ctx.fillStyle = topGradient;
+        ctx.fillRect(0, 0, 1080, 400);
+
+        // Apply bottom gradient
+        const bottomGradient = ctx.createLinearGradient(0, 680, 0, 1080);
+        bottomGradient.addColorStop(0, template.gradients.bottom.start);
+        bottomGradient.addColorStop(1, template.gradients.bottom.end);
+        
+        ctx.fillStyle = bottomGradient;
+        ctx.fillRect(0, 680, 1080, 400);
       }
 
       // Draw decorative elements
@@ -80,19 +88,22 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         });
       }
 
-      // Draw title
-      ctx.fillStyle = template.colors.titleColor;
-      ctx.font = `bold ${template.fonts.titleSize}px ${template.fonts.titleFamily}`;
+      // Draw title with golden gradient effect
+      drawGoldenText(ctx, title, template.fonts.titleSize, template.fonts.titleFamily, 540, template.layout.titleY, 800, template.fonts.titleSize * 1.2, true);
+
+      // Draw main text with enhanced styling
+      ctx.fillStyle = template.colors.textColor;
+      ctx.font = `${template.fonts.textSize}px ${template.fonts.textFamily}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       
-      // Add text shadow
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-      ctx.shadowBlur = 4;
+      // Add text shadow for better visibility
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 6;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
       
-      wrapText(ctx, title, 540, template.layout.titleY, 800, template.fonts.titleSize * 1.2);
+      wrapText(ctx, mainText, 540, template.layout.textY, 700, template.fonts.textSize * 1.5);
 
       // Reset shadow
       ctx.shadowColor = 'transparent';
@@ -100,15 +111,39 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
 
-      // Draw main text
-      ctx.fillStyle = template.colors.textColor;
-      ctx.font = `${template.fonts.textSize}px ${template.fonts.textFamily}`;
-      wrapText(ctx, mainText, 540, template.layout.textY, 700, template.fonts.textSize * 1.5);
-
       // Draw quoted text if provided
       if (quotedText.trim()) {
         drawQuoteBox(ctx, template, quotedText);
       }
+    };
+
+    const drawGoldenText = (ctx: CanvasRenderingContext2D, text: string, fontSize: number, fontFamily: string, x: number, y: number, maxWidth: number, lineHeight: number, isTitle: boolean = false) => {
+      ctx.font = `${isTitle ? 'bold' : ''} ${fontSize}px ${fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      
+      // Create golden gradient
+      const gradient = ctx.createLinearGradient(0, y, 0, y + fontSize);
+      gradient.addColorStop(0, '#ffd700');
+      gradient.addColorStop(0.3, '#ffed4e');  
+      gradient.addColorStop(0.7, '#d97706');
+      gradient.addColorStop(1, '#b45309');
+      
+      ctx.fillStyle = gradient;
+      
+      // Add strong shadow for visibility
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+      
+      wrapText(ctx, text, x, y, maxWidth, lineHeight);
+      
+      // Reset shadow
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
     };
 
     const drawHalo = (ctx: CanvasRenderingContext2D, decoration: any) => {
@@ -131,23 +166,25 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       const boxX = 240;
       const boxY = template.layout.quoteY;
 
-      // Draw quote background
+      // Draw quote background with enhanced styling
       ctx.fillStyle = template.colors.quoteBackground;
       ctx.beginPath();
       ctx.roundRect(boxX, boxY, boxWidth, boxHeight, 20);
       ctx.fill();
 
-      // Draw quote border
+      // Draw quote border with glow effect
       ctx.strokeStyle = template.colors.quoteBorder;
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = template.colors.quoteBorder;
+      ctx.shadowBlur = 10;
       ctx.stroke();
-
-      // Draw quote text
-      ctx.fillStyle = template.colors.quoteTextColor;
-      ctx.font = `italic ${template.fonts.quoteSize}px ${template.fonts.quoteFamily}`;
-      ctx.textAlign = 'center';
       
-      wrapText(ctx, `"${text}"`, boxX + boxWidth / 2, boxY + 40, boxWidth - 40, template.fonts.quoteSize * 1.4);
+      // Reset shadow
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+
+      // Draw quote text with golden gradient
+      drawGoldenText(ctx, `"${text}"`, template.fonts.quoteSize, template.fonts.quoteFamily, boxX + boxWidth / 2, boxY + 50, boxWidth - 40, template.fonts.quoteSize * 1.4);
     };
 
     const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
