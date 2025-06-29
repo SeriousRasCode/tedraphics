@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { PosterCanvas } from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -13,7 +12,7 @@ const Index = () => {
   const [title, setTitle] = useState('Your Title Here');
   const [mainText, setMainText] = useState('Your main content goes here. This is where you can add your primary message or description.');
   const [quotedText, setQuotedText] = useState('Optional quoted text or special message');
-  const [selectedTemplate, setSelectedTemplate] = useState(1);
+  const [selectedTemplate, setSelectedTemplate] = useState(2);
   const [gradientHeight, setGradientHeight] = useState(400);
   const [language, setLanguage] = useState<'amharic' | 'oromic'>('amharic');
   const [socialLinks, setSocialLinks] = useState({

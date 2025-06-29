@@ -73,7 +73,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       canvas.width = 1080;
       canvas.height = 1080;
 
-      const currentTemplate = templates[template] || templates[1];
+      const currentTemplate = templates[template] || templates[2];
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const draw = () => {
@@ -143,20 +143,36 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
 
     const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
       const linkY = 1020;
-      const gap = 100;
+      const gap = 120;
       const fontSize = 24;
       const fontFamily = customFonts.textFont || fonts.textFont;
       ctx.font = `${fontSize}px ${fontFamily}`;
       
-      // Social media icons using Unicode symbols
+      // Load and draw social media icons
+      const iconSize = 32;
+      const iconY = linkY - iconSize / 2 - 8;
+      
       const links = [
-        { icon: '📱', text: socialLinks.telegram, color: '#0088cc' },
-        { icon: '📷', text: socialLinks.instagram, color: '#E4405F' },
-        { icon: '🎵', text: socialLinks.tiktok, color: '#ff0050' }
+        { 
+          iconSrc: '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png', 
+          text: socialLinks.telegram, 
+          color: '#0088cc' 
+        },
+        { 
+          iconSrc: '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png', 
+          text: socialLinks.instagram, 
+          color: '#E4405F' 
+        },
+        { 
+          iconSrc: '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png', 
+          text: socialLinks.tiktok, 
+          color: '#ff0050' 
+        }
       ];
       
-      const widths = links.map(l => ctx.measureText(`${l.icon} ${l.text}`).width);
-      const totalWidth = widths.reduce((a, b) => a + b, 0) + gap * (links.length - 1);
+      // Calculate total width for centering
+      const textWidths = links.map(l => ctx.measureText(l.text).width);
+      const totalWidth = textWidths.reduce((a, b) => a + b, 0) + (iconSize + 10) * links.length + gap * (links.length - 1);
       let x = (1080 - totalWidth) / 2;
 
       ctx.textAlign = 'left';
@@ -165,10 +181,18 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetX = 1;
       ctx.shadowOffsetY = 1;
 
-      links.forEach((l, i) => {
+      links.forEach((link, i) => {
+        // Load and draw icon
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, x, iconY, iconSize, iconSize);
+        };
+        img.src = link.iconSrc;
+        
+        // Draw text
         ctx.fillStyle = '#ffd700';
-        ctx.fillText(`${l.icon} ${l.text}`, x, linkY);
-        x += widths[i] + gap;
+        ctx.fillText(link.text, x + iconSize + 10, linkY);
+        x += iconSize + 10 + textWidths[i] + gap;
       });
 
       ctx.shadowColor = 'transparent';
