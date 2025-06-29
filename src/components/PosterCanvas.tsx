@@ -9,6 +9,7 @@ interface PosterCanvasProps {
   quotedText: string;
   template: number;
   gradientHeight: number;
+  gradientStrength: number;
   language: 'amharic' | 'oromic';
   socialLinks: {
     telegram: string;
@@ -24,15 +25,24 @@ interface PosterCanvasProps {
     width: number;
     height: number;
   };
+  quoteBoxStyle: 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none';
   fonts: {
     titleFont: string;
     textFont: string;
     quoteFont: string;
+    topBottomFont: string;
+  };
+  fontSizes: {
+    titleSize: number;
+    textSize: number;
+    quoteSize: number;
+    topBottomSize: number;
   };
   customFonts: {
     titleFont: string | null;
     textFont: string | null;
     quoteFont: string | null;
+    topBottomFont: string | null;
   };
 }
 
@@ -44,11 +54,14 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     quotedText,
     template,
     gradientHeight,
+    gradientStrength,
     language,
     socialLinks,
     textPositions,
     quoteBoxSize,
+    quoteBoxStyle,
     fonts,
+    fontSizes,
     customFonts
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -83,7 +96,6 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         drawSocialLinks(ctx);
       };
 
-      // Always try to draw background image for all templates
       if (backgroundImage) {
         const img = new Image();
         img.onload = () => {
@@ -95,7 +107,6 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         };
         img.src = backgroundImage;
       } else {
-        // Fallback gradient background for all templates
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
         gradient.addColorStop(0, currentTemplate.colors.primary);
         gradient.addColorStop(1, currentTemplate.colors.secondary);
@@ -103,20 +114,22 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, language, socialLinks, textPositions, quoteBoxSize, fonts, customFonts]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
-      // Top gradient overlay - no height limitation
+      const alpha = gradientStrength / 100;
+      
+      // Top gradient overlay
       const top = ctx.createLinearGradient(0, 0, 0, gradientHeight);
-      top.addColorStop(0, '#083765');
+      top.addColorStop(0, `rgba(8, 55, 101, ${alpha})`);
       top.addColorStop(1, 'rgba(8, 55, 101, 0)');
       ctx.fillStyle = top;
       ctx.fillRect(0, 0, 1080, gradientHeight);
 
-      // Bottom gradient overlay - no height limitation
+      // Bottom gradient overlay
       const bottom = ctx.createLinearGradient(0, 1080 - gradientHeight, 0, 1080);
       bottom.addColorStop(0, 'rgba(8, 55, 101, 0)');
-      bottom.addColorStop(1, '#083765');
+      bottom.addColorStop(1, `rgba(8, 55, 101, ${alpha})`);
       ctx.fillStyle = bottom;
       ctx.fillRect(0, 1080 - gradientHeight, 1080, gradientHeight);
     };
@@ -124,16 +137,16 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
       const texts = bilingualTexts[language];
       ctx.fillStyle = '#ffd700';
-      const fontFamily = customFonts.textFont || fonts.textFont;
-      ctx.font = `28px ${fontFamily}`;
+      const fontFamily = customFonts.topBottomFont || fonts.topBottomFont;
+      ctx.font = `${fontSizes.topBottomSize}px ${fontFamily}`;
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 4;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
 
-      wrapText(ctx, texts.top, 540, 40, 1000, 35);
-      wrapText(ctx, texts.bottom, 540, 950, 1000, 35);
+      wrapText(ctx, texts.top, 540, 40, 1000, fontSizes.topBottomSize * 1.2);
+      wrapText(ctx, texts.bottom, 540, 950, 1000, fontSizes.topBottomSize * 1.2);
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
@@ -143,13 +156,12 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
 
     const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
       const linkY = 1020;
-      const gap = 120;
-      const fontSize = 24;
+      const gap = 80;
+      const fontSize = 20;
       const fontFamily = customFonts.textFont || fonts.textFont;
       ctx.font = `${fontSize}px ${fontFamily}`;
       
-      // Load and draw social media icons
-      const iconSize = 32;
+      const iconSize = 20;
       const iconY = linkY - iconSize / 2 - 8;
       
       const links = [
@@ -172,7 +184,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       
       // Calculate total width for centering
       const textWidths = links.map(l => ctx.measureText(l.text).width);
-      const totalWidth = textWidths.reduce((a, b) => a + b, 0) + (iconSize + 10) * links.length + gap * (links.length - 1);
+      const totalWidth = textWidths.reduce((a, b) => a + b, 0) + (iconSize + 8) * links.length + gap * (links.length - 1);
       let x = (1080 - totalWidth) / 2;
 
       ctx.textAlign = 'left';
@@ -182,17 +194,17 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetY = 1;
 
       links.forEach((link, i) => {
-        // Load and draw icon
+        // Load and draw icon (smaller and to the left)
         const img = new Image();
         img.onload = () => {
           ctx.drawImage(img, x, iconY, iconSize, iconSize);
         };
         img.src = link.iconSrc;
         
-        // Draw text
+        // Draw text next to icon
         ctx.fillStyle = '#ffd700';
-        ctx.fillText(link.text, x + iconSize + 10, linkY);
-        x += iconSize + 10 + textWidths[i] + gap;
+        ctx.fillText(link.text, x + iconSize + 8, linkY);
+        x += iconSize + 8 + textWidths[i] + gap;
       });
 
       ctx.shadowColor = 'transparent';
@@ -202,19 +214,12 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     };
 
     const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
-      // Skip halo decorations (unwanted circle)
-      if (template.decorations) {
-        template.decorations.forEach((d: any) => {
-          if (d.type === 'border') drawBorder(ctx, d);
-        });
-      }
-
       const titleFontFamily = customFonts.titleFont || fonts.titleFont;
-      drawGoldenText(ctx, title, template.fonts.titleSize, titleFontFamily, 540, textPositions.titleY, 800, template.fonts.titleSize * 1.2, true);
+      drawGoldenText(ctx, title, fontSizes.titleSize, titleFontFamily, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2, true);
 
       ctx.fillStyle = template.colors.textColor;
       const textFontFamily = customFonts.textFont || fonts.textFont;
-      ctx.font = `${template.fonts.textSize}px ${textFontFamily}`;
+      ctx.font = `${fontSizes.textSize}px ${textFontFamily}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
@@ -222,7 +227,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
 
-      wrapText(ctx, mainText, 540, textPositions.textY, 700, template.fonts.textSize * 1.5);
+      wrapText(ctx, mainText, 540, textPositions.textY, 700, fontSizes.textSize * 1.5);
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
@@ -268,40 +273,59 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetY = 0;
     };
 
-    const drawBorder = (ctx: CanvasRenderingContext2D, d: any) => {
-      ctx.strokeStyle = d.color;
-      ctx.lineWidth = d.width;
-      ctx.strokeRect(d.x, d.y, d.width, d.height);
-    };
-
     const drawQuoteBox = (ctx: CanvasRenderingContext2D, template: any, text: string) => {
       const boxX = (1080 - quoteBoxSize.width) / 2;
       const boxY = textPositions.quoteY;
 
-      ctx.fillStyle = template.colors.quoteBackground;
-      ctx.beginPath();
-      ctx.roundRect(boxX, boxY, quoteBoxSize.width, quoteBoxSize.height, 20);
-      ctx.fill();
+      if (quoteBoxStyle !== 'none') {
+        ctx.fillStyle = template.colors.quoteBackground;
+        ctx.beginPath();
 
-      ctx.strokeStyle = template.colors.quoteBorder;
-      ctx.lineWidth = 3;
-      ctx.shadowColor = template.colors.quoteBorder;
-      ctx.shadowBlur = 10;
-      ctx.stroke();
+        switch (quoteBoxStyle) {
+          case 'rectangle':
+            ctx.rect(boxX, boxY, quoteBoxSize.width, quoteBoxSize.height);
+            break;
+          case 'rounded':
+            ctx.roundRect(boxX, boxY, quoteBoxSize.width, quoteBoxSize.height, 20);
+            break;
+          case 'circle':
+            const radius = Math.min(quoteBoxSize.width, quoteBoxSize.height) / 2;
+            ctx.arc(boxX + quoteBoxSize.width / 2, boxY + quoteBoxSize.height / 2, radius, 0, 2 * Math.PI);
+            break;
+          case 'diamond':
+            const centerX = boxX + quoteBoxSize.width / 2;
+            const centerY = boxY + quoteBoxSize.height / 2;
+            ctx.moveTo(centerX, boxY);
+            ctx.lineTo(boxX + quoteBoxSize.width, centerY);
+            ctx.lineTo(centerX, boxY + quoteBoxSize.height);
+            ctx.lineTo(boxX, centerY);
+            ctx.closePath();
+            break;
+        }
 
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
+        ctx.fill();
+
+        ctx.strokeStyle = template.colors.quoteBorder;
+        ctx.lineWidth = 3;
+        ctx.shadowColor = template.colors.quoteBorder;
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      }
 
       const quoteFontFamily = customFonts.quoteFont || fonts.quoteFont;
+      const quoteText = quoteBoxStyle === 'none' ? text : `"${text}"`;
       drawGoldenText(
         ctx,
-        `"${text}"`,
-        template.fonts.quoteSize,
+        quoteText,
+        fontSizes.quoteSize,
         quoteFontFamily,
         boxX + quoteBoxSize.width / 2,
         boxY + 50,
         quoteBoxSize.width - 40,
-        template.fonts.quoteSize * 1.4
+        fontSizes.quoteSize * 1.4
       );
     };
 

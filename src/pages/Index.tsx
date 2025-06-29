@@ -14,6 +14,7 @@ const Index = () => {
   const [quotedText, setQuotedText] = useState('Optional quoted text or special message');
   const [selectedTemplate, setSelectedTemplate] = useState(2);
   const [gradientHeight, setGradientHeight] = useState(400);
+  const [gradientStrength, setGradientStrength] = useState(80);
   const [language, setLanguage] = useState<'amharic' | 'oromic'>('amharic');
   const [socialLinks, setSocialLinks] = useState({
     telegram: '@username',
@@ -29,15 +30,24 @@ const Index = () => {
     width: 600,
     height: 150
   });
+  const [quoteBoxStyle, setQuoteBoxStyle] = useState<'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none'>('rounded');
   const [fonts, setFonts] = useState({
     titleFont: 'Georgia, serif',
     textFont: 'Georgia, serif',
-    quoteFont: 'Georgia, serif'
+    quoteFont: 'Georgia, serif',
+    topBottomFont: 'Georgia, serif'
+  });
+  const [fontSizes, setFontSizes] = useState({
+    titleSize: 80,
+    textSize: 34,
+    quoteSize: 30,
+    topBottomSize: 28
   });
   const [customFonts, setCustomFonts] = useState({
     titleFont: null as string | null,
     textFont: null as string | null,
-    quoteFont: null as string | null
+    quoteFont: null as string | null,
+    topBottomFont: null as string | null
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -64,18 +74,14 @@ const Index = () => {
   const handleTelegramShare = async () => {
     if (canvasRef.current) {
       try {
-        // Convert canvas to blob
         const canvas = canvasRef.current;
         canvas.toBlob(async (blob) => {
           if (!blob) return;
           
-          // Create FormData to send to Telegram Bot API
           const formData = new FormData();
           formData.append('photo', blob, 'poster.png');
           
-          // Check if running in Telegram Mini App
           if (window.Telegram && window.Telegram.WebApp) {
-            // Send the image back to the bot
             const tg = window.Telegram.WebApp;
             const reader = new FileReader();
             reader.onload = () => {
@@ -109,10 +115,8 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Mobile-first layout */}
         <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0 max-w-7xl mx-auto">
           
-          {/* Preview Panel - Shows first on mobile */}
           <div className="order-1 lg:order-2 bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
             <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Preview</h2>
             <div className="flex justify-center">
@@ -124,20 +128,21 @@ const Index = () => {
                 quotedText={quotedText}
                 template={selectedTemplate}
                 gradientHeight={gradientHeight}
+                gradientStrength={gradientStrength}
                 language={language}
                 socialLinks={socialLinks}
                 textPositions={textPositions}
                 quoteBoxSize={quoteBoxSize}
+                quoteBoxStyle={quoteBoxStyle}
                 fonts={fonts}
+                fontSizes={fontSizes}
                 customFonts={customFonts}
               />
             </div>
           </div>
 
-          {/* Controls Panel - Shows second on mobile */}
           <div className="order-2 lg:order-1 space-y-4 sm:space-y-6">
             
-            {/* Template & Image Upload */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
               <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Design Settings</h2>
               
@@ -151,7 +156,6 @@ const Index = () => {
               </div>
             </div>
 
-            {/* All Controls */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
               <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Content & Style</h2>
               
@@ -164,6 +168,8 @@ const Index = () => {
                 onQuotedTextChange={setQuotedText}
                 gradientHeight={gradientHeight}
                 onGradientHeightChange={setGradientHeight}
+                gradientStrength={gradientStrength}
+                onGradientStrengthChange={setGradientStrength}
                 language={language}
                 onLanguageChange={setLanguage}
                 socialLinks={socialLinks}
@@ -172,14 +178,17 @@ const Index = () => {
                 onTextPositionsChange={setTextPositions}
                 quoteBoxSize={quoteBoxSize}
                 onQuoteBoxSizeChange={setQuoteBoxSize}
+                quoteBoxStyle={quoteBoxStyle}
+                onQuoteBoxStyleChange={setQuoteBoxStyle}
                 fonts={fonts}
                 onFontsChange={setFonts}
+                fontSizes={fontSizes}
+                onFontSizesChange={setFontSizes}
                 customFonts={customFonts}
                 onCustomFontsChange={setCustomFonts}
               />
             </div>
 
-            {/* Action Buttons */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20 space-y-3">
               <Button 
                 onClick={handleDownload}

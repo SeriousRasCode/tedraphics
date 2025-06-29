@@ -17,6 +17,8 @@ interface PosterControlsProps {
   onQuotedTextChange: (value: string) => void;
   gradientHeight: number;
   onGradientHeightChange: (value: number) => void;
+  gradientStrength: number;
+  onGradientStrengthChange: (value: number) => void;
   language: 'amharic' | 'oromic';
   onLanguageChange: (value: 'amharic' | 'oromic') => void;
   socialLinks: {
@@ -36,18 +38,29 @@ interface PosterControlsProps {
     height: number;
   };
   onQuoteBoxSizeChange: (size: { width: number; height: number }) => void;
+  quoteBoxStyle: 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none';
+  onQuoteBoxStyleChange: (style: 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none') => void;
   fonts: {
     titleFont: string;
     textFont: string;
     quoteFont: string;
+    topBottomFont: string;
   };
-  onFontsChange: (fonts: { titleFont: string; textFont: string; quoteFont: string }) => void;
+  onFontsChange: (fonts: { titleFont: string; textFont: string; quoteFont: string; topBottomFont: string }) => void;
+  fontSizes: {
+    titleSize: number;
+    textSize: number;
+    quoteSize: number;
+    topBottomSize: number;
+  };
+  onFontSizesChange: (sizes: { titleSize: number; textSize: number; quoteSize: number; topBottomSize: number }) => void;
   customFonts: {
     titleFont: string | null;
     textFont: string | null;
     quoteFont: string | null;
+    topBottomFont: string | null;
   };
-  onCustomFontsChange: (customFonts: { titleFont: string | null; textFont: string | null; quoteFont: string | null }) => void;
+  onCustomFontsChange: (customFonts: { titleFont: string | null; textFont: string | null; quoteFont: string | null; topBottomFont: string | null }) => void;
 }
 
 const availableFonts = [
@@ -72,6 +85,8 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
   onQuotedTextChange,
   gradientHeight,
   onGradientHeightChange,
+  gradientStrength,
+  onGradientStrengthChange,
   language,
   onLanguageChange,
   socialLinks,
@@ -80,18 +95,21 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
   onTextPositionsChange,
   quoteBoxSize,
   onQuoteBoxSizeChange,
+  quoteBoxStyle,
+  onQuoteBoxStyleChange,
   fonts,
   onFontsChange,
+  fontSizes,
+  onFontSizesChange,
   customFonts,
   onCustomFontsChange,
 }) => {
-  const handleFontUpload = (event: React.ChangeEvent<HTMLInputElement>, fontType: 'titleFont' | 'textFont' | 'quoteFont') => {
+  const handleFontUpload = (event: React.ChangeEvent<HTMLInputElement>, fontType: 'titleFont' | 'textFont' | 'quoteFont' | 'topBottomFont') => {
     const file = event.target.files?.[0];
     if (file && file.type.includes('font')) {
       const fontName = file.name.replace(/\.[^/.]+$/, '');
       const url = URL.createObjectURL(file);
       
-      // Create a new FontFace and load it
       const font = new FontFace(fontName, `url(${url})`);
       font.load().then(() => {
         document.fonts.add(font);
@@ -160,24 +178,67 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
         </Select>
       </div>
 
-      {/* Extended Gradient Height Control */}
+      {/* Gradient Controls */}
+      <div className="space-y-3">
+        <div>
+          <Label className="text-white text-sm font-medium">
+            Gradient Height: {gradientHeight}px
+          </Label>
+          <Slider
+            value={[gradientHeight]}
+            onValueChange={(value) => onGradientHeightChange(value[0])}
+            max={1080}
+            min={200}
+            step={20}
+            className="mt-2"
+          />
+        </div>
+        
+        <div>
+          <Label className="text-white text-sm font-medium">
+            Gradient Strength: {gradientStrength}%
+          </Label>
+          <Slider
+            value={[gradientStrength]}
+            onValueChange={(value) => onGradientStrengthChange(value[0])}
+            max={100}
+            min={0}
+            step={5}
+            className="mt-2"
+          />
+        </div>
+      </div>
+
+      {/* Quote Box Style */}
       <div>
-        <Label className="text-white text-sm font-medium">
-          Gradient Height: {gradientHeight}px (covers {Math.round((gradientHeight / 1080) * 100)}% of poster)
-        </Label>
-        <Slider
-          value={[gradientHeight]}
-          onValueChange={(value) => onGradientHeightChange(value[0])}
-          max={1080}
-          min={200}
-          step={20}
-          className="mt-2"
-        />
+        <Label className="text-white text-sm font-medium">Quote Box Style</Label>
+        <Select value={quoteBoxStyle} onValueChange={onQuoteBoxStyleChange}>
+          <SelectTrigger className="w-full bg-white/10 border-white/20 text-white mt-2">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-slate-800 border-slate-700">
+            <SelectItem value="rectangle" className="text-white hover:bg-slate-700">
+              Rectangle
+            </SelectItem>
+            <SelectItem value="rounded" className="text-white hover:bg-slate-700">
+              Rounded Rectangle
+            </SelectItem>
+            <SelectItem value="circle" className="text-white hover:bg-slate-700">
+              Circle
+            </SelectItem>
+            <SelectItem value="diamond" className="text-white hover:bg-slate-700">
+              Diamond
+            </SelectItem>
+            <SelectItem value="none" className="text-white hover:bg-slate-700">
+              No Shape
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Social Media Links */}
       <div className="space-y-3">
-        <Label className="text-white text-sm font-medium">Social Media Links (Centered)</Label>
+        <Label className="text-white text-sm font-medium">Social Media Links</Label>
         <div className="space-y-2">
           <Input
             value={socialLinks.telegram}
@@ -200,7 +261,7 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
         </div>
       </div>
 
-      {/* Extended Text Positions */}
+      {/* Text Positions */}
       <div className="space-y-3">
         <Label className="text-white text-sm font-medium">Text Positions</Label>
         <div className="space-y-2">
@@ -270,103 +331,189 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
       </div>
 
       {/* Font Selection with Custom Upload */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         <Label className="text-white text-sm font-medium">Font Selection</Label>
-        <div className="space-y-3">
-          <div>
-            <Label className="text-white text-xs">Title Font</Label>
-            <div className="flex gap-2 mt-1">
-              <Select value={fonts.titleFont} onValueChange={(value) => onFontsChange({ ...fonts, titleFont: value })}>
-                <SelectTrigger className="flex-1 bg-white/10 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  {availableFonts.map((font) => (
-                    <SelectItem key={font} value={font} className="text-white hover:bg-slate-700">
-                      {font.split(',')[0]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="relative">
-                <input
-                  type="file"
-                  accept=".ttf,.otf,.woff,.woff2"
-                  onChange={(e) => handleFontUpload(e, 'titleFont')}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
+        
+        {/* Title Font */}
+        <div>
+          <Label className="text-white text-xs">Title Font</Label>
+          <div className="flex gap-2 mt-1">
+            <Select value={fonts.titleFont} onValueChange={(value) => onFontsChange({ ...fonts, titleFont: value })}>
+              <SelectTrigger className="flex-1 bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {availableFonts.map((font) => (
+                  <SelectItem key={font} value={font} className="text-white hover:bg-slate-700">
+                    {font.split(',')[0]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".ttf,.otf,.woff,.woff2"
+                onChange={(e) => handleFontUpload(e, 'titleFont')}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <Upload className="h-4 w-4" />
+              </Button>
             </div>
-            {customFonts.titleFont && (
-              <p className="text-xs text-green-400 mt-1">Custom font loaded: {customFonts.titleFont}</p>
-            )}
           </div>
-          
-          <div>
-            <Label className="text-white text-xs">Text Font</Label>
-            <div className="flex gap-2 mt-1">
-              <Select value={fonts.textFont} onValueChange={(value) => onFontsChange({ ...fonts, textFont: value })}>
-                <SelectTrigger className="flex-1 bg-white/10 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  {availableFonts.map((font) => (
-                    <SelectItem key={font} value={font} className="text-white hover:bg-slate-700">
-                      {font.split(',')[0]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="relative">
-                <input
-                  type="file"
-                  accept=".ttf,.otf,.woff,.woff2"
-                  onChange={(e) => handleFontUpload(e, 'textFont')}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
+          {customFonts.titleFont && (
+            <p className="text-xs text-green-400 mt-1">Custom font loaded: {customFonts.titleFont}</p>
+          )}
+        </div>
+        
+        {/* Text Font */}
+        <div>
+          <Label className="text-white text-xs">Text Font</Label>
+          <div className="flex gap-2 mt-1">
+            <Select value={fonts.textFont} onValueChange={(value) => onFontsChange({ ...fonts, textFont: value })}>
+              <SelectTrigger className="flex-1 bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {availableFonts.map((font) => (
+                  <SelectItem key={font} value={font} className="text-white hover:bg-slate-700">
+                    {font.split(',')[0]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".ttf,.otf,.woff,.woff2"
+                onChange={(e) => handleFontUpload(e, 'textFont')}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <Upload className="h-4 w-4" />
+              </Button>
             </div>
-            {customFonts.textFont && (
-              <p className="text-xs text-green-400 mt-1">Custom font loaded: {customFonts.textFont}</p>
-            )}
           </div>
-          
-          <div>
-            <Label className="text-white text-xs">Quote Font</Label>
-            <div className="flex gap-2 mt-1">
-              <Select value={fonts.quoteFont} onValueChange={(value) => onFontsChange({ ...fonts, quoteFont: value })}>
-                <SelectTrigger className="flex-1 bg-white/10 border-white/20 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  {availableFonts.map((font) => (
-                    <SelectItem key={font} value={font} className="text-white hover:bg-slate-700">
-                      {font.split(',')[0]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="relative">
-                <input
-                  type="file"
-                  accept=".ttf,.otf,.woff,.woff2"
-                  onChange={(e) => handleFontUpload(e, 'quoteFont')}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
-                  <Upload className="h-4 w-4" />
-                </Button>
-              </div>
+          {customFonts.textFont && (
+            <p className="text-xs text-green-400 mt-1">Custom font loaded: {customFonts.textFont}</p>
+          )}
+        </div>
+        
+        {/* Quote Font */}
+        <div>
+          <Label className="text-white text-xs">Quote Font</Label>
+          <div className="flex gap-2 mt-1">
+            <Select value={fonts.quoteFont} onValueChange={(value) => onFontsChange({ ...fonts, quoteFont: value })}>
+              <SelectTrigger className="flex-1 bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {availableFonts.map((font) => (
+                  <SelectItem key={font} value={font} className="text-white hover:bg-slate-700">
+                    {font.split(',')[0]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".ttf,.otf,.woff,.woff2"
+                onChange={(e) => handleFontUpload(e, 'quoteFont')}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <Upload className="h-4 w-4" />
+              </Button>
             </div>
-            {customFonts.quoteFont && (
-              <p className="text-xs text-green-400 mt-1">Custom font loaded: {customFonts.quoteFont}</p>
-            )}
+          </div>
+          {customFonts.quoteFont && (
+            <p className="text-xs text-green-400 mt-1">Custom font loaded: {customFonts.quoteFont}</p>
+          )}
+        </div>
+
+        {/* Top/Bottom Text Font */}
+        <div>
+          <Label className="text-white text-xs">Top/Bottom Text Font</Label>
+          <div className="flex gap-2 mt-1">
+            <Select value={fonts.topBottomFont} onValueChange={(value) => onFontsChange({ ...fonts, topBottomFont: value })}>
+              <SelectTrigger className="flex-1 bg-white/10 border-white/20 text-white">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-slate-800 border-slate-700">
+                {availableFonts.map((font) => (
+                  <SelectItem key={font} value={font} className="text-white hover:bg-slate-700">
+                    {font.split(',')[0]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".ttf,.otf,.woff,.woff2"
+                onChange={(e) => handleFontUpload(e, 'topBottomFont')}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Button variant="outline" size="sm" className="bg-white/10 border-white/20 text-white hover:bg-white/20">
+                <Upload className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          {customFonts.topBottomFont && (
+            <p className="text-xs text-green-400 mt-1">Custom font loaded: {customFonts.topBottomFont}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Font Sizes */}
+      <div className="space-y-3">
+        <Label className="text-white text-sm font-medium">Font Sizes</Label>
+        <div className="space-y-2">
+          <div>
+            <Label className="text-white text-xs">Title Size: {fontSizes.titleSize}px</Label>
+            <Slider
+              value={[fontSizes.titleSize]}
+              onValueChange={(value) => onFontSizesChange({ ...fontSizes, titleSize: value[0] })}
+              max={120}
+              min={20}
+              step={2}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-white text-xs">Text Size: {fontSizes.textSize}px</Label>
+            <Slider
+              value={[fontSizes.textSize]}
+              onValueChange={(value) => onFontSizesChange({ ...fontSizes, textSize: value[0] })}
+              max={60}
+              min={16}
+              step={2}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-white text-xs">Quote Size: {fontSizes.quoteSize}px</Label>
+            <Slider
+              value={[fontSizes.quoteSize]}
+              onValueChange={(value) => onFontSizesChange({ ...fontSizes, quoteSize: value[0] })}
+              max={50}
+              min={16}
+              step={2}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-white text-xs">Top/Bottom Text Size: {fontSizes.topBottomSize}px</Label>
+            <Slider
+              value={[fontSizes.topBottomSize]}
+              onValueChange={(value) => onFontSizesChange({ ...fontSizes, topBottomSize: value[0] })}
+              max={40}
+              min={16}
+              step={2}
+              className="mt-1"
+            />
           </div>
         </div>
       </div>
