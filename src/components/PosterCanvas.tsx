@@ -1,3 +1,4 @@
+
 import React, { useRef, useEffect, forwardRef } from 'react';
 import { templates } from '@/utils/posterTemplates';
 
@@ -28,6 +29,11 @@ interface PosterCanvasProps {
     textFont: string;
     quoteFont: string;
   };
+  customFonts: {
+    titleFont: string | null;
+    textFont: string | null;
+    quoteFont: string | null;
+  };
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
@@ -42,7 +48,8 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     socialLinks,
     textPositions,
     quoteBoxSize,
-    fonts
+    fonts,
+    customFonts
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -76,6 +83,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         drawSocialLinks(ctx);
       };
 
+      // Always try to draw background image for all templates
       if (backgroundImage) {
         const img = new Image();
         img.onload = () => {
@@ -87,6 +95,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         };
         img.src = backgroundImage;
       } else {
+        // Fallback gradient background for all templates
         const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
         gradient.addColorStop(0, currentTemplate.colors.primary);
         gradient.addColorStop(1, currentTemplate.colors.secondary);
@@ -94,15 +103,17 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, language, socialLinks, textPositions, quoteBoxSize, fonts]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, language, socialLinks, textPositions, quoteBoxSize, fonts, customFonts]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
+      // Top gradient overlay - no height limitation
       const top = ctx.createLinearGradient(0, 0, 0, gradientHeight);
       top.addColorStop(0, '#083765');
       top.addColorStop(1, 'rgba(8, 55, 101, 0)');
       ctx.fillStyle = top;
       ctx.fillRect(0, 0, 1080, gradientHeight);
 
+      // Bottom gradient overlay - no height limitation
       const bottom = ctx.createLinearGradient(0, 1080 - gradientHeight, 0, 1080);
       bottom.addColorStop(0, 'rgba(8, 55, 101, 0)');
       bottom.addColorStop(1, '#083765');
@@ -113,15 +124,16 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
       const texts = bilingualTexts[language];
       ctx.fillStyle = '#ffd700';
-      ctx.font = `28px ${fonts.textFont}`;
+      const fontFamily = customFonts.textFont || fonts.textFont;
+      ctx.font = `28px ${fontFamily}`;
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 4;
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
 
-      wrapText(ctx, texts.top, 540, 40, 900, 35);
-      wrapText(ctx, texts.bottom, 540, 950, 900, 35);
+      wrapText(ctx, texts.top, 540, 40, 1000, 35);
+      wrapText(ctx, texts.bottom, 540, 950, 1000, 35);
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
@@ -131,19 +143,22 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
 
     const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
       const linkY = 1020;
-      const gap = 80;
-      const fontSize = 22;
-      ctx.font = `${fontSize}px ${fonts.textFont}`;
+      const gap = 100;
+      const fontSize = 24;
+      const fontFamily = customFonts.textFont || fonts.textFont;
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      
+      // Social media icons using Unicode symbols
       const links = [
-        { icon: '📩', text: socialLinks.telegram },
-        { icon: '📸', text: socialLinks.instagram },
-        { icon: '🎶', text: socialLinks.tiktok }
+        { icon: '📱', text: socialLinks.telegram, color: '#0088cc' },
+        { icon: '📷', text: socialLinks.instagram, color: '#E4405F' },
+        { icon: '🎵', text: socialLinks.tiktok, color: '#ff0050' }
       ];
+      
       const widths = links.map(l => ctx.measureText(`${l.icon} ${l.text}`).width);
       const totalWidth = widths.reduce((a, b) => a + b, 0) + gap * (links.length - 1);
       let x = (1080 - totalWidth) / 2;
 
-      ctx.fillStyle = '#ffd700';
       ctx.textAlign = 'left';
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 3;
@@ -151,6 +166,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetY = 1;
 
       links.forEach((l, i) => {
+        ctx.fillStyle = '#ffd700';
         ctx.fillText(`${l.icon} ${l.text}`, x, linkY);
         x += widths[i] + gap;
       });
@@ -169,10 +185,12 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         });
       }
 
-      drawGoldenText(ctx, title, template.fonts.titleSize, fonts.titleFont, 540, textPositions.titleY, 800, template.fonts.titleSize * 1.2, true);
+      const titleFontFamily = customFonts.titleFont || fonts.titleFont;
+      drawGoldenText(ctx, title, template.fonts.titleSize, titleFontFamily, 540, textPositions.titleY, 800, template.fonts.titleSize * 1.2, true);
 
       ctx.fillStyle = template.colors.textColor;
-      ctx.font = `${template.fonts.textSize}px ${fonts.textFont}`;
+      const textFontFamily = customFonts.textFont || fonts.textFont;
+      ctx.font = `${template.fonts.textSize}px ${textFontFamily}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
@@ -250,11 +268,12 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
 
+      const quoteFontFamily = customFonts.quoteFont || fonts.quoteFont;
       drawGoldenText(
         ctx,
         `"${text}"`,
         template.fonts.quoteSize,
-        fonts.quoteFont,
+        quoteFontFamily,
         boxX + quoteBoxSize.width / 2,
         boxY + 50,
         quoteBoxSize.width - 40,

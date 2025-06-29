@@ -5,7 +5,7 @@ import { TemplateSelector } from '@/components/TemplateSelector';
 import { PosterControls } from '@/components/PosterControls';
 import { ImageUpload } from '@/components/ImageUpload';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Send } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -35,6 +35,11 @@ const Index = () => {
     textFont: 'Georgia, serif',
     quoteFont: 'Georgia, serif'
   });
+  const [customFonts, setCustomFonts] = useState({
+    titleFont: null as string | null,
+    textFont: null as string | null,
+    quoteFont: null as string | null
+  });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -54,6 +59,42 @@ const Index = () => {
       link.href = canvasRef.current.toDataURL();
       link.click();
       toast.success('Poster downloaded successfully!');
+    }
+  };
+
+  const handleTelegramShare = async () => {
+    if (canvasRef.current) {
+      try {
+        // Convert canvas to blob
+        const canvas = canvasRef.current;
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          
+          // Create FormData to send to Telegram Bot API
+          const formData = new FormData();
+          formData.append('photo', blob, 'poster.png');
+          
+          // Check if running in Telegram Mini App
+          if (window.Telegram && window.Telegram.WebApp) {
+            // Send the image back to the bot
+            const tg = window.Telegram.WebApp;
+            const reader = new FileReader();
+            reader.onload = () => {
+              tg.sendData(JSON.stringify({
+                type: 'share_poster',
+                image: reader.result
+              }));
+            };
+            reader.readAsDataURL(blob);
+            toast.success('Poster shared to Telegram!');
+          } else {
+            toast.error('This feature is only available in Telegram Mini App');
+          }
+        }, 'image/png');
+      } catch (error) {
+        console.error('Error sharing to Telegram:', error);
+        toast.error('Failed to share poster');
+      }
     }
   };
 
@@ -89,6 +130,7 @@ const Index = () => {
                 textPositions={textPositions}
                 quoteBoxSize={quoteBoxSize}
                 fonts={fonts}
+                customFonts={customFonts}
               />
             </div>
           </div>
@@ -133,17 +175,27 @@ const Index = () => {
                 onQuoteBoxSizeChange={setQuoteBoxSize}
                 fonts={fonts}
                 onFontsChange={setFonts}
+                customFonts={customFonts}
+                onCustomFontsChange={setCustomFonts}
               />
             </div>
 
-            {/* Download Button */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
+            {/* Action Buttons */}
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20 space-y-3">
               <Button 
                 onClick={handleDownload}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
               >
                 <Download className="mr-2 h-5 w-5" />
                 Download Poster (1080×1080)
+              </Button>
+              
+              <Button 
+                onClick={handleTelegramShare}
+                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
+              >
+                <Send className="mr-2 h-5 w-5" />
+                Share to Telegram Bot
               </Button>
             </div>
           </div>
