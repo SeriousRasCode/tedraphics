@@ -154,64 +154,76 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetY = 0;
     };
 
-    const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
-      const linkY = 1020;
-      const gap = 80;
-      const fontSize = 20;
-      const fontFamily = customFonts.textFont || fonts.textFont;
-      ctx.font = `${fontSize}px ${fontFamily}`;
-      
-      const iconSize = 20;
-      const iconY = linkY - iconSize / 2 - 8;
-      
-      const links = [
-        { 
-          iconSrc: '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png', 
-          text: socialLinks.telegram, 
-          color: '#0088cc' 
-        },
-        { 
-          iconSrc: '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png', 
-          text: socialLinks.instagram, 
-          color: '#E4405F' 
-        },
-        { 
-          iconSrc: '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png', 
-          text: socialLinks.tiktok, 
-          color: '#ff0050' 
-        }
-      ];
-      
-      // Calculate total width for centering
-      const textWidths = links.map(l => ctx.measureText(l.text).width);
-      const totalWidth = textWidths.reduce((a, b) => a + b, 0) + (iconSize + 8) * links.length + gap * (links.length - 1);
-      let x = (1080 - totalWidth) / 2;
+const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
+  const linkY = 1020;
+  const iconSize = 24;
+  const gap = 50;
+  const fontSize = 20;
+  const fontFamily = customFonts.textFont || fonts.textFont;
+  ctx.font = `${fontSize}px ${fontFamily}`;
+  ctx.textBaseline = 'middle';
 
-      ctx.textAlign = 'left';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowBlur = 3;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
+  const links = [
+    {
+      iconSrc: '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png',
+      text: socialLinks.telegram,
+      color: '#0088cc',
+    },
+    {
+      iconSrc: '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png',
+      text: socialLinks.instagram,
+      color: '#E4405F',
+    },
+    {
+      iconSrc: '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png',
+      text: socialLinks.tiktok,
+      color: '#ff0050',
+    },
+  ];
 
-      links.forEach((link, i) => {
-        // Load and draw icon (smaller and to the left)
-        const img = new Image();
-        img.onload = () => {
-          ctx.drawImage(img, x, iconY, iconSize, iconSize);
-        };
-        img.src = link.iconSrc;
-        
-        // Draw text next to icon
-        ctx.fillStyle = '#ffd700';
-        ctx.fillText(link.text, x + iconSize + 8, linkY);
-        x += iconSize + 8 + textWidths[i] + gap;
-      });
+  const imagePromises = links.map(link => {
+    return new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = link.iconSrc;
+    });
+  });
 
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-    };
+  Promise.all(imagePromises).then(images => {
+    const blocks = links.map((link, i) => {
+      const textWidth = ctx.measureText(link.text).width;
+      return {
+        img: images[i],
+        text: link.text,
+        textWidth,
+        width: iconSize + 8 + textWidth,
+      };
+    });
+
+    const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + gap * (blocks.length - 1);
+    let x = (1080 - totalWidth) / 2;
+
+    ctx.textAlign = 'left';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+    ctx.shadowBlur = 3;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    blocks.forEach(block => {
+      ctx.drawImage(block.img, x, linkY - iconSize / 2, iconSize, iconSize);
+      ctx.fillStyle = '#ffd700';
+      ctx.fillText(block.text, x + iconSize + 8, linkY);
+      x += block.width + gap;
+    });
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+  });
+};
+
 
     const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
       const titleFontFamily = customFonts.titleFont || fonts.titleFont;
