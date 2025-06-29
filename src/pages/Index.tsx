@@ -71,11 +71,86 @@ const Index = () => {
 
   const handleDownload = () => {
     if (canvasRef.current) {
-      const link = document.createElement('a');
-      link.download = 'poster.png';
-      link.href = canvasRef.current.toDataURL();
-      link.click();
-      toast.success('Poster downloaded successfully!');
+      const canvas = canvasRef.current;
+      
+      // Check if we're in Telegram WebApp
+      if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            toast.error('Failed to generate poster image');
+            return;
+          }
+          
+          const reader = new FileReader();
+          reader.onload = () => {
+            try {
+              // Use Telegram WebApp API to handle the download
+              tg.showPopup({
+                title: 'Download Poster',
+                message: 'Your poster is ready! It will be saved to your device.',
+                buttons: [
+                  { id: 'download', type: 'default', text: 'Download' },
+                  { id: 'cancel', type: 'cancel', text: 'Cancel' }
+                ]
+              }, (buttonId) => {
+                if (buttonId === 'download') {
+                  // Create a temporary link for download in Telegram
+                  const url = canvas.toDataURL('image/png');
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = 'tedraphics-poster.png';
+                  
+                  // For mobile browsers in Telegram, we need to open in new tab
+                  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                    window.open(url, '_blank');
+                    toast.success('Poster opened in new tab - long press to save');
+                  } else {
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    toast.success('Poster downloaded successfully!');
+                  }
+                }
+              });
+            } catch (error) {
+              console.error('Telegram WebApp download error:', error);
+              // Fallback to regular download
+              regularDownload();
+            }
+          };
+          reader.readAsDataURL(blob);
+        }, 'image/png', 1.0);
+      } else {
+        // Regular browser download
+        regularDownload();
+      }
+    }
+  };
+
+  const regularDownload = () => {
+    if (canvasRef.current) {
+      try {
+        const canvas = canvasRef.current;
+        const url = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = 'tedraphics-poster.png';
+        link.href = url;
+        
+        // Ensure HTTPS for security
+        if (url.startsWith('data:')) {
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          toast.success('Poster downloaded successfully!');
+        } else {
+          toast.error('Download failed - please try again');
+        }
+      } catch (error) {
+        console.error('Download error:', error);
+        toast.error('Download failed - please try again');
+      }
     }
   };
 
