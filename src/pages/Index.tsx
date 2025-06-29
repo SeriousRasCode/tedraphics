@@ -4,8 +4,16 @@ import { TemplateSelector } from '@/components/TemplateSelector';
 import { PosterControls } from '@/components/PosterControls';
 import { ImageUpload } from '@/components/ImageUpload';
 import { Button } from '@/components/ui/button';
-import { Download, Send } from 'lucide-react';
+import { Download, Send, Menu, Info, Code } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Index = () => {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
@@ -106,13 +114,51 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-8">
-        <div className="text-center mb-6 sm:mb-8">
+        <div className="text-center mb-6 sm:mb-8 relative">
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2 sm:mb-4">
-            Poster Generator
+            Tedraphics
           </h1>
           <p className="text-sm sm:text-xl text-blue-200 max-w-2xl mx-auto px-4">
             Create beautiful 1080×1080 posters with elegant designs and bilingual support
           </p>
+          
+          {/* Dropdown Menu */}
+          <div className="absolute top-0 right-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-sm border border-white/20">
+                <DropdownMenuLabel className="text-lg font-semibold text-slate-800">
+                  Menu
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem className="flex items-start gap-3 p-4">
+                  <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold text-slate-800 mb-1">About</div>
+                    <div className="text-sm text-slate-600 leading-relaxed">
+                      Built By <span className="font-medium text-blue-700">Tedros Teshome (Ras Moa)</span>, 
+                      for automating poster design when there is no one to design urgent posters.
+                    </div>
+                  </div>
+                </DropdownMenuItem>
+                
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem className="flex items-center gap-3 p-4">
+                  <Code className="h-5 w-5 text-green-600" />
+                  <div>
+                    <div className="font-semibold text-slate-800">Version</div>
+                    <div className="text-sm text-slate-600">v1.0.0 ras</div>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0 max-w-7xl mx-auto">
