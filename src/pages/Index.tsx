@@ -87,33 +87,25 @@ const Index = () => {
           reader.onload = () => {
             try {
               // Use Telegram WebApp API to handle the download
-              tg.showPopup({
-                title: 'Download Poster',
-                message: 'Your poster is ready! It will be saved to your device.',
-                buttons: [
-                  { id: 'download', type: 'default', text: 'Download' },
-                  { id: 'cancel', type: 'cancel', text: 'Cancel' }
-                ]
-              }, (buttonId) => {
-                if (buttonId === 'download') {
-                  // Create a temporary link for download in Telegram
-                  const url = canvas.toDataURL('image/png');
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.download = 'tedraphics-poster.png';
-                  
-                  // For mobile browsers in Telegram, we need to open in new tab
-                  if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                    window.open(url, '_blank');
-                    toast.success('Poster opened in new tab - long press to save');
-                  } else {
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    toast.success('Poster downloaded successfully!');
-                  }
-                }
-              });
+              tg.showConfirm('Your poster is ready! Do you want to download it?', (confirmed: boolean) => {
+  if (confirmed) {
+    const url = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'tedraphics-poster.png';
+
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      window.open(url, '_blank');
+      toast.success('Poster opened in new tab - long press to save');
+    } else {
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Poster downloaded successfully!');
+    }
+  }
+});
+
             } catch (error) {
               console.error('Telegram WebApp download error:', error);
               // Fallback to regular download
