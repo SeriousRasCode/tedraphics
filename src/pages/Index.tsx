@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { PosterCanvas } from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -57,6 +58,22 @@ const Index = () => {
     quoteFont: null as string | null,
     topBottomFont: null as string | null
   });
+  const [bilingualEnabled, setBilingualEnabled] = useState(true);
+  const [frameStyle, setFrameStyle] = useState<'none' | 'simple' | 'elegant' | 'bold' | 'rounded'>('none');
+  const [textColors, setTextColors] = useState({
+    titleColor: 'gradient',
+    textColor: '#ffffff',
+    quoteColor: 'gradient',
+    topBottomColor: 'gradient'
+  });
+  const [mainTextWidth, setMainTextWidth] = useState(700);
+  const [additionalIcons, setAdditionalIcons] = useState({
+    place: 'Jimma University',
+    time: '2:00 PM',
+    date: 'December 30, 2024'
+  });
+  const [additionalIconsY, setAdditionalIconsY] = useState(890);
+  const [socialLinksGap, setSocialLinksGap] = useState(50);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -203,25 +220,35 @@ const Index = () => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
-                <DropdownMenuItem className="flex items-start gap-3 p-4">
-                  <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <div className="font-semibold text-slate-800 mb-1">About</div>
-                    <div className="text-sm text-slate-600 leading-relaxed">
-                      Built By <span className="font-medium text-blue-700">Tedros Teshome (Ras Moa)</span>, 
-                      for automating poster design when there is no one to design urgent posters.
-                    </div>
-                  </div>
+                <DropdownMenuItem className="p-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center gap-3 p-4 w-full text-left hover:bg-slate-100">
+                      <Info className="h-5 w-5 text-blue-600" />
+                      <span className="font-semibold text-slate-800">About</span>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="left" className="w-80 bg-white/95 backdrop-blur-sm border border-white/20">
+                      <div className="p-4">
+                        <div className="text-sm text-slate-600 leading-relaxed">
+                          Built By <span className="font-medium text-blue-700">Tedros Teshome (Ras Moa)</span>, 
+                          for automating poster design when there is no one to design urgent posters.
+                        </div>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </DropdownMenuItem>
                 
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem className="flex items-center gap-3 p-4">
-                  <Code className="h-5 w-5 text-green-600" />
-                  <div>
-                    <div className="font-semibold text-slate-800">Version</div>
-                    <div className="text-sm text-slate-600">v1.0.0 ras</div>
-                  </div>
+                <DropdownMenuItem className="p-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="flex items-center gap-3 p-4 w-full text-left hover:bg-slate-100">
+                      <Code className="h-5 w-5 text-green-600" />
+                      <span className="font-semibold text-slate-800">Version</span>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="left" className="w-40 bg-white/95 backdrop-blur-sm border border-white/20">
+                      <div className="p-4">
+                        <div className="text-sm text-slate-600">v1.0.0 ras</div>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -250,6 +277,13 @@ const Index = () => {
                 fonts={fonts}
                 fontSizes={fontSizes}
                 customFonts={customFonts}
+                bilingualEnabled={bilingualEnabled}
+                frameStyle={frameStyle}
+                textColors={textColors}
+                mainTextWidth={mainTextWidth}
+                additionalIcons={additionalIcons}
+                additionalIconsY={additionalIconsY}
+                socialLinksGap={socialLinksGap}
               />
             </div>
           </div>
@@ -299,6 +333,20 @@ const Index = () => {
                 onFontSizesChange={setFontSizes}
                 customFonts={customFonts}
                 onCustomFontsChange={setCustomFonts}
+                bilingualEnabled={bilingualEnabled}
+                onBilingualEnabledChange={setBilingualEnabled}
+                frameStyle={frameStyle}
+                onFrameStyleChange={setFrameStyle}
+                textColors={textColors}
+                onTextColorsChange={setTextColors}
+                mainTextWidth={mainTextWidth}
+                onMainTextWidthChange={setMainTextWidth}
+                additionalIcons={additionalIcons}
+                onAdditionalIconsChange={setAdditionalIcons}
+                additionalIconsY={additionalIconsY}
+                onAdditionalIconsYChange={setAdditionalIconsY}
+                socialLinksGap={socialLinksGap}
+                onSocialLinksGapChange={setSocialLinksGap}
               />
             </div>
 

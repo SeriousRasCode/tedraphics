@@ -44,6 +44,22 @@ interface PosterCanvasProps {
     quoteFont: string | null;
     topBottomFont: string | null;
   };
+  bilingualEnabled: boolean;
+  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded';
+  textColors: {
+    titleColor: string;
+    textColor: string;
+    quoteColor: string;
+    topBottomColor: string;
+  };
+  mainTextWidth: number;
+  additionalIcons: {
+    place: string;
+    time: string;
+    date: string;
+  };
+  additionalIconsY: number;
+  socialLinksGap: number;
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
@@ -62,7 +78,14 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     quoteBoxStyle,
     fonts,
     fontSizes,
-    customFonts
+    customFonts,
+    bilingualEnabled,
+    frameStyle,
+    textColors,
+    mainTextWidth,
+    additionalIcons,
+    additionalIconsY,
+    socialLinksGap
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -92,8 +115,12 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       const draw = () => {
         drawGradientOverlays(ctx);
         drawTemplate(ctx, currentTemplate, title, mainText, quotedText);
-        drawBilingualTexts(ctx);
+        if (bilingualEnabled) {
+          drawBilingualTexts(ctx);
+        }
+        drawAdditionalIcons(ctx);
         drawSocialLinks(ctx);
+        drawFrame(ctx);
       };
 
       if (backgroundImage) {
@@ -114,7 +141,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
       const alpha = gradientStrength / 100;
@@ -136,7 +163,6 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
 
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
       const texts = bilingualTexts[language];
-      ctx.fillStyle = '#ffd700';
       const fontFamily = customFonts.topBottomFont || fonts.topBottomFont;
       ctx.font = `${fontSizes.topBottomSize}px ${fontFamily}`;
       ctx.textAlign = 'center';
@@ -145,8 +171,19 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
 
-      wrapText(ctx, texts.top, 540, 40, 1000, fontSizes.topBottomSize * 1.2);
-      wrapText(ctx, texts.bottom, 540, 950, 1000, fontSizes.topBottomSize * 1.2);
+      if (textColors.topBottomColor === 'gradient') {
+        const gradient = ctx.createLinearGradient(0, 25, 0, 55);
+        gradient.addColorStop(0, '#ffd700');
+        gradient.addColorStop(0.3, '#ffed4e');
+        gradient.addColorStop(0.7, '#d97706');
+        gradient.addColorStop(1, '#b45309');
+        ctx.fillStyle = gradient;
+      } else {
+        ctx.fillStyle = textColors.topBottomColor;
+      }
+
+      wrapTextWithGradient(ctx, texts.top, 540, 40, 1000, fontSizes.topBottomSize * 1.2, textColors.topBottomColor === 'gradient');
+      wrapTextWithGradient(ctx, texts.bottom, 540, 950, 1000, fontSizes.topBottomSize * 1.2, textColors.topBottomColor === 'gradient');
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
@@ -154,82 +191,189 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetY = 0;
     };
 
-const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
-  const linkY = 1020;
-  const iconSize = 24;
-  const gap = 50;
-  const fontSize = 20;
-  const fontFamily = customFonts.textFont || fonts.textFont;
-  ctx.font = `${fontSize}px ${fontFamily}`;
-  ctx.textBaseline = 'middle';
+    const drawAdditionalIcons = (ctx: CanvasRenderingContext2D) => {
+      const iconSize = 20;
+      const fontSize = 18;
+      const fontFamily = customFonts.textFont || fonts.textFont;
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.textBaseline = 'middle';
 
-  const links = [
-    {
-      iconSrc: '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png',
-      text: socialLinks.telegram,
-      color: '#0088cc',
-    },
-    {
-      iconSrc: '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png',
-      text: socialLinks.instagram,
-      color: '#E4405F',
-    },
-    {
-      iconSrc: '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png',
-      text: socialLinks.tiktok,
-      color: '#ff0050',
-    },
-  ];
+      const additionalIconsData = [
+        { text: additionalIcons.place, color: '#4ade80', emoji: '📍' },
+        { text: additionalIcons.time, color: '#60a5fa', emoji: '⏰' },
+        { text: additionalIcons.date, color: '#f87171', emoji: '📅' }
+      ];
 
-  const imagePromises = links.map(link => {
-    return new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = link.iconSrc;
-    });
-  });
+      const visibleIcons = additionalIconsData.filter(icon => icon.text.trim() !== '');
+      
+      if (visibleIcons.length === 0) return;
 
-  Promise.all(imagePromises).then(images => {
-    const blocks = links.map((link, i) => {
-      const textWidth = ctx.measureText(link.text).width;
-      return {
-        img: images[i],
-        text: link.text,
-        textWidth,
-        width: iconSize + 8 + textWidth,
-      };
-    });
+      const blocks = visibleIcons.map(icon => {
+        const textWidth = ctx.measureText(icon.text).width;
+        return {
+          ...icon,
+          textWidth,
+          width: iconSize + 8 + textWidth,
+        };
+      });
 
-    const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + gap * (blocks.length - 1);
-    let x = (1080 - totalWidth) / 2;
+      const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + 30 * (blocks.length - 1);
+      let x = (1080 - totalWidth) / 2;
 
-    ctx.textAlign = 'left';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    ctx.shadowBlur = 3;
-    ctx.shadowOffsetX = 1;
-    ctx.shadowOffsetY = 1;
+      ctx.textAlign = 'left';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      ctx.shadowBlur = 3;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
 
-    blocks.forEach(block => {
-      ctx.drawImage(block.img, x, linkY - iconSize / 2, iconSize, iconSize);
-      ctx.fillStyle = '#ffd700';
-      ctx.fillText(block.text, x + iconSize + 8, linkY);
-      x += block.width + gap;
-    });
+      blocks.forEach(block => {
+        // Draw emoji icon
+        ctx.font = `${iconSize}px Arial`;
+        ctx.fillStyle = block.color;
+        ctx.fillText(block.emoji, x, additionalIconsY);
+        
+        // Draw text
+        ctx.font = `${fontSize}px ${fontFamily}`;
+        ctx.fillStyle = '#ffd700';
+        ctx.fillText(block.text, x + iconSize + 8, additionalIconsY);
+        x += block.width + 30;
+      });
 
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-  });
-};
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    };
 
+    const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
+      const linkY = 1020;
+      const iconSize = 20;
+      const fontSize = 16;
+      const fontFamily = customFonts.textFont || fonts.textFont;
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.textBaseline = 'middle';
+
+      const links = [
+        {
+          iconSrc: '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png',
+          text: socialLinks.telegram,
+          color: '#0088cc',
+        },
+        {
+          iconSrc: '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png',
+          text: socialLinks.instagram,
+          color: '#E4405F',
+        },
+        {
+          iconSrc: '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png',
+          text: socialLinks.tiktok,
+          color: '#ff0050',
+        },
+      ];
+
+      const visibleLinks = links.filter(link => link.text.trim() !== '');
+      
+      if (visibleLinks.length === 0) return;
+
+      const imagePromises = visibleLinks.map(link => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = link.iconSrc;
+        });
+      });
+
+      Promise.all(imagePromises).then(images => {
+        const blocks = visibleLinks.map((link, i) => {
+          const textWidth = ctx.measureText(link.text).width;
+          return {
+            img: images[i],
+            text: link.text,
+            textWidth,
+            width: iconSize + 8 + textWidth,
+          };
+        });
+
+        const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + socialLinksGap * (blocks.length - 1);
+        let x = (1080 - totalWidth) / 2;
+
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+
+        blocks.forEach(block => {
+          ctx.drawImage(block.img, x, linkY - iconSize / 2, iconSize, iconSize);
+          ctx.fillStyle = '#ffd700';
+          ctx.fillText(block.text, x + iconSize + 8, linkY);
+          x += block.width + socialLinksGap;
+        });
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      });
+    };
+
+    const drawFrame = (ctx: CanvasRenderingContext2D) => {
+      if (frameStyle === 'none') return;
+
+      ctx.strokeStyle = '#ffd700';
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+      ctx.shadowBlur = 10;
+
+      switch (frameStyle) {
+        case 'simple':
+          ctx.lineWidth = 4;
+          ctx.strokeRect(20, 20, 1040, 1040);
+          break;
+        case 'elegant':
+          ctx.lineWidth = 6;
+          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.lineWidth = 2;
+          ctx.strokeRect(25, 25, 1030, 1030);
+          break;
+        case 'bold':
+          ctx.lineWidth = 10;
+          ctx.strokeRect(10, 10, 1060, 1060);
+          break;
+        case 'rounded':
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.roundRect(15, 15, 1050, 1050, 30);
+          ctx.stroke();
+          break;
+      }
+
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+    };
 
     const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
       const titleFontFamily = customFonts.titleFont || fonts.titleFont;
-      drawGoldenText(ctx, title, fontSizes.titleSize, titleFontFamily, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2, true);
+      
+      if (textColors.titleColor === 'gradient') {
+        drawGoldenText(ctx, title, fontSizes.titleSize, titleFontFamily, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2, true);
+      } else {
+        ctx.fillStyle = textColors.titleColor;
+        ctx.font = `bold ${fontSizes.titleSize}px ${titleFontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
+        wrapText(ctx, title, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
 
-      ctx.fillStyle = template.colors.textColor;
+      ctx.fillStyle = textColors.textColor;
       const textFontFamily = customFonts.textFont || fonts.textFont;
       ctx.font = `${fontSizes.textSize}px ${textFontFamily}`;
       ctx.textAlign = 'center';
@@ -239,7 +383,7 @@ const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
 
-      wrapText(ctx, mainText, 540, textPositions.textY, 700, fontSizes.textSize * 1.5);
+      wrapText(ctx, mainText, 540, textPositions.textY, mainTextWidth, fontSizes.textSize * 1.5);
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
@@ -265,19 +409,13 @@ const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
       ctx.font = `${isTitle ? 'bold' : ''} ${fontSize}px ${fontFamily}`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      const gradient = ctx.createLinearGradient(0, y, 0, y + fontSize);
-      gradient.addColorStop(0, '#ffd700');
-      gradient.addColorStop(0.3, '#ffed4e');
-      gradient.addColorStop(0.7, '#d97706');
-      gradient.addColorStop(1, '#b45309');
-      ctx.fillStyle = gradient;
-
+      
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 8;
       ctx.shadowOffsetX = 3;
       ctx.shadowOffsetY = 3;
 
-      wrapText(ctx, text, x, y, maxWidth, lineHeight);
+      wrapTextWithGradient(ctx, text, x, y, maxWidth, lineHeight, true);
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
@@ -329,16 +467,35 @@ const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
 
       const quoteFontFamily = customFonts.quoteFont || fonts.quoteFont;
       const quoteText = quoteBoxStyle === 'none' ? text : `"${text}"`;
-      drawGoldenText(
-        ctx,
-        quoteText,
-        fontSizes.quoteSize,
-        quoteFontFamily,
-        boxX + quoteBoxSize.width / 2,
-        boxY + 50,
-        quoteBoxSize.width - 40,
-        fontSizes.quoteSize * 1.4
-      );
+      
+      if (textColors.quoteColor === 'gradient') {
+        drawGoldenText(
+          ctx,
+          quoteText,
+          fontSizes.quoteSize,
+          quoteFontFamily,
+          boxX + quoteBoxSize.width / 2,
+          boxY + 50,
+          quoteBoxSize.width - 40,
+          fontSizes.quoteSize * 1.4
+        );
+      } else {
+        ctx.fillStyle = textColors.quoteColor;
+        ctx.font = `${fontSizes.quoteSize}px ${quoteFontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        
+        wrapText(ctx, quoteText, boxX + quoteBoxSize.width / 2, boxY + 50, quoteBoxSize.width - 40, fontSizes.quoteSize * 1.4);
+        
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
     };
 
     const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
@@ -357,6 +514,43 @@ const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
         } else {
           line = testLine;
         }
+      }
+      ctx.fillText(line, x, currentY);
+    };
+
+    const wrapTextWithGradient = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, useGradient: boolean) => {
+      const words = text.split(' ');
+      let line = '';
+      let currentY = y;
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const testWidth = ctx.measureText(testLine).width;
+
+        if (testWidth > maxWidth && n > 0) {
+          if (useGradient) {
+            const gradient = ctx.createLinearGradient(0, currentY, 0, currentY + lineHeight);
+            gradient.addColorStop(0, '#ffd700');
+            gradient.addColorStop(0.3, '#ffed4e');
+            gradient.addColorStop(0.7, '#d97706');
+            gradient.addColorStop(1, '#b45309');
+            ctx.fillStyle = gradient;
+          }
+          ctx.fillText(line, x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      
+      if (useGradient) {
+        const gradient = ctx.createLinearGradient(0, currentY, 0, currentY + lineHeight);
+        gradient.addColorStop(0, '#ffd700');
+        gradient.addColorStop(0.3, '#ffed4e');
+        gradient.addColorStop(0.7, '#d97706');
+        gradient.addColorStop(1, '#b45309');
+        ctx.fillStyle = gradient;
       }
       ctx.fillText(line, x, currentY);
     };
