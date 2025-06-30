@@ -4,17 +4,7 @@ import { PosterCanvas } from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
 import { PosterControls } from '@/components/PosterControls';
 import { ImageUpload } from '@/components/ImageUpload';
-import { Button } from '@/components/ui/button';
-import { Download, Send, Menu, Info, Code, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { HeaderSection } from '@/components/HeaderSection';
 import { ActionButtons } from '@/components/ActionButtons';
 
@@ -78,7 +68,6 @@ const Index = () => {
   const [socialLinksGap, setSocialLinksGap] = useState(50);
   const [gradientInnerHeight, setGradientInnerHeight] = useState(200);
   
-  const [contentStyleExpanded, setContentStyleExpanded] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleImageUpload = (file: File) => {
@@ -248,63 +237,50 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-              <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setContentStyleExpanded(!contentStyleExpanded)}>
-                <h2 className="text-xl sm:text-2xl font-semibold text-white">Content & Style</h2>
-                {contentStyleExpanded ? (
-                  <ChevronUp className="h-5 w-5 text-white" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-white" />
-                )}
-              </div>
-              
-              {contentStyleExpanded && (
-                <PosterControls
-                  title={title}
-                  mainText={mainText}
-                  quotedText={quotedText}
-                  onTitleChange={setTitle}
-                  onMainTextChange={setMainText}
-                  onQuotedTextChange={setQuotedText}
-                  gradientHeight={gradientHeight}
-                  onGradientHeightChange={setGradientHeight}
-                  gradientStrength={gradientStrength}
-                  onGradientStrengthChange={setGradientStrength}
-                  gradientInnerHeight={gradientInnerHeight}
-                  onGradientInnerHeightChange={setGradientInnerHeight}
-                  language={language}
-                  onLanguageChange={setLanguage}
-                  socialLinks={socialLinks}
-                  onSocialLinksChange={setSocialLinks}
-                  textPositions={textPositions}
-                  onTextPositionsChange={setTextPositions}
-                  quoteBoxSize={quoteBoxSize}
-                  onQuoteBoxSizeChange={setQuoteBoxSize}
-                  quoteBoxStyle={quoteBoxStyle}
-                  onQuoteBoxStyleChange={setQuoteBoxStyle}
-                  fonts={fonts}
-                  onFontsChange={setFonts}
-                  fontSizes={fontSizes}
-                  onFontSizesChange={setFontSizes}
-                  customFonts={customFonts}
-                  onCustomFontsChange={setCustomFonts}
-                  bilingualEnabled={bilingualEnabled}
-                  onBilingualEnabledChange={setBilingualEnabled}
-                  frameStyle={frameStyle}
-                  onFrameStyleChange={setFrameStyle}
-                  textColors={textColors}
-                  onTextColorsChange={setTextColors}
-                  mainTextWidth={mainTextWidth}
-                  onMainTextWidthChange={setMainTextWidth}
-                  additionalIcons={additionalIcons}
-                  onAdditionalIconsChange={setAdditionalIcons}
-                  additionalIconsY={additionalIconsY}
-                  onAdditionalIconsYChange={setAdditionalIconsY}
-                  socialLinksGap={socialLinksGap}
-                  onSocialLinksGapChange={setSocialLinksGap}
-                />
-              )}
-            </div>
+            <PosterControls
+              title={title}
+              mainText={mainText}
+              quotedText={quotedText}
+              onTitleChange={setTitle}
+              onMainTextChange={setMainText}
+              onQuotedTextChange={setQuotedText}
+              gradientHeight={gradientHeight}
+              onGradientHeightChange={setGradientHeight}
+              gradientStrength={gradientStrength}
+              onGradientStrengthChange={setGradientStrength}
+              gradientInnerHeight={gradientInnerHeight}
+              onGradientInnerHeightChange={setGradientInnerHeight}
+              language={language}
+              onLanguageChange={setLanguage}
+              socialLinks={socialLinks}
+              onSocialLinksChange={setSocialLinks}
+              textPositions={textPositions}
+              onTextPositionsChange={setTextPositions}
+              quoteBoxSize={quoteBoxSize}
+              onQuoteBoxSizeChange={setQuoteBoxSize}
+              quoteBoxStyle={quoteBoxStyle}
+              onQuoteBoxStyleChange={setQuoteBoxStyle}
+              fonts={fonts}
+              onFontsChange={setFonts}
+              fontSizes={fontSizes}
+              onFontSizesChange={setFontSizes}
+              customFonts={customFonts}
+              onCustomFontsChange={setCustomFonts}
+              bilingualEnabled={bilingualEnabled}
+              onBilingualEnabledChange={setBilingualEnabled}
+              frameStyle={frameStyle}
+              onFrameStyleChange={setFrameStyle}
+              textColors={textColors}
+              onTextColorsChange={setTextColors}
+              mainTextWidth={mainTextWidth}
+              onMainTextWidthChange={setMainTextWidth}
+              additionalIcons={additionalIcons}
+              onAdditionalIconsChange={setAdditionalIcons}
+              additionalIconsY={additionalIconsY}
+              onAdditionalIconsYChange={setAdditionalIconsY}
+              socialLinksGap={socialLinksGap}
+              onSocialLinksGapChange={setSocialLinksGap}
+            />
 
             <ActionButtons 
               onDownload={handleDownload}
