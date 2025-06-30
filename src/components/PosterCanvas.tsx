@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, forwardRef } from 'react';
 import { templates } from '@/utils/posterTemplates';
 
@@ -10,6 +9,7 @@ interface PosterCanvasProps {
   template: number;
   gradientHeight: number;
   gradientStrength: number;
+  gradientInnerHeight: number;
   language: 'amharic' | 'oromic';
   socialLinks: {
     telegram: string;
@@ -45,7 +45,7 @@ interface PosterCanvasProps {
     topBottomFont: string | null;
   };
   bilingualEnabled: boolean;
-  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded';
+  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow';
   textColors: {
     titleColor: string;
     textColor: string;
@@ -71,6 +71,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     template,
     gradientHeight,
     gradientStrength,
+    gradientInnerHeight,
     language,
     socialLinks,
     textPositions,
@@ -141,21 +142,23 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
       const alpha = gradientStrength / 100;
       
-      // Top gradient overlay
+      // Top gradient overlay with inner height control
       const top = ctx.createLinearGradient(0, 0, 0, gradientHeight);
       top.addColorStop(0, `rgba(8, 55, 101, ${alpha})`);
+      top.addColorStop(gradientInnerHeight / gradientHeight, `rgba(8, 55, 101, ${alpha * 0.8})`);
       top.addColorStop(1, 'rgba(8, 55, 101, 0)');
       ctx.fillStyle = top;
       ctx.fillRect(0, 0, 1080, gradientHeight);
 
-      // Bottom gradient overlay
+      // Bottom gradient overlay with inner height control
       const bottom = ctx.createLinearGradient(0, 1080 - gradientHeight, 0, 1080);
       bottom.addColorStop(0, 'rgba(8, 55, 101, 0)');
+      bottom.addColorStop(1 - (gradientInnerHeight / gradientHeight), `rgba(8, 55, 101, ${alpha * 0.8})`);
       bottom.addColorStop(1, `rgba(8, 55, 101, ${alpha})`);
       ctx.fillStyle = bottom;
       ctx.fillRect(0, 1080 - gradientHeight, 1080, gradientHeight);
@@ -346,15 +349,48 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
           ctx.roundRect(15, 15, 1050, 1050, 30);
           ctx.stroke();
           break;
+        case 'double':
+          ctx.lineWidth = 3;
+          ctx.strokeRect(10, 10, 1060, 1060);
+          ctx.strokeRect(20, 20, 1040, 1040);
+          break;
+        case 'dashed':
+          ctx.lineWidth = 4;
+          ctx.setLineDash([20, 10]);
+          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.setLineDash([]);
+          break;
+        case 'dotted':
+          ctx.lineWidth = 4;
+          ctx.setLineDash([5, 15]);
+          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.setLineDash([]);
+          break;
+        case 'shadow':
+          ctx.lineWidth = 6;
+          ctx.shadowBlur = 20;
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.strokeRect(15, 15, 1050, 1050);
+          break;
+        case 'glow':
+          ctx.lineWidth = 4;
+          ctx.shadowBlur = 30;
+          ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+          ctx.strokeRect(15, 15, 1050, 1050);
+          break;
       }
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
     };
 
     const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
       const titleFontFamily = customFonts.titleFont || fonts.titleFont;
       
+      // Draw title
       if (textColors.titleColor === 'gradient') {
         drawGoldenText(ctx, title, fontSizes.titleSize, titleFontFamily, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2, true);
       } else {
@@ -373,7 +409,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.shadowOffsetY = 0;
       }
 
-      ctx.fillStyle = textColors.textColor;
+      // Draw main text
       const textFontFamily = customFonts.textFont || fonts.textFont;
       ctx.font = `${fontSizes.textSize}px ${textFontFamily}`;
       ctx.textAlign = 'center';
@@ -383,7 +419,12 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetX = 2;
       ctx.shadowOffsetY = 2;
 
-      wrapText(ctx, mainText, 540, textPositions.textY, mainTextWidth, fontSizes.textSize * 1.5);
+      if (textColors.textColor === 'gradient') {
+        wrapTextWithGradient(ctx, mainText, 540, textPositions.textY, mainTextWidth, fontSizes.textSize * 1.5, true);
+      } else {
+        ctx.fillStyle = textColors.textColor;
+        wrapText(ctx, mainText, 540, textPositions.textY, mainTextWidth, fontSizes.textSize * 1.5);
+      }
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
@@ -416,7 +457,6 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetY = 3;
 
       wrapTextWithGradient(ctx, text, x, y, maxWidth, lineHeight, true);
-
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
@@ -529,7 +569,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
 
         if (testWidth > maxWidth && n > 0) {
           if (useGradient) {
-            const gradient = ctx.createLinearGradient(0, currentY, 0, currentY + lineHeight);
+            const gradient = ctx.createLinearGradient(x - maxWidth/2, currentY, x + maxWidth/2, currentY + lineHeight);
             gradient.addColorStop(0, '#ffd700');
             gradient.addColorStop(0.3, '#ffed4e');
             gradient.addColorStop(0.7, '#d97706');
@@ -545,7 +585,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       }
       
       if (useGradient) {
-        const gradient = ctx.createLinearGradient(0, currentY, 0, currentY + lineHeight);
+        const gradient = ctx.createLinearGradient(x - maxWidth/2, currentY, x + maxWidth/2, currentY + lineHeight);
         gradient.addColorStop(0, '#ffd700');
         gradient.addColorStop(0.3, '#ffed4e');
         gradient.addColorStop(0.7, '#d97706');

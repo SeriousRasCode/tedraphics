@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -21,6 +20,8 @@ interface PosterControlsProps {
   onGradientHeightChange: (value: number) => void;
   gradientStrength: number;
   onGradientStrengthChange: (value: number) => void;
+  gradientInnerHeight: number;
+  onGradientInnerHeightChange: (value: number) => void;
   language: 'amharic' | 'oromic';
   onLanguageChange: (value: 'amharic' | 'oromic') => void;
   socialLinks: {
@@ -65,8 +66,8 @@ interface PosterControlsProps {
   onCustomFontsChange: (fonts: { titleFont: string | null; textFont: string | null; quoteFont: string | null; topBottomFont: string | null }) => void;
   bilingualEnabled: boolean;
   onBilingualEnabledChange: (enabled: boolean) => void;
-  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded';
-  onFrameStyleChange: (style: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded') => void;
+  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow';
+  onFrameStyleChange: (style: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow') => void;
   textColors: {
     titleColor: string;
     textColor: string;
@@ -91,6 +92,7 @@ interface PosterControlsProps {
 export const PosterControls = ({ 
   title, mainText, quotedText, onTitleChange, onMainTextChange, onQuotedTextChange,
   gradientHeight, onGradientHeightChange, gradientStrength, onGradientStrengthChange,
+  gradientInnerHeight, onGradientInnerHeightChange,
   language, onLanguageChange, socialLinks, onSocialLinksChange,
   textPositions, onTextPositionsChange, quoteBoxSize, onQuoteBoxSizeChange,
   quoteBoxStyle, onQuoteBoxStyleChange, fonts, onFontsChange,
@@ -462,28 +464,42 @@ export const PosterControls = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-white">Gradient Height: {gradientHeight}px</Label>
-            <Slider
-              value={[gradientHeight]}
-              onValueChange={([value]) => onGradientHeightChange(value)}
-              max={800}
-              min={200}
-              step={10}
-              className="w-full"
-            />
-          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-white">Background Gradient Height: {gradientHeight}px</Label>
+              <Slider
+                value={[gradientHeight]}
+                onValueChange={([value]) => onGradientHeightChange(value)}
+                max={800}
+                min={200}
+                step={10}
+                className="w-full"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label className="text-white">Gradient Strength: {gradientStrength}%</Label>
-            <Slider
-              value={[gradientStrength]}
-              onValueChange={([value]) => onGradientStrengthChange(value)}
-              max={100}
-              min={0}
-              step={5}
-              className="w-full"
-            />
+            <div className="space-y-2">
+              <Label className="text-white">Background Gradient Strength: {gradientStrength}%</Label>
+              <Slider
+                value={[gradientStrength]}
+                onValueChange={([value]) => onGradientStrengthChange(value)}
+                max={100}
+                min={0}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Inner Gradient Height (083765 color): {gradientInnerHeight}px</Label>
+              <Slider
+                value={[gradientInnerHeight]}
+                onValueChange={([value]) => onGradientInnerHeightChange(value)}
+                max={gradientHeight}
+                min={50}
+                step={10}
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       )}
@@ -579,7 +595,7 @@ export const PosterControls = ({
               <Label className="text-white">Frame Style</Label>
               <Select
                 value={frameStyle}
-                onValueChange={(value: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded') => onFrameStyleChange(value)}
+                onValueChange={(value: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow') => onFrameStyleChange(value)}
               >
                 <SelectTrigger className="bg-white/20 border-white/30 text-white">
                   <SelectValue />
@@ -590,6 +606,11 @@ export const PosterControls = ({
                   <SelectItem value="elegant">Elegant</SelectItem>
                   <SelectItem value="bold">Bold</SelectItem>
                   <SelectItem value="rounded">Rounded</SelectItem>
+                  <SelectItem value="double">Double Line</SelectItem>
+                  <SelectItem value="dashed">Dashed</SelectItem>
+                  <SelectItem value="dotted">Dotted</SelectItem>
+                  <SelectItem value="shadow">Shadow</SelectItem>
+                  <SelectItem value="glow">Glow</SelectItem>
                 </SelectContent>
               </Select>
             </div>

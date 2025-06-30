@@ -4,7 +4,7 @@ import { TemplateSelector } from '@/components/TemplateSelector';
 import { PosterControls } from '@/components/PosterControls';
 import { ImageUpload } from '@/components/ImageUpload';
 import { Button } from '@/components/ui/button';
-import { Download, Send, Menu, Info, Code } from 'lucide-react';
+import { Download, Send, Menu, Info, Code, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ const Index = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(2);
   const [gradientHeight, setGradientHeight] = useState(400);
   const [gradientStrength, setGradientStrength] = useState(80);
-  const [language, setLanguage] = useState<'amharic' | 'oromic'>('amharic');
+  const [language, setLanguage<'amharic' | 'oromic'>>('amharic');
   const [socialLinks, setSocialLinks] = useState({
     telegram: '@username',
     instagram: '@username',
@@ -38,7 +38,7 @@ const Index = () => {
     width: 600,
     height: 150
   });
-  const [quoteBoxStyle, setQuoteBoxStyle] = useState<'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none'>('rounded');
+  const [quoteBoxStyle, setQuoteBoxStyle<'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none'>>('rounded');
   const [fonts, setFonts] = useState({
     titleFont: 'Georgia, serif',
     textFont: 'Georgia, serif',
@@ -58,7 +58,7 @@ const Index = () => {
     topBottomFont: null as string | null
   });
   const [bilingualEnabled, setBilingualEnabled] = useState(true);
-  const [frameStyle, setFrameStyle] = useState<'none' | 'simple' | 'elegant' | 'bold' | 'rounded'>('none');
+  const [frameStyle, setFrameStyle<'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow'>>('none');
   const [textColors, setTextColors] = useState({
     titleColor: 'gradient',
     textColor: '#ffffff',
@@ -73,7 +73,9 @@ const Index = () => {
   });
   const [additionalIconsY, setAdditionalIconsY] = useState(890);
   const [socialLinksGap, setSocialLinksGap] = useState(50);
+  const [gradientInnerHeight, setGradientInnerHeight] = useState(200);
   
+  const [contentStyleExpanded, setContentStyleExpanded] = useState(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleImageUpload = (file: File) => {
@@ -253,6 +255,7 @@ const Index = () => {
                 template={selectedTemplate}
                 gradientHeight={gradientHeight}
                 gradientStrength={gradientStrength}
+                gradientInnerHeight={gradientInnerHeight}
                 language={language}
                 socialLinks={socialLinks}
                 textPositions={textPositions}
@@ -288,50 +291,61 @@ const Index = () => {
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Content & Style</h2>
+              <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => setContentStyleExpanded(!contentStyleExpanded)}>
+                <h2 className="text-xl sm:text-2xl font-semibold text-white">Content & Style</h2>
+                {contentStyleExpanded ? (
+                  <ChevronUp className="h-5 w-5 text-white" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-white" />
+                )}
+              </div>
               
-              <PosterControls
-                title={title}
-                mainText={mainText}
-                quotedText={quotedText}
-                onTitleChange={setTitle}
-                onMainTextChange={setMainText}
-                onQuotedTextChange={setQuotedText}
-                gradientHeight={gradientHeight}
-                onGradientHeightChange={setGradientHeight}
-                gradientStrength={gradientStrength}
-                onGradientStrengthChange={setGradientStrength}
-                language={language}
-                onLanguageChange={setLanguage}
-                socialLinks={socialLinks}
-                onSocialLinksChange={setSocialLinks}
-                textPositions={textPositions}
-                onTextPositionsChange={setTextPositions}
-                quoteBoxSize={quoteBoxSize}
-                onQuoteBoxSizeChange={setQuoteBoxSize}
-                quoteBoxStyle={quoteBoxStyle}
-                onQuoteBoxStyleChange={setQuoteBoxStyle}
-                fonts={fonts}
-                onFontsChange={setFonts}
-                fontSizes={fontSizes}
-                onFontSizesChange={setFontSizes}
-                customFonts={customFonts}
-                onCustomFontsChange={setCustomFonts}
-                bilingualEnabled={bilingualEnabled}
-                onBilingualEnabledChange={setBilingualEnabled}
-                frameStyle={frameStyle}
-                onFrameStyleChange={setFrameStyle}
-                textColors={textColors}
-                onTextColorsChange={setTextColors}
-                mainTextWidth={mainTextWidth}
-                onMainTextWidthChange={setMainTextWidth}
-                additionalIcons={additionalIcons}
-                onAdditionalIconsChange={setAdditionalIcons}
-                additionalIconsY={additionalIconsY}
-                onAdditionalIconsYChange={setAdditionalIconsY}
-                socialLinksGap={socialLinksGap}
-                onSocialLinksGapChange={setSocialLinksGap}
-              />
+              {contentStyleExpanded && (
+                <PosterControls
+                  title={title}
+                  mainText={mainText}
+                  quotedText={quotedText}
+                  onTitleChange={setTitle}
+                  onMainTextChange={setMainText}
+                  onQuotedTextChange={setQuotedText}
+                  gradientHeight={gradientHeight}
+                  onGradientHeightChange={setGradientHeight}
+                  gradientStrength={gradientStrength}
+                  onGradientStrengthChange={setGradientStrength}
+                  gradientInnerHeight={gradientInnerHeight}
+                  onGradientInnerHeightChange={setGradientInnerHeight}
+                  language={language}
+                  onLanguageChange={setLanguage}
+                  socialLinks={socialLinks}
+                  onSocialLinksChange={setSocialLinks}
+                  textPositions={textPositions}
+                  onTextPositionsChange={setTextPositions}
+                  quoteBoxSize={quoteBoxSize}
+                  onQuoteBoxSizeChange={setQuoteBoxSize}
+                  quoteBoxStyle={quoteBoxStyle}
+                  onQuoteBoxStyleChange={setQuoteBoxStyle}
+                  fonts={fonts}
+                  onFontsChange={setFonts}
+                  fontSizes={fontSizes}
+                  onFontSizesChange={setFontSizes}
+                  customFonts={customFonts}
+                  onCustomFontsChange={setCustomFonts}
+                  bilingualEnabled={bilingualEnabled}
+                  onBilingualEnabledChange={setBilingualEnabled}
+                  frameStyle={frameStyle}
+                  onFrameStyleChange={setFrameStyle}
+                  textColors={textColors}
+                  onTextColorsChange={setTextColors}
+                  mainTextWidth={mainTextWidth}
+                  onMainTextWidthChange={setMainTextWidth}
+                  additionalIcons={additionalIcons}
+                  onAdditionalIconsChange={setAdditionalIcons}
+                  additionalIconsY={additionalIconsY}
+                  onAdditionalIconsYChange={setAdditionalIconsY}
+                  socialLinksGap={socialLinksGap}
+                  onSocialLinksGapChange={setSocialLinksGap}
+                />
+              )}
             </div>
 
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20 space-y-3">
