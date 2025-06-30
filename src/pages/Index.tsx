@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { PosterCanvas } from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -14,6 +15,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { HeaderSection } from '@/components/HeaderSection';
+import { ActionButtons } from '@/components/ActionButtons';
 
 const Index = () => {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
@@ -23,7 +26,7 @@ const Index = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(2);
   const [gradientHeight, setGradientHeight] = useState(400);
   const [gradientStrength, setGradientStrength] = useState(80);
-  const [language, setLanguage<'amharic' | 'oromic'>>('amharic');
+  const [language, setLanguage] = useState<'amharic' | 'oromic'>('amharic');
   const [socialLinks, setSocialLinks] = useState({
     telegram: '@username',
     instagram: '@username',
@@ -38,7 +41,7 @@ const Index = () => {
     width: 600,
     height: 150
   });
-  const [quoteBoxStyle, setQuoteBoxStyle<'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none'>>('rounded');
+  const [quoteBoxStyle, setQuoteBoxStyle] = useState<'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none'>('rounded');
   const [fonts, setFonts] = useState({
     titleFont: 'Georgia, serif',
     textFont: 'Georgia, serif',
@@ -58,7 +61,7 @@ const Index = () => {
     topBottomFont: null as string | null
   });
   const [bilingualEnabled, setBilingualEnabled] = useState(true);
-  const [frameStyle, setFrameStyle<'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow'>>('none');
+  const [frameStyle, setFrameStyle] = useState<'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow' | 'vintage' | 'modern' | 'neon' | 'artistic' | 'minimal'>('none');
   const [textColors, setTextColors] = useState({
     titleColor: 'gradient',
     textColor: '#ffffff',
@@ -194,52 +197,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-8">
-        <div className="text-center mb-6 sm:mb-8 relative">
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2 sm:mb-4">
-            Tedraphics
-          </h1>
-          <p className="text-sm sm:text-xl text-blue-200 max-w-2xl mx-auto px-4">
-            Create beautiful 1080×1080 posters with elegant designs and bilingual support
-          </p>
-          
-          {/* Dropdown Menu */}
-          <div className="absolute top-0 right-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-sm border border-white/20 z-50">
-                <DropdownMenuLabel className="text-lg font-semibold text-slate-800">
-                  Menu
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem className="flex items-center gap-3 p-4 hover:bg-slate-100 cursor-pointer">
-                  <Info className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <div className="font-semibold text-slate-800 mb-1">About</div>
-                    <div className="text-sm text-slate-600 leading-relaxed">
-                      Built By <span className="font-medium text-blue-700">Tedros Teshome (Ras Moa)</span>, 
-                      for automating poster design when there is no one to design urgent posters.
-                    </div>
-                  </div>
-                </DropdownMenuItem>
-                
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem className="flex items-center gap-3 p-4 hover:bg-slate-100 cursor-pointer">
-                  <Code className="h-5 w-5 text-green-600" />
-                  <div>
-                    <div className="font-semibold text-slate-800 mb-1">Version</div>
-                    <div className="text-sm text-slate-600">v1.0.0 ras</div>
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+        <HeaderSection />
 
         <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0 max-w-7xl mx-auto">
           
@@ -348,23 +306,10 @@ const Index = () => {
               )}
             </div>
 
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20 space-y-3">
-              <Button 
-                onClick={handleDownload}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
-              >
-                <Download className="mr-2 h-5 w-5" />
-                Download Poster (1080×1080)
-              </Button>
-              
-              <Button 
-                onClick={handleTelegramShare}
-                className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
-              >
-                <Send className="mr-2 h-5 w-5" />
-                Share to Telegram Bot
-              </Button>
-            </div>
+            <ActionButtons 
+              onDownload={handleDownload}
+              onTelegramShare={handleTelegramShare}
+            />
           </div>
         </div>
       </div>
