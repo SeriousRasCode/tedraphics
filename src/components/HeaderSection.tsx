@@ -21,7 +21,7 @@ export const HeaderSection: React.FC = () => {
         Tedraphics
       </h1>
       <p className="text-sm sm:text-xl text-blue-200 max-w-2xl mx-auto px-4">
-        Create beautiful 1080×1080 posters with elegant designs and bilingual support
+        Create a beautiful 1080×1080 (1:1) posters
       </p>
       
       {/* Dropdown Menu */}
