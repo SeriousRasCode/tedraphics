@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { PosterCanvas } from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -104,25 +103,20 @@ const Index = () => {
           reader.onload = () => {
             try {
               // Use Telegram WebApp API to handle the download
-              tg.showConfirm('Your poster is ready! Do you want to download it?', (confirmed: boolean) => {
-  if (confirmed) {
-    const url = canvas.toDataURL('image/png');
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'tedraphics-poster.png';
+              const url = canvas.toDataURL('image/png');
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'tedraphics-poster.png';
 
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      window.open(url, '_blank');
-      toast.success('Poster opened in new tab - long press to save');
-    } else {
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      toast.success('Poster downloaded successfully!');
-    }
-  }
-});
-
+              if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                window.open(url, '_blank');
+                toast.success('Poster opened in new tab - long press to save');
+              } else {
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast.success('Poster downloaded successfully!');
+              }
             } catch (error) {
               console.error('Telegram WebApp download error:', error);
               // Fallback to regular download
@@ -214,41 +208,31 @@ const Index = () => {
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-sm border border-white/20">
+              <DropdownMenuContent align="end" className="w-80 bg-white/95 backdrop-blur-sm border border-white/20 z-50">
                 <DropdownMenuLabel className="text-lg font-semibold text-slate-800">
                   Menu
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
-                <DropdownMenuItem className="p-0">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="flex items-center gap-3 p-4 w-full text-left hover:bg-slate-100">
-                      <Info className="h-5 w-5 text-blue-600" />
-                      <span className="font-semibold text-slate-800">About</span>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent side="left" className="w-80 bg-white/95 backdrop-blur-sm border border-white/20">
-                      <div className="p-4">
-                        <div className="text-sm text-slate-600 leading-relaxed">
-                          Built By <span className="font-medium text-blue-700">Tedros Teshome (Ras Moa)</span>, 
-                          for automating poster design when there is no one to design urgent posters.
-                        </div>
-                      </div>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <DropdownMenuItem className="flex items-center gap-3 p-4 hover:bg-slate-100 cursor-pointer">
+                  <Info className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <div className="font-semibold text-slate-800 mb-1">About</div>
+                    <div className="text-sm text-slate-600 leading-relaxed">
+                      Built By <span className="font-medium text-blue-700">Tedros Teshome (Ras Moa)</span>, 
+                      for automating poster design when there is no one to design urgent posters.
+                    </div>
+                  </div>
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem className="p-0">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="flex items-center gap-3 p-4 w-full text-left hover:bg-slate-100">
-                      <Code className="h-5 w-5 text-green-600" />
-                      <span className="font-semibold text-slate-800">Version</span>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent side="left" className="w-40 bg-white/95 backdrop-blur-sm border border-white/20">
-                      <div className="p-4">
-                        <div className="text-sm text-slate-600">v1.0.0 ras</div>
-                      </div>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem className="flex items-center gap-3 p-4 hover:bg-slate-100 cursor-pointer">
+                  <Code className="h-5 w-5 text-green-600" />
+                  <div>
+                    <div className="font-semibold text-slate-800 mb-1">Version</div>
+                    <div className="text-sm text-slate-600">v1.0.0 ras</div>
+                  </div>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
