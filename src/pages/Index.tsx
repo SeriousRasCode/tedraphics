@@ -11,8 +11,8 @@ import { ActionButtons } from '@/components/ActionButtons';
 const Index = () => {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [title, setTitle] = useState('Your Title Here');
-  const [mainText, setMainText] = useState('Your main content goes here. This is where you can add your primary message or description.');
-  const [quotedText, setQuotedText] = useState('Optional quoted text or special message');
+  const [mainText, setMainText] = useState('Main content goes here.');
+  const [quotedText, setQuotedText] = useState('Special message');
   const [selectedTemplate, setSelectedTemplate] = useState(2);
   const [gradientHeight, setGradientHeight] = useState(400);
   const [gradientStrength, setGradientStrength] = useState(80);
