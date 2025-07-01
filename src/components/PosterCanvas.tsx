@@ -72,6 +72,11 @@ interface PosterCanvasProps {
     width: number;
     height: number;
   };
+  additionalIconsGap: number;
+  socialLinksPosition: {
+    x: number;
+    y: number;
+  };
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
@@ -100,7 +105,9 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     additionalIconsY,
     socialLinksGap,
     imageCrop,
-    clipart
+    clipart,
+    additionalIconsGap,
+    socialLinksPosition
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -157,7 +164,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
       const alpha = gradientStrength / 100;
@@ -246,7 +253,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
           };
         });
 
-        const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + 30 * (blocks.length - 1);
+        const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + additionalIconsGap * (blocks.length - 1);
         let x = (1080 - totalWidth) / 2;
 
         ctx.textAlign = 'left';
@@ -259,7 +266,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
           ctx.drawImage(block.img, x, additionalIconsY - iconSize / 2, iconSize, iconSize);
           ctx.fillStyle = '#ffd700';
           ctx.fillText(block.text, x + iconSize + 8, additionalIconsY);
-          x += block.width + 30;
+          x += block.width + additionalIconsGap;
         });
 
         ctx.shadowColor = 'transparent';
@@ -270,7 +277,6 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     };
 
     const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
-      const linkY = 1020;
       const iconSize = 20;
       const fontSize = 16;
       const fontFamily = customFonts.textFont || fonts.textFont;
@@ -320,7 +326,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         });
 
         const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + socialLinksGap * (blocks.length - 1);
-        let x = (1080 - totalWidth) / 2;
+        let x = socialLinksPosition.x - totalWidth / 2;
 
         ctx.textAlign = 'left';
         ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
@@ -329,9 +335,9 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.shadowOffsetY = 1;
 
         blocks.forEach(block => {
-          ctx.drawImage(block.img, x, linkY - iconSize / 2, iconSize, iconSize);
+          ctx.drawImage(block.img, x, socialLinksPosition.y - iconSize / 2, iconSize, iconSize);
           ctx.fillStyle = '#ffd700';
-          ctx.fillText(block.text, x + iconSize + 8, linkY);
+          ctx.fillText(block.text, x + iconSize + 8, socialLinksPosition.y);
           x += block.width + socialLinksGap;
         });
 
