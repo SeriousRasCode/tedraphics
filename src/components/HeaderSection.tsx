@@ -31,8 +31,7 @@ export const HeaderSection = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-2">About</h3>
                 <p className="text-slate-300">
-                  TedrGraphics is a powerful poster creation tool designed for creating beautiful 1080×1080 posters 
-                  with bilingual support, custom fonts, and elegant designs.
+                  TedrGraphics is a powerful poster creation tool designed for creating beautiful 1080×1080 posters.
                 </p>
               </div>
               <div>
@@ -47,7 +46,6 @@ export const HeaderSection = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-2">Features</h3>
                 <ul className="text-sm text-slate-300 space-y-1">
-                  <li>• Bilingual text support (Amharic & Oromic)</li>
                   <li>• Custom font uploads</li>
                   <li>• Multiple frame styles</li>
                   <li>• Gradient customization</li>

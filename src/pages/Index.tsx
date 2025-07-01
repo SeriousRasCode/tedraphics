@@ -6,8 +6,11 @@ import { ImageUpload } from '@/components/ImageUpload';
 import { toast } from 'sonner';
 import { HeaderSection } from '@/components/HeaderSection';
 import { ActionButtons } from '@/components/ActionButtons';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
 
 const Index = () => {
+  const [showDesignSettings, setShowDesignSettings] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [title, setTitle] = useState('Your Title Here');
   const [mainText, setMainText] = useState('Main content goes here.');
@@ -255,17 +258,29 @@ const Index = () => {
 
           <div className="order-2 lg:order-1 space-y-4 sm:space-y-6">
             
+            {/* Design Settings - Icon Only */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-              <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Design Settings</h2>
-              
-              <div className="space-y-4">
-                <TemplateSelector 
-                  selectedTemplate={selectedTemplate}
-                  onTemplateChange={setSelectedTemplate}
-                />
-                
-                <ImageUpload onImageUpload={handleImageUpload} />
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowDesignSettings(!showDesignSettings)}
+                  className="text-white hover:bg-white/20 p-2"
+                >
+                  <Settings className="w-6 h-6" />
+                </Button>
+                <span className="text-xl sm:text-2xl font-semibold text-white">Design Settings</span>
               </div>
+              
+              {showDesignSettings && (
+                <div className="space-y-4">
+                  <TemplateSelector 
+                    selectedTemplate={selectedTemplate}
+                    onTemplateChange={setSelectedTemplate}
+                  />
+                  
+                  <ImageUpload onImageUpload={handleImageUpload} />
+                </div>
+              )}
             </div>
 
             <PosterControls

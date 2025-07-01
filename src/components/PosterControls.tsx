@@ -127,6 +127,7 @@ export const PosterControls = ({
   socialLinksPosition, onSocialLinksPositionChange
 }: PosterControlsProps) => {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
+  const [showContentStyle, setShowContentStyle] = useState(false);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -170,19 +171,21 @@ export const PosterControls = ({
 
   return (
     <div className="space-y-4">
-      {/* Content & Style Section */}
+      {/* Content & Style Section - Icon Only */}
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-        <Collapsible>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" className="w-full justify-between text-white hover:bg-white/20 p-0 h-auto">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5" />
-                <h2 className="text-xl sm:text-2xl font-semibold">Content & Style</h2>
-              </div>
-              <div className="text-sm text-white/70">Click to expand</div>
-            </Button>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 mt-4">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => setShowContentStyle(!showContentStyle)}
+            className="text-white hover:bg-white/20 p-2"
+          >
+            <FileText className="w-6 h-6" />
+          </Button>
+          <span className="text-xl sm:text-2xl font-semibold text-white">Content & Style</span>
+        </div>
+        
+        {showContentStyle && (
+          <div className="space-y-4">
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-white">Title</Label>
@@ -217,8 +220,8 @@ export const PosterControls = ({
                 />
               </div>
             </div>
-          </CollapsibleContent>
-        </Collapsible>
+          </div>
+        )}
       </div>
 
       {/* Horizontal Options Bar */}
