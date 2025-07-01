@@ -25,7 +25,7 @@ export const HeaderSection = () => {
           </DialogTrigger>
           <DialogContent className="bg-slate-800 border-slate-600 text-white">
             <DialogHeader>
-              <DialogTitle className="text-yellow-400">About TedrGraphics</DialogTitle>
+              <DialogTitle className="text-yellow-400">About Tedraphics</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
