@@ -7,7 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Type, Move, Palette, Image, Settings, MapPin, Clock, Calendar } from 'lucide-react';
+import { Type, Move, Palette, Image, Settings, FileText, Crop, ImageIcon, Calendar, Clock, MapPin } from 'lucide-react';
 
 interface PosterControlsProps {
   title: string;
@@ -66,8 +66,8 @@ interface PosterControlsProps {
   onCustomFontsChange: (fonts: { titleFont: string | null; textFont: string | null; quoteFont: string | null; topBottomFont: string | null }) => void;
   bilingualEnabled: boolean;
   onBilingualEnabledChange: (enabled: boolean) => void;
-  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow';
-  onFrameStyleChange: (style: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow') => void;
+  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow' | 'vintage' | 'modern' | 'neon' | 'artistic' | 'minimal' | 'partial-top-right' | 'partial-bottom-left' | 'partial-diagonal';
+  onFrameStyleChange: (style: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow' | 'vintage' | 'modern' | 'neon' | 'artistic' | 'minimal' | 'partial-top-right' | 'partial-bottom-left' | 'partial-diagonal') => void;
   textColors: {
     titleColor: string;
     textColor: string;
@@ -87,6 +87,21 @@ interface PosterControlsProps {
   onAdditionalIconsYChange: (y: number) => void;
   socialLinksGap: number;
   onSocialLinksGapChange: (gap: number) => void;
+  imageCrop: {
+    x: number;
+    y: number;
+    scale: number;
+  };
+  onImageCropChange: (crop: { x: number; y: number; scale: number }) => void;
+  clipart: {
+    image: string | null;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  onClipartChange: (clipart: { image: string | null; x: number; y: number; width: number; height: number }) => void;
+  onClipartUpload: (file: File) => void;
 }
 
 export const PosterControls = ({ 
@@ -100,7 +115,8 @@ export const PosterControls = ({
   bilingualEnabled, onBilingualEnabledChange, frameStyle, onFrameStyleChange,
   textColors, onTextColorsChange, mainTextWidth, onMainTextWidthChange,
   additionalIcons, onAdditionalIconsChange, additionalIconsY, onAdditionalIconsYChange,
-  socialLinksGap, onSocialLinksGapChange
+  socialLinksGap, onSocialLinksGapChange, imageCrop, onImageCropChange,
+  clipart, onClipartChange, onClipartUpload
 }: PosterControlsProps) => {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
@@ -123,42 +139,64 @@ export const PosterControls = ({
     }
   };
 
+  const handleClipartFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onClipartUpload(file);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      {/* Content Inputs */}
-      <div className="space-y-3">
-        <div className="space-y-2">
-          <Label htmlFor="title" className="text-white">Title</Label>
-          <Input
-            id="title"
-            value={title}
-            onChange={(e) => onTitleChange(e.target.value)}
-            className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-            placeholder="Enter poster title"
-          />
-        </div>
+      {/* Content & Style Section */}
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" className="w-full justify-between text-white hover:bg-white/20 p-0 h-auto">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                <h2 className="text-xl sm:text-2xl font-semibold">Content & Style</h2>
+              </div>
+              <div className="text-sm text-white/70">Click to expand</div>
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-white">Title</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => onTitleChange(e.target.value)}
+                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                  placeholder="Enter poster title"
+                />
+              </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="mainText" className="text-white">Main Text</Label>
-          <Textarea
-            id="mainText"
-            value={mainText}
-            onChange={(e) => onMainTextChange(e.target.value)}
-            className="bg-white/20 border-white/30 text-white placeholder:text-white/70 min-h-[100px]"
-            placeholder="Enter main content"
-          />
-        </div>
+              <div className="space-y-2">
+                <Label htmlFor="mainText" className="text-white">Main Text</Label>
+                <Textarea
+                  id="mainText"
+                  value={mainText}
+                  onChange={(e) => onMainTextChange(e.target.value)}
+                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70 min-h-[100px]"
+                  placeholder="Enter main content"
+                />
+              </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="quotedText" className="text-white">Quoted Text</Label>
-          <Textarea
-            id="quotedText"
-            value={quotedText}
-            onChange={(e) => onQuotedTextChange(e.target.value)}
-            className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-            placeholder="Enter quoted text"
-          />
-        </div>
+              <div className="space-y-2">
+                <Label htmlFor="quotedText" className="text-white">Quoted Text</Label>
+                <Textarea
+                  id="quotedText"
+                  value={quotedText}
+                  onChange={(e) => onQuotedTextChange(e.target.value)}
+                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                  placeholder="Enter quoted text"
+                />
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
       {/* Horizontal Options Bar */}
@@ -216,11 +254,21 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('icons')}
-          className={`text-white hover:bg-white/20 ${openSections.icons ? 'bg-white/20' : ''}`}
+          onClick={() => toggleSection('crop')}
+          className={`text-white hover:bg-white/20 ${openSections.crop ? 'bg-white/20' : ''}`}
         >
-          <MapPin className="w-4 h-4 mr-2" />
-          Icons
+          <Crop className="w-4 h-4 mr-2" />
+          Crop
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => toggleSection('clipart')}
+          className={`text-white hover:bg-white/20 ${openSections.clipart ? 'bg-white/20' : ''}`}
+        >
+          <ImageIcon className="w-4 h-4 mr-2" />
+          Clipart
         </Button>
       </div>
 
@@ -490,7 +538,7 @@ export const PosterControls = ({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-white">Inner Gradient Height (083765 color): {gradientInnerHeight}px</Label>
+              <Label className="text-white">Inner Gradient Coverage: {gradientInnerHeight}px</Label>
               <Slider
                 value={[gradientInnerHeight]}
                 onValueChange={([value]) => onGradientInnerHeightChange(value)}
@@ -595,7 +643,7 @@ export const PosterControls = ({
               <Label className="text-white">Frame Style</Label>
               <Select
                 value={frameStyle}
-                onValueChange={(value: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow') => onFrameStyleChange(value)}
+                onValueChange={(value: typeof frameStyle) => onFrameStyleChange(value)}
               >
                 <SelectTrigger className="bg-white/20 border-white/30 text-white">
                   <SelectValue />
@@ -611,6 +659,14 @@ export const PosterControls = ({
                   <SelectItem value="dotted">Dotted</SelectItem>
                   <SelectItem value="shadow">Shadow</SelectItem>
                   <SelectItem value="glow">Glow</SelectItem>
+                  <SelectItem value="vintage">Vintage</SelectItem>
+                  <SelectItem value="modern">Modern</SelectItem>
+                  <SelectItem value="neon">Neon</SelectItem>
+                  <SelectItem value="artistic">Artistic</SelectItem>
+                  <SelectItem value="minimal">Minimal</SelectItem>
+                  <SelectItem value="partial-top-right">Partial Top-Right</SelectItem>
+                  <SelectItem value="partial-bottom-left">Partial Bottom-Left</SelectItem>
+                  <SelectItem value="partial-diagonal">Partial Diagonal</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -720,14 +776,130 @@ export const PosterControls = ({
         </div>
       )}
 
-      {/* Icons Section */}
+      {/* Image Cropping Section */}
+      {openSections.crop && (
+        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+          <h3 className="text-lg font-semibold text-white mb-3">Image Cropping</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-white">X Position: {imageCrop.x}px</Label>
+              <Slider
+                value={[imageCrop.x]}
+                onValueChange={([value]) => onImageCropChange({ ...imageCrop, x: value })}
+                max={200}
+                min={-200}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Y Position: {imageCrop.y}px</Label>
+              <Slider
+                value={[imageCrop.y]}
+                onValueChange={([value]) => onImageCropChange({ ...imageCrop, y: value })}
+                max={200}
+                min={-200}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label className="text-white">Scale: {imageCrop.scale.toFixed(2)}x</Label>
+              <Slider
+                value={[imageCrop.scale]}
+                onValueChange={([value]) => onImageCropChange({ ...imageCrop, scale: value })}
+                max={3}
+                min={0.5}
+                step={0.1}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clipart Section */}
+      {openSections.clipart && (
+        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+          <h3 className="text-lg font-semibold text-white mb-3">Clipart</h3>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-white">Upload Clipart (PNG)</Label>
+              <input
+                type="file"
+                accept=".png"
+                onChange={handleClipartFileUpload}
+                className="text-sm text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/20 file:text-white hover:file:bg-white/30"
+              />
+            </div>
+
+            {clipart.image && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white">X Position: {clipart.x}px</Label>
+                  <Slider
+                    value={[clipart.x]}
+                    onValueChange={([value]) => onClipartChange({ ...clipart, x: value })}
+                    max={1080}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Y Position: {clipart.y}px</Label>
+                  <Slider
+                    value={[clipart.y]}
+                    onValueChange={([value]) => onClipartChange({ ...clipart, y: value })}
+                    max={1080}
+                    min={0}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Width: {clipart.width}px</Label>
+                  <Slider
+                    value={[clipart.width]}
+                    onValueChange={([value]) => onClipartChange({ ...clipart, width: value })}
+                    max={500}
+                    min={20}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white">Height: {clipart.height}px</Label>
+                  <Slider
+                    value={[clipart.height]}
+                    onValueChange={([value]) => onClipartChange({ ...clipart, height: value })}
+                    max={500}
+                    min={20}
+                    step={5}
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Icons Section with Custom Icons */}
       {openSections.icons && (
         <div className="bg-white/5 rounded-lg p-4 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-3">Additional Icons</h3>
           
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-white" />
+              <img src="/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png" alt="Location" className="w-4 h-4" />
               <Input
                 placeholder="Place/Location"
                 value={additionalIcons.place}
@@ -737,7 +909,7 @@ export const PosterControls = ({
             </div>
             
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-white" />
+              <img src="/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png" alt="Time" className="w-4 h-4" />
               <Input
                 placeholder="Time"
                 value={additionalIcons.time}
@@ -747,7 +919,7 @@ export const PosterControls = ({
             </div>
             
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-white" />
+              <img src="/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png" alt="Date" className="w-4 h-4" />
               <Input
                 placeholder="Date"
                 value={additionalIcons.date}

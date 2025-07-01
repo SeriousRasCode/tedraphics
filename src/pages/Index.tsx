@@ -51,7 +51,7 @@ const Index = () => {
     topBottomFont: null as string | null
   });
   const [bilingualEnabled, setBilingualEnabled] = useState(true);
-  const [frameStyle, setFrameStyle] = useState<'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow' | 'vintage' | 'modern' | 'neon' | 'artistic' | 'minimal'>('none');
+  const [frameStyle, setFrameStyle] = useState<'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow' | 'vintage' | 'modern' | 'neon' | 'artistic' | 'minimal' | 'partial-top-right' | 'partial-bottom-left' | 'partial-diagonal'>('none');
   const [textColors, setTextColors] = useState({
     titleColor: 'gradient',
     textColor: '#ffffff',
@@ -67,6 +67,18 @@ const Index = () => {
   const [additionalIconsY, setAdditionalIconsY] = useState(890);
   const [socialLinksGap, setSocialLinksGap] = useState(50);
   const [gradientInnerHeight, setGradientInnerHeight] = useState(200);
+  const [imageCrop, setImageCrop] = useState({
+    x: 0,
+    y: 0,
+    scale: 1
+  });
+  const [clipart, setClipart] = useState({
+    image: null as string | null,
+    x: 540,
+    y: 540,
+    width: 100,
+    height: 100
+  });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -75,6 +87,15 @@ const Index = () => {
     reader.onload = (e) => {
       setBackgroundImage(e.target?.result as string);
       toast.success('Background image uploaded successfully!');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClipartUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setClipart(prev => ({ ...prev, image: e.target?.result as string }));
+      toast.success('Clipart uploaded successfully!');
     };
     reader.readAsDataURL(file);
   };
@@ -218,6 +239,8 @@ const Index = () => {
                 additionalIcons={additionalIcons}
                 additionalIconsY={additionalIconsY}
                 socialLinksGap={socialLinksGap}
+                imageCrop={imageCrop}
+                clipart={clipart}
               />
             </div>
           </div>
@@ -280,6 +303,11 @@ const Index = () => {
               onAdditionalIconsYChange={setAdditionalIconsY}
               socialLinksGap={socialLinksGap}
               onSocialLinksGapChange={setSocialLinksGap}
+              imageCrop={imageCrop}
+              onImageCropChange={setImageCrop}
+              clipart={clipart}
+              onClipartChange={setClipart}
+              onClipartUpload={handleClipartUpload}
             />
 
             <ActionButtons 

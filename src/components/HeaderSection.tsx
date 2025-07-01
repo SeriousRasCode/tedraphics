@@ -1,86 +1,62 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, Info, Code } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ChevronDown, Info } from 'lucide-react';
 
-export const HeaderSection: React.FC = () => {
-  const [showAbout, setShowAbout] = useState(false);
-  const [showVersion, setShowVersion] = useState(false);
-
+export const HeaderSection = () => {
   return (
-    <div className="text-center mb-6 sm:mb-8 relative">
-      <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-2 sm:mb-4">
-        Tedraphics
-      </h1>
-      <p className="text-sm sm:text-xl text-blue-200 max-w-2xl mx-auto px-4">
-        Create a beautiful 1080×1080 (1:1) posters
-      </p>
-      
-      {/* Dropdown Menu */}
-      <div className="absolute top-0 right-0">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-sm border border-white/20 z-50">
-            <DropdownMenuLabel className="text-lg font-semibold text-slate-800">
-              Menu
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            
-            <DropdownMenuItem 
-              className="flex items-center gap-3 p-4 hover:bg-slate-100 cursor-pointer"
-              onClick={() => setShowAbout(!showAbout)}
-            >
-              <Info className="h-5 w-5 text-blue-600" />
-              <span className="font-semibold text-slate-800">About</span>
-            </DropdownMenuItem>
-            
-            <DropdownMenuItem 
-              className="flex items-center gap-3 p-4 hover:bg-slate-100 cursor-pointer"
-              onClick={() => setShowVersion(!showVersion)}
-            >
-              <Code className="h-5 w-5 text-green-600" />
-              <span className="font-semibold text-slate-800">Version</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      {/* About Message */}
-      {showAbout && (
-        <div className="mt-4 p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-left max-w-md mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <Info className="h-5 w-5 text-blue-400" />
-            <span className="font-semibold text-white">About</span>
-          </div>
-          <p className="text-sm text-blue-200 leading-relaxed">
-            Built By <span className="font-medium text-blue-300">Tedros Teshome (Ras Moa)</span>, 
-            for automating poster design when there is no one to design urgent posters.
+    <div className="text-center mb-6 sm:mb-12">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-600 mb-3 sm:mb-4">
+            TedrGraphics
+          </h1>
+          <p className="text-lg sm:text-xl text-blue-100/90 mb-4 sm:mb-6 max-w-2xl mx-auto">
+            Create beautiful 1080×1080 posters easy
           </p>
         </div>
-      )}
-
-      {/* Version Message */}
-      {showVersion && (
-        <div className="mt-4 p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 text-left max-w-md mx-auto">
-          <div className="flex items-center gap-3 mb-2">
-            <Code className="h-5 w-5 text-green-400" />
-            <span className="font-semibold text-white">Version</span>
-          </div>
-          <p className="text-sm text-blue-200">v1.0.0 ras</p>
-        </div>
-      )}
+        
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
+              <Info className="w-4 h-4 mr-2" />
+              About
+              <ChevronDown className="w-4 h-4 ml-2" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="bg-slate-800 border-slate-600 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-yellow-400">About TedrGraphics</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold mb-2">About</h3>
+                <p className="text-slate-300">
+                  TedrGraphics is a powerful poster creation tool designed for creating beautiful 1080×1080 posters 
+                  with bilingual support, custom fonts, and elegant designs.
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Version</h3>
+                <p className="text-slate-300">Version 2.1.0</p>
+                <p className="text-sm text-slate-400">Built with React + Vite</p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Features</h3>
+                <ul className="text-sm text-slate-300 space-y-1">
+                  <li>• Bilingual text support (Amharic & Oromic)</li>
+                  <li>• Custom font uploads</li>
+                  <li>• Multiple frame styles</li>
+                  <li>• Gradient customization</li>
+                  <li>• Social media integration</li>
+                  <li>• Clipart support</li>
+                </ul>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

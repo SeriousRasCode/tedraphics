@@ -45,7 +45,7 @@ interface PosterCanvasProps {
     topBottomFont: string | null;
   };
   bilingualEnabled: boolean;
-  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow';
+  frameStyle: 'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow' | 'vintage' | 'modern' | 'neon' | 'artistic' | 'minimal' | 'partial-top-right' | 'partial-bottom-left' | 'partial-diagonal';
   textColors: {
     titleColor: string;
     textColor: string;
@@ -60,6 +60,18 @@ interface PosterCanvasProps {
   };
   additionalIconsY: number;
   socialLinksGap: number;
+  imageCrop: {
+    x: number;
+    y: number;
+    scale: number;
+  };
+  clipart: {
+    image: string | null;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
@@ -86,7 +98,9 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     mainTextWidth,
     additionalIcons,
     additionalIconsY,
-    socialLinksGap
+    socialLinksGap,
+    imageCrop,
+    clipart
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -121,15 +135,16 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         }
         drawAdditionalIcons(ctx);
         drawSocialLinks(ctx);
+        drawClipart(ctx);
         drawFrame(ctx);
       };
 
       if (backgroundImage) {
         const img = new Image();
         img.onload = () => {
-          const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-          const x = (canvas.width - img.width * scale) / 2;
-          const y = (canvas.height - img.height * scale) / 2;
+          const scale = Math.max(canvas.width / img.width, canvas.height / img.height) * imageCrop.scale;
+          const x = (canvas.width - img.width * scale) / 2 + imageCrop.x;
+          const y = (canvas.height - img.height * scale) / 2 + imageCrop.y;
           ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
           draw();
         };
@@ -142,23 +157,23 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
       const alpha = gradientStrength / 100;
       
-      // Top gradient overlay with inner height control
+      // Top gradient overlay with smooth inner height transition
       const top = ctx.createLinearGradient(0, 0, 0, gradientHeight);
       top.addColorStop(0, `rgba(8, 55, 101, ${alpha})`);
-      top.addColorStop(gradientInnerHeight / gradientHeight, `rgba(8, 55, 101, ${alpha * 0.8})`);
+      top.addColorStop(Math.min(gradientInnerHeight / gradientHeight, 0.9), `rgba(8, 55, 101, ${alpha * 0.8})`);
       top.addColorStop(1, 'rgba(8, 55, 101, 0)');
       ctx.fillStyle = top;
       ctx.fillRect(0, 0, 1080, gradientHeight);
 
-      // Bottom gradient overlay with inner height control
+      // Bottom gradient overlay with smooth inner height transition
       const bottom = ctx.createLinearGradient(0, 1080 - gradientHeight, 0, 1080);
       bottom.addColorStop(0, 'rgba(8, 55, 101, 0)');
-      bottom.addColorStop(1 - (gradientInnerHeight / gradientHeight), `rgba(8, 55, 101, ${alpha * 0.8})`);
+      bottom.addColorStop(Math.max(1 - (gradientInnerHeight / gradientHeight), 0.1), `rgba(8, 55, 101, ${alpha * 0.8})`);
       bottom.addColorStop(1, `rgba(8, 55, 101, ${alpha})`);
       ctx.fillStyle = bottom;
       ctx.fillRect(0, 1080 - gradientHeight, 1080, gradientHeight);
@@ -195,57 +210,63 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     };
 
     const drawAdditionalIcons = (ctx: CanvasRenderingContext2D) => {
-      const iconSize = 20;
+      const iconSize = 16;
       const fontSize = 18;
       const fontFamily = customFonts.textFont || fonts.textFont;
       ctx.font = `${fontSize}px ${fontFamily}`;
       ctx.textBaseline = 'middle';
 
       const additionalIconsData = [
-        { text: additionalIcons.place, color: '#4ade80', emoji: '📍' },
-        { text: additionalIcons.time, color: '#60a5fa', emoji: '⏰' },
-        { text: additionalIcons.date, color: '#f87171', emoji: '📅' }
+        { text: additionalIcons.place, color: '#4ade80', iconSrc: '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png' },
+        { text: additionalIcons.time, color: '#60a5fa', iconSrc: '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png' },
+        { text: additionalIcons.date, color: '#f87171', iconSrc: '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png' }
       ];
 
       const visibleIcons = additionalIconsData.filter(icon => icon.text.trim() !== '');
       
       if (visibleIcons.length === 0) return;
 
-      const blocks = visibleIcons.map(icon => {
-        const textWidth = ctx.measureText(icon.text).width;
-        return {
-          ...icon,
-          textWidth,
-          width: iconSize + 8 + textWidth,
-        };
+      const iconPromises = visibleIcons.map(icon => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = icon.iconSrc;
+        });
       });
 
-      const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + 30 * (blocks.length - 1);
-      let x = (1080 - totalWidth) / 2;
+      Promise.all(iconPromises).then(images => {
+        const blocks = visibleIcons.map((icon, i) => {
+          const textWidth = ctx.measureText(icon.text).width;
+          return {
+            img: images[i],
+            text: icon.text,
+            textWidth,
+            width: iconSize + 8 + textWidth,
+          };
+        });
 
-      ctx.textAlign = 'left';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowBlur = 3;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
+        const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + 30 * (blocks.length - 1);
+        let x = (1080 - totalWidth) / 2;
 
-      blocks.forEach(block => {
-        // Draw emoji icon
-        ctx.font = `${iconSize}px Arial`;
-        ctx.fillStyle = block.color;
-        ctx.fillText(block.emoji, x, additionalIconsY);
-        
-        // Draw text
-        ctx.font = `${fontSize}px ${fontFamily}`;
-        ctx.fillStyle = '#ffd700';
-        ctx.fillText(block.text, x + iconSize + 8, additionalIconsY);
-        x += block.width + 30;
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+
+        blocks.forEach(block => {
+          ctx.drawImage(block.img, x, additionalIconsY - iconSize / 2, iconSize, iconSize);
+          ctx.fillStyle = '#ffd700';
+          ctx.fillText(block.text, x + iconSize + 8, additionalIconsY);
+          x += block.width + 30;
+        });
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
       });
-
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
     };
 
     const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
@@ -321,6 +342,16 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       });
     };
 
+    const drawClipart = (ctx: CanvasRenderingContext2D) => {
+      if (!clipart.image) return;
+
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, clipart.x - clipart.width / 2, clipart.y - clipart.height / 2, clipart.width, clipart.height);
+      };
+      img.src = clipart.image;
+    };
+
     const drawFrame = (ctx: CanvasRenderingContext2D) => {
       if (frameStyle === 'none') return;
 
@@ -378,6 +409,33 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
           ctx.shadowBlur = 30;
           ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
           ctx.strokeRect(15, 15, 1050, 1050);
+          break;
+        case 'partial-top-right':
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(540, 15);
+          ctx.lineTo(1065, 15);
+          ctx.lineTo(1065, 540);
+          ctx.stroke();
+          break;
+        case 'partial-bottom-left':
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(15, 540);
+          ctx.lineTo(15, 1065);
+          ctx.lineTo(540, 1065);
+          ctx.stroke();
+          break;
+        case 'partial-diagonal':
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(540, 15);
+          ctx.lineTo(1065, 15);
+          ctx.lineTo(1065, 540);
+          ctx.moveTo(15, 540);
+          ctx.lineTo(15, 1065);
+          ctx.lineTo(540, 1065);
+          ctx.stroke();
           break;
       }
 
