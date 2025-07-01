@@ -229,8 +229,8 @@ const Index = () => {
 
         <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0 max-w-7xl mx-auto">
           
-          <div className="order-1 lg:order-2 bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-            <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Preview</h2>
+          <div className="order-1 lg:order-2 bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+            <h2 className="text-xl font-semibold text-white mb-3">Preview</h2>
             <div className="flex justify-center">
               <PosterCanvas
                 ref={canvasRef}
@@ -267,8 +267,7 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="order-2 lg:order-1 space-y-4 sm:space-y-6">
-            
+          <div className="order-2 lg:order-1 space-y-4">
             <PosterControls
               title={title}
               mainText={mainText}

@@ -122,9 +122,9 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     },
     ref
   ) => {
-    useImperativeHandle(ref, () => canvasRef.current as HTMLCanvasElement);
-
     const canvasRef = React.useRef<HTMLCanvasElement>(null);
+    
+    useImperativeHandle(ref, () => canvasRef.current as HTMLCanvasElement);
 
     React.useEffect(() => {
       const canvas = canvasRef.current;
@@ -783,6 +783,16 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       elementSizes
     ]);
 
-    return <canvas ref={canvasRef} />;
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <canvas 
+          ref={canvasRef} 
+          className="w-full h-auto border border-white/20 rounded-lg shadow-lg"
+          style={{ aspectRatio: '1/1' }}
+        />
+      </div>
+    );
   }
 );
+
+PosterCanvas.displayName = 'PosterCanvas';
