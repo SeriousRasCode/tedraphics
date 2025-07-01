@@ -81,21 +81,12 @@ const Index = () => {
     width: 100,
     height: 100
   });
+  
+  // New state for additional positioning
   const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
   const [socialLinksPosition, setSocialLinksPosition] = useState({
     x: 540,
     y: 1000
-  });
-  
-  // New state for bottom bilingual text position and sizing
-  const [bottomTextPosition, setBottomTextPosition] = useState({
-    x: 540,
-    y: 50
-  });
-  const [elementSizes, setElementSizes] = useState({
-    socialLinksSize: 24,
-    additionalIconsSize: 18,
-    bottomTextSize: 16
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -261,14 +252,37 @@ const Index = () => {
                 clipart={clipart}
                 additionalIconsGap={additionalIconsGap}
                 socialLinksPosition={socialLinksPosition}
-                bottomTextPosition={bottomTextPosition}
-                elementSizes={elementSizes}
               />
             </div>
           </div>
 
           <div className="order-2 lg:order-1 space-y-4 sm:space-y-6">
             
+            {/* Design Settings - Icon Only */}
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowDesignSettings(!showDesignSettings)}
+                  className="text-white hover:bg-white/20 p-2"
+                >
+                  <Settings className="w-6 h-6" />
+                </Button>
+                <span className="text-xl sm:text-2xl font-semibold text-white">Design Settings</span>
+              </div>
+              
+              {showDesignSettings && (
+                <div className="space-y-4">
+                  <TemplateSelector 
+                    selectedTemplate={selectedTemplate}
+                    onTemplateChange={setSelectedTemplate}
+                  />
+                  
+                  <ImageUpload onImageUpload={handleImageUpload} />
+                </div>
+              )}
+            </div>
+
             <PosterControls
               title={title}
               mainText={mainText}
@@ -321,13 +335,6 @@ const Index = () => {
               onAdditionalIconsGapChange={setAdditionalIconsGap}
               socialLinksPosition={socialLinksPosition}
               onSocialLinksPositionChange={setSocialLinksPosition}
-              selectedTemplate={selectedTemplate}
-              onTemplateChange={setSelectedTemplate}
-              onImageUpload={handleImageUpload}
-              bottomTextPosition={bottomTextPosition}
-              onBottomTextPositionChange={setBottomTextPosition}
-              elementSizes={elementSizes}
-              onElementSizesChange={setElementSizes}
             />
 
             <ActionButtons 

@@ -1,6 +1,7 @@
-import React, { forwardRef, useImperativeHandle } from 'react';
+import React, { useRef, useEffect, forwardRef } from 'react';
+import { templates } from '@/utils/posterTemplates';
 
-export interface PosterCanvasProps {
+interface PosterCanvasProps {
   backgroundImage: string | null;
   title: string;
   mainText: string;
@@ -24,7 +25,7 @@ export interface PosterCanvasProps {
     width: number;
     height: number;
   };
-  quoteBoxStyle: 'rectangle' | 'rounded' | 'none';
+  quoteBoxStyle: 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none';
   fonts: {
     titleFont: string;
     textFont: string;
@@ -76,713 +77,605 @@ export interface PosterCanvasProps {
     x: number;
     y: number;
   };
-    bottomTextPosition: {
-    x: number;
-    y: number;
-  };
-  elementSizes: {
-    socialLinksSize: number;
-    additionalIconsSize: number;
-    bottomTextSize: number;
-  };
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
-  (
-    {
-      backgroundImage,
-      title,
-      mainText,
-      quotedText,
-      template,
-      gradientHeight,
-      gradientStrength,
-      gradientInnerHeight,
-      language,
-      socialLinks,
-      textPositions,
-      quoteBoxSize,
-      quoteBoxStyle,
-      fonts,
-      fontSizes,
-      customFonts,
-      bilingualEnabled,
-      frameStyle,
-      textColors,
-      mainTextWidth,
-      additionalIcons,
-      additionalIconsY,
-      socialLinksGap,
-      imageCrop,
-      clipart,
-      additionalIconsGap,
-      socialLinksPosition,
-      bottomTextPosition,
-      elementSizes
-    },
-    ref
-  ) => {
-    useImperativeHandle(ref, () => canvasRef.current as HTMLCanvasElement);
+  ({
+    backgroundImage,
+    title,
+    mainText,
+    quotedText,
+    template,
+    gradientHeight,
+    gradientStrength,
+    gradientInnerHeight,
+    language,
+    socialLinks,
+    textPositions,
+    quoteBoxSize,
+    quoteBoxStyle,
+    fonts,
+    fontSizes,
+    customFonts,
+    bilingualEnabled,
+    frameStyle,
+    textColors,
+    mainTextWidth,
+    additionalIcons,
+    additionalIconsY,
+    socialLinksGap,
+    imageCrop,
+    clipart,
+    additionalIconsGap,
+    socialLinksPosition
+  }, ref) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const canvasRef = React.useRef<HTMLCanvasElement>(null);
+    const bilingualTexts = {
+      amharic: {
+        top: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ አሐዱ አምላክ አሜን',
+        bottom: 'የጅማ ዩንቨርስቲ ቴክኖሎጂ ኢንስቲትዩት ግቢ ጉባኤ'
+      },
+      oromic: {
+        top: 'Maqaa Abbaa kan ilmaa kan afuura qulqulluu waaqa tokko ameen',
+        bottom: 'Yaa\'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa'
+      }
+    };
 
-    React.useEffect(() => {
+    useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
-
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      // Set canvas dimensions
-      const width = 1080;
-      const height = 1080;
-      canvas.width = width;
-      canvas.height = height;
+      canvas.width = 1080;
+      canvas.height = 1080;
 
-      // Function to draw rounded rectangle
-      const drawRoundedRect = (
-        ctx: CanvasRenderingContext2D,
-        x: number,
-        y: number,
-        width: number,
-        height: number,
-        radius: number
-      ) => {
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
-        ctx.fill();
+      const currentTemplate = templates[template] || templates[2];
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const draw = () => {
+        drawGradientOverlays(ctx);
+        drawTemplate(ctx, currentTemplate, title, mainText, quotedText);
+        if (bilingualEnabled) {
+          drawBilingualTexts(ctx);
+        }
+        drawAdditionalIcons(ctx);
+        drawSocialLinks(ctx);
+        drawClipart(ctx);
+        drawFrame(ctx);
       };
 
-      // Function to apply frame style
-      const applyFrameStyle = (
-        ctx: CanvasRenderingContext2D,
-        frameStyle: string,
-        width: number,
-        height: number
-      ) => {
-        ctx.save(); // Save the current state
+      if (backgroundImage) {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.max(canvas.width / img.width, canvas.height / img.height) * imageCrop.scale;
+          const x = (canvas.width - img.width * scale) / 2 + imageCrop.x;
+          const y = (canvas.height - img.height * scale) / 2 + imageCrop.y;
+          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+          draw();
+        };
+        img.src = backgroundImage;
+      } else {
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, currentTemplate.colors.primary);
+        gradient.addColorStop(1, currentTemplate.colors.secondary);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        draw();
+      }
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition]);
 
-        switch (frameStyle) {
-          case 'simple':
-            ctx.lineWidth = 5;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.strokeRect(0, 0, width, height);
-            break;
-          case 'elegant':
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.strokeRect(10, 10, width - 20, height - 20);
-            break;
-          case 'bold':
-            ctx.lineWidth = 12;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeRect(0, 0, width, height);
+    const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
+      const alpha = gradientStrength / 100;
+      
+      // Top gradient overlay with smooth inner height transition
+      const top = ctx.createLinearGradient(0, 0, 0, gradientHeight);
+      top.addColorStop(0, `rgba(8, 55, 101, ${alpha})`);
+      top.addColorStop(Math.min(gradientInnerHeight / gradientHeight, 0.9), `rgba(8, 55, 101, ${alpha * 0.8})`);
+      top.addColorStop(1, 'rgba(8, 55, 101, 0)');
+      ctx.fillStyle = top;
+      ctx.fillRect(0, 0, 1080, gradientHeight);
+
+      // Bottom gradient overlay with smooth inner height transition
+      const bottom = ctx.createLinearGradient(0, 1080 - gradientHeight, 0, 1080);
+      bottom.addColorStop(0, 'rgba(8, 55, 101, 0)');
+      bottom.addColorStop(Math.max(1 - (gradientInnerHeight / gradientHeight), 0.1), `rgba(8, 55, 101, ${alpha * 0.8})`);
+      bottom.addColorStop(1, `rgba(8, 55, 101, ${alpha})`);
+      ctx.fillStyle = bottom;
+      ctx.fillRect(0, 1080 - gradientHeight, 1080, gradientHeight);
+    };
+
+    const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
+      const texts = bilingualTexts[language];
+      const fontFamily = customFonts.topBottomFont || fonts.topBottomFont;
+      ctx.font = `${fontSizes.topBottomSize}px ${fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+
+      if (textColors.topBottomColor === 'gradient') {
+        const gradient = ctx.createLinearGradient(0, 25, 0, 55);
+        gradient.addColorStop(0, '#ffd700');
+        gradient.addColorStop(0.3, '#ffed4e');
+        gradient.addColorStop(0.7, '#d97706');
+        gradient.addColorStop(1, '#b45309');
+        ctx.fillStyle = gradient;
+      } else {
+        ctx.fillStyle = textColors.topBottomColor;
+      }
+
+      wrapTextWithGradient(ctx, texts.top, 540, 40, 1000, fontSizes.topBottomSize * 1.2, textColors.topBottomColor === 'gradient');
+      wrapTextWithGradient(ctx, texts.bottom, 540, 950, 1000, fontSizes.topBottomSize * 1.2, textColors.topBottomColor === 'gradient');
+
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    };
+
+    const drawAdditionalIcons = (ctx: CanvasRenderingContext2D) => {
+      const iconSize = 16;
+      const fontSize = 18;
+      const fontFamily = customFonts.textFont || fonts.textFont;
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.textBaseline = 'middle';
+
+      const additionalIconsData = [
+        { text: additionalIcons.place, color: '#4ade80', iconSrc: '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png' },
+        { text: additionalIcons.time, color: '#60a5fa', iconSrc: '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png' },
+        { text: additionalIcons.date, color: '#f87171', iconSrc: '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png' }
+      ];
+
+      const visibleIcons = additionalIconsData.filter(icon => icon.text.trim() !== '');
+      
+      if (visibleIcons.length === 0) return;
+
+      const iconPromises = visibleIcons.map(icon => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = icon.iconSrc;
+        });
+      });
+
+      Promise.all(iconPromises).then(images => {
+        const blocks = visibleIcons.map((icon, i) => {
+          const textWidth = ctx.measureText(icon.text).width;
+          return {
+            img: images[i],
+            text: icon.text,
+            textWidth,
+            width: iconSize + 8 + textWidth,
+          };
+        });
+
+        const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + additionalIconsGap * (blocks.length - 1);
+        let x = (1080 - totalWidth) / 2;
+
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+
+        blocks.forEach(block => {
+          ctx.drawImage(block.img, x, additionalIconsY - iconSize / 2, iconSize, iconSize);
+          ctx.fillStyle = '#ffd700';
+          ctx.fillText(block.text, x + iconSize + 8, additionalIconsY);
+          x += block.width + additionalIconsGap;
+        });
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      });
+    };
+
+    const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
+      const iconSize = 20;
+      const fontSize = 16;
+      const fontFamily = customFonts.textFont || fonts.textFont;
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.textBaseline = 'middle';
+
+      const links = [
+        {
+          iconSrc: '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png',
+          text: socialLinks.telegram,
+          color: '#0088cc',
+        },
+        {
+          iconSrc: '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png',
+          text: socialLinks.instagram,
+          color: '#E4405F',
+        },
+        {
+          iconSrc: '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png',
+          text: socialLinks.tiktok,
+          color: '#ff0050',
+        },
+      ];
+
+      const visibleLinks = links.filter(link => link.text.trim() !== '');
+      
+      if (visibleLinks.length === 0) return;
+
+      const imagePromises = visibleLinks.map(link => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = link.iconSrc;
+        });
+      });
+
+      Promise.all(imagePromises).then(images => {
+        const blocks = visibleLinks.map((link, i) => {
+          const textWidth = ctx.measureText(link.text).width;
+          return {
+            img: images[i],
+            text: link.text,
+            textWidth,
+            width: iconSize + 8 + textWidth,
+          };
+        });
+
+        const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + socialLinksGap * (blocks.length - 1);
+        let x = socialLinksPosition.x - totalWidth / 2;
+
+        ctx.textAlign = 'left';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetX = 1;
+        ctx.shadowOffsetY = 1;
+
+        blocks.forEach(block => {
+          ctx.drawImage(block.img, x, socialLinksPosition.y - iconSize / 2, iconSize, iconSize);
+          ctx.fillStyle = '#ffd700';
+          ctx.fillText(block.text, x + iconSize + 8, socialLinksPosition.y);
+          x += block.width + socialLinksGap;
+        });
+
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      });
+    };
+
+    const drawClipart = (ctx: CanvasRenderingContext2D) => {
+      if (!clipart.image) return;
+
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, clipart.x - clipart.width / 2, clipart.y - clipart.height / 2, clipart.width, clipart.height);
+      };
+      img.src = clipart.image;
+    };
+
+    const drawFrame = (ctx: CanvasRenderingContext2D) => {
+      if (frameStyle === 'none') return;
+
+      ctx.strokeStyle = '#ffd700';
+      ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
+      ctx.shadowBlur = 10;
+
+      switch (frameStyle) {
+        case 'simple':
+          ctx.lineWidth = 4;
+          ctx.strokeRect(20, 20, 1040, 1040);
+          break;
+        case 'elegant':
+          ctx.lineWidth = 6;
+          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.lineWidth = 2;
+          ctx.strokeRect(25, 25, 1030, 1030);
+          break;
+        case 'bold':
+          ctx.lineWidth = 10;
+          ctx.strokeRect(10, 10, 1060, 1060);
+          break;
+        case 'rounded':
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.roundRect(15, 15, 1050, 1050, 30);
+          ctx.stroke();
+          break;
+        case 'double':
+          ctx.lineWidth = 3;
+          ctx.strokeRect(10, 10, 1060, 1060);
+          ctx.strokeRect(20, 20, 1040, 1040);
+          break;
+        case 'dashed':
+          ctx.lineWidth = 4;
+          ctx.setLineDash([20, 10]);
+          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.setLineDash([]);
+          break;
+        case 'dotted':
+          ctx.lineWidth = 4;
+          ctx.setLineDash([5, 15]);
+          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.setLineDash([]);
+          break;
+        case 'shadow':
+          ctx.lineWidth = 6;
+          ctx.shadowBlur = 20;
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.strokeRect(15, 15, 1050, 1050);
+          break;
+        case 'glow':
+          ctx.lineWidth = 4;
+          ctx.shadowBlur = 30;
+          ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
+          ctx.strokeRect(15, 15, 1050, 1050);
+          break;
+        case 'partial-top-right':
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(540, 15);
+          ctx.lineTo(1065, 15);
+          ctx.lineTo(1065, 540);
+          ctx.stroke();
+          break;
+        case 'partial-bottom-left':
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(15, 540);
+          ctx.lineTo(15, 1065);
+          ctx.lineTo(540, 1065);
+          ctx.stroke();
+          break;
+        case 'partial-diagonal':
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          ctx.moveTo(540, 15);
+          ctx.lineTo(1065, 15);
+          ctx.lineTo(1065, 540);
+          ctx.moveTo(15, 540);
+          ctx.lineTo(15, 1065);
+          ctx.lineTo(540, 1065);
+          ctx.stroke();
+          break;
+      }
+
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    };
+
+    const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
+      const titleFontFamily = customFonts.titleFont || fonts.titleFont;
+      
+      // Draw title
+      if (textColors.titleColor === 'gradient') {
+        drawGoldenText(ctx, title, fontSizes.titleSize, titleFontFamily, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2, true);
+      } else {
+        ctx.fillStyle = textColors.titleColor;
+        ctx.font = `bold ${fontSizes.titleSize}px ${titleFontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
+        wrapText(ctx, title, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
+
+      // Draw main text
+      const textFontFamily = customFonts.textFont || fonts.textFont;
+      ctx.font = `${fontSizes.textSize}px ${textFontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+
+      if (textColors.textColor === 'gradient') {
+        wrapTextWithGradient(ctx, mainText, 540, textPositions.textY, mainTextWidth, fontSizes.textSize * 1.5, true);
+      } else {
+        ctx.fillStyle = textColors.textColor;
+        wrapText(ctx, mainText, 540, textPositions.textY, mainTextWidth, fontSizes.textSize * 1.5);
+      }
+
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
+      if (quotedText.trim()) {
+        drawQuoteBox(ctx, template, quotedText);
+      }
+    };
+
+    const drawGoldenText = (
+      ctx: CanvasRenderingContext2D,
+      text: string,
+      fontSize: number,
+      fontFamily: string,
+      x: number,
+      y: number,
+      maxWidth: number,
+      lineHeight: number,
+      isTitle: boolean = false
+    ) => {
+      ctx.font = `${isTitle ? 'bold' : ''} ${fontSize}px ${fontFamily}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      ctx.shadowBlur = 8;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+
+      wrapTextWithGradient(ctx, text, x, y, maxWidth, lineHeight, true);
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+    };
+
+    const drawQuoteBox = (ctx: CanvasRenderingContext2D, template: any, text: string) => {
+      const boxX = (1080 - quoteBoxSize.width) / 2;
+      const boxY = textPositions.quoteY;
+
+      if (quoteBoxStyle !== 'none') {
+        ctx.fillStyle = template.colors.quoteBackground;
+        ctx.beginPath();
+
+        switch (quoteBoxStyle) {
+          case 'rectangle':
+            ctx.rect(boxX, boxY, quoteBoxSize.width, quoteBoxSize.height);
             break;
           case 'rounded':
-            ctx.lineWidth = 10;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.lineJoin = 'round';
-            ctx.strokeRect(10, 10, width - 20, height - 20);
+            ctx.roundRect(boxX, boxY, quoteBoxSize.width, quoteBoxSize.height, 20);
             break;
-          case 'double':
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.strokeRect(5, 5, width - 10, height - 10);
-            ctx.strokeRect(15, 15, width - 30, height - 30);
+          case 'circle':
+            const radius = Math.min(quoteBoxSize.width, quoteBoxSize.height) / 2;
+            ctx.arc(boxX + quoteBoxSize.width / 2, boxY + quoteBoxSize.height / 2, radius, 0, 2 * Math.PI);
             break;
-          case 'dashed':
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.setLineDash([15, 10]);
-            ctx.strokeRect(0, 0, width, height);
-            ctx.setLineDash([]);
-            break;
-          case 'dotted':
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.setLineDash([3, 12]);
-            ctx.strokeRect(0, 0, width, height);
-            ctx.setLineDash([]);
-            break;
-          case 'shadow':
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            ctx.shadowBlur = 20;
-            ctx.shadowOffsetX = 5;
-            ctx.shadowOffsetY = 5;
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeRect(10, 10, width - 20, height - 20);
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-            break;
-          case 'glow':
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-            ctx.shadowBlur = 30;
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeRect(10, 10, width - 20, height - 20);
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            break;
-          case 'vintage':
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.strokeRect(20, 20, width - 40, height - 40);
-            ctx.lineWidth = 2;
-            ctx.strokeRect(40, 40, width - 80, height - 80);
-            break;
-          case 'modern':
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeRect(0, 0, width / 2, height);
-            ctx.strokeRect(width / 2, 0, width / 2, height);
-            break;
-          case 'neon':
-            ctx.shadowColor = 'rgba(0, 255, 255, 0.9)';
-            ctx.shadowBlur = 20;
-            ctx.lineWidth = 10;
-            ctx.strokeStyle = 'rgba(0, 255, 255, 0.9)';
-            ctx.strokeRect(10, 10, width - 20, height - 20);
-            ctx.shadowColor = 'transparent';
-            ctx.shadowBlur = 0;
-            break;
-          case 'artistic':
-            ctx.lineWidth = 6;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.beginPath();
-            ctx.moveTo(30, 30);
-            ctx.lineTo(width - 30, 30);
-            ctx.lineTo(width - 50, height - 50);
-            ctx.lineTo(50, height - 50);
+          case 'diamond':
+            const centerX = boxX + quoteBoxSize.width / 2;
+            const centerY = boxY + quoteBoxSize.height / 2;
+            ctx.moveTo(centerX, boxY);
+            ctx.lineTo(boxX + quoteBoxSize.width, centerY);
+            ctx.lineTo(centerX, boxY + quoteBoxSize.height);
+            ctx.lineTo(boxX, centerY);
             ctx.closePath();
-            ctx.stroke();
-            break;
-          case 'minimal':
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.strokeRect(width / 4, height / 4, width / 2, height / 2);
-            break;
-          case 'partial-top-right':
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeRect(0, 0, width / 2, height / 2);
-            break;
-          case 'partial-bottom-left':
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeRect(width / 2, height / 2, width / 2, height / 2);
-            break;
-          case 'partial-diagonal':
-            ctx.lineWidth = 8;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(width / 2, 0);
-            ctx.lineTo(width, height / 2);
-            ctx.lineTo(width, height);
-            ctx.lineTo(width / 2, height);
-            ctx.lineTo(0, height / 2);
-            ctx.closePath();
-            ctx.stroke();
-            break;
-          default:
             break;
         }
 
-        ctx.restore(); // Restore the saved state
-      };
+        ctx.fill();
 
-      // Clear canvas
-      ctx.clearRect(0, 0, width, height);
+        ctx.strokeStyle = template.colors.quoteBorder;
+        ctx.lineWidth = 3;
+        ctx.shadowColor = template.colors.quoteBorder;
+        ctx.shadowBlur = 10;
+        ctx.stroke();
 
-      // Draw background image
-      if (backgroundImage) {
-        const img = new Image();
-        img.src = backgroundImage;
-        img.onload = () => {
-          const imageWidth = img.width * imageCrop.scale;
-          const imageHeight = img.height * imageCrop.scale;
-          const offsetX = (imageWidth - width) / 2 + imageCrop.x;
-          const offsetY = (imageHeight - height) / 2 + imageCrop.y;
-
-          ctx.drawImage(
-            img,
-            -offsetX,
-            -offsetY,
-            imageWidth,
-            imageHeight,
-            0,
-            0,
-            width,
-            height
-          );
-
-          // Apply gradient overlay
-          const gradient = ctx.createLinearGradient(
-            0,
-            height - gradientHeight,
-            0,
-            height
-          );
-          gradient.addColorStop(
-            0,
-            `rgba(0, 0, 0, ${gradientStrength / 100})`
-          );
-          gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-          ctx.fillStyle = gradient;
-          ctx.fillRect(0, height - gradientHeight, width, gradientHeight);
-
-          // Apply inner gradient overlay
-          const innerGradient = ctx.createLinearGradient(
-            0,
-            height - gradientHeight,
-            0,
-            height - gradientHeight + gradientInnerHeight
-          );
-          innerGradient.addColorStop(
-            0,
-            `rgba(0, 0, 0, ${gradientStrength / 100})`
-          );
-          innerGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-          ctx.fillStyle = innerGradient;
-          ctx.fillRect(
-            0,
-            height - gradientHeight,
-            width,
-            gradientHeight
-          );
-
-          // Draw title
-          ctx.font = `${fontSizes.titleSize}px ${
-            customFonts.titleFont ? 'CustomTitleFont' : fonts.titleFont
-          }`;
-          ctx.fillStyle =
-            textColors.titleColor === 'gradient'
-              ? 'white'
-              : textColors.titleColor;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          if (customFonts.titleFont) {
-            const fontFace = new FontFace(
-              'CustomTitleFont',
-              `url(${customFonts.titleFont})`
-            );
-            fontFace
-              .load()
-              .then((loadedFontFace) => {
-                document.fonts.add(loadedFontFace);
-                ctx.font = `${fontSizes.titleSize}px CustomTitleFont`;
-                ctx.fillText(title, width / 2, textPositions.titleY);
-              })
-              .catch((error) =>
-                console.error('Error loading custom title font:', error)
-              );
-          } else {
-            ctx.fillText(title, width / 2, textPositions.titleY);
-          }
-
-          // Draw main text
-          ctx.font = `${fontSizes.textSize}px ${
-            customFonts.textFont ? 'CustomTextFont' : fonts.textFont
-          }`;
-          ctx.fillStyle =
-            textColors.textColor === 'gradient' ? 'white' : textColors.textColor;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          const words = mainText.split(' ');
-          let line = '';
-          let y = textPositions.textY;
-          const lineHeight = fontSizes.textSize * 1.2;
-
-          if (customFonts.textFont) {
-            const fontFace = new FontFace(
-              'CustomTextFont',
-              `url(${customFonts.textFont})`
-            );
-            fontFace
-              .load()
-              .then((loadedFontFace) => {
-                document.fonts.add(loadedFontFace);
-                ctx.font = `${fontSizes.textSize}px CustomTextFont`;
-
-                for (let n = 0; n < words.length; n++) {
-                  const testLine = line + words[n] + ' ';
-                  const metrics = ctx.measureText(testLine);
-                  const testWidth = metrics.width;
-                  if (testWidth > mainTextWidth && n > 0) {
-                    ctx.fillText(line, width / 2, y);
-                    line = words[n] + ' ';
-                    y += lineHeight;
-                  } else {
-                    line = testLine;
-                  }
-                }
-                ctx.fillText(line, width / 2, y);
-              })
-              .catch((error) =>
-                console.error('Error loading custom text font:', error)
-              );
-          } else {
-            for (let n = 0; n < words.length; n++) {
-              const testLine = line + words[n] + ' ';
-              const metrics = ctx.measureText(testLine);
-              const testWidth = metrics.width;
-              if (testWidth > mainTextWidth && n > 0) {
-                ctx.fillText(line, width / 2, y);
-                line = words[n] + ' ';
-                y += lineHeight;
-              } else {
-                line = testLine;
-              }
-            }
-            ctx.fillText(line, width / 2, y);
-          }
-
-          // Draw quote box
-          if (quoteBoxStyle !== 'none') {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-
-            const x = width / 2 - quoteBoxSize.width / 2;
-            const y = textPositions.quoteY - quoteBoxSize.height / 2;
-
-            if (quoteBoxStyle === 'rounded') {
-              drawRoundedRect(
-                ctx,
-                x,
-                y,
-                quoteBoxSize.width,
-                quoteBoxSize.height,
-                20
-              );
-            } else {
-              ctx.fillRect(x, y, quoteBoxSize.width, quoteBoxSize.height);
-            }
-
-            // Draw quoted text
-            ctx.font = `${fontSizes.quoteSize}px ${
-              customFonts.quoteFont ? 'CustomQuoteFont' : fonts.quoteFont
-            }`;
-            ctx.fillStyle =
-              textColors.quoteColor === 'gradient'
-                ? 'white'
-                : textColors.quoteColor;
-
-            const quoteWords = quotedText.split(' ');
-            let quoteLine = '';
-            let quoteY = textPositions.quoteY - fontSizes.quoteSize / 2;
-            const quoteLineHeight = fontSizes.quoteSize * 1.2;
-
-            if (customFonts.quoteFont) {
-              const fontFace = new FontFace(
-                'CustomQuoteFont',
-                `url(${customFonts.quoteFont})`
-              );
-              fontFace
-                .load()
-                .then((loadedFontFace) => {
-                  document.fonts.add(loadedFontFace);
-                  ctx.font = `${fontSizes.quoteSize}px CustomQuoteFont`;
-
-                  for (let n = 0; n < quoteWords.length; n++) {
-                    const testLine = quoteLine + quoteWords[n] + ' ';
-                    const metrics = ctx.measureText(testLine);
-                    const testWidth = metrics.width;
-                    if (testWidth > quoteBoxSize.width - 40 && n > 0) {
-                      ctx.fillText(quoteLine, width / 2, quoteY);
-                      quoteLine = quoteWords[n] + ' ';
-                      quoteY += quoteLineHeight;
-                    } else {
-                      quoteLine = testLine;
-                    }
-                  }
-                  ctx.fillText(quoteLine, width / 2, quoteY);
-                })
-                .catch((error) =>
-                  console.error('Error loading custom quote font:', error)
-                );
-            } else {
-              for (let n = 0; n < quoteWords.length; n++) {
-                const testLine = quoteLine + quoteWords[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                const testWidth = metrics.width;
-                if (testWidth > quoteBoxSize.width - 40 && n > 0) {
-                  ctx.fillText(quoteLine, width / 2, quoteY);
-                  quoteLine = quoteWords[n] + ' ';
-                  quoteY += quoteLineHeight;
-                } else {
-                  quoteLine = testLine;
-                }
-              }
-              ctx.fillText(quoteLine, width / 2, quoteY);
-            }
-          }
-
-          // Draw additional icons
-          ctx.textAlign = 'left';
-          ctx.textBaseline = 'bottom';
-          ctx.font = `${elementSizes.additionalIconsSize}px ${
-            customFonts.topBottomFont ? 'CustomTopBottomFont' : fonts.topBottomFont
-          }`;
-          ctx.fillStyle =
-            textColors.topBottomColor === 'gradient'
-              ? 'white'
-              : textColors.topBottomColor;
-
-          const iconSize = elementSizes.additionalIconsSize;
-          let currentX = 100;
-
-          if (customFonts.topBottomFont) {
-            const fontFace = new FontFace(
-              'CustomTopBottomFont',
-              `url(${customFonts.topBottomFont})`
-            );
-            fontFace
-              .load()
-              .then((loadedFontFace) => {
-                document.fonts.add(loadedFontFace);
-                ctx.font = `${elementSizes.additionalIconsSize}px CustomTopBottomFont`;
-
-                const drawIconText = (
-                  iconSrc: string,
-                  text: string,
-                  x: number
-                ) => {
-                  const img = new Image();
-                  img.src = iconSrc;
-                  img.onload = () => {
-                    ctx.drawImage(
-                      img,
-                      x,
-                      additionalIconsY - iconSize,
-                      iconSize,
-                      iconSize
-                    );
-                    ctx.fillText(text, x + iconSize + 5, additionalIconsY);
-                  };
-                };
-
-                drawIconText(
-                  '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png',
-                  additionalIcons.place,
-                  currentX
-                );
-                currentX +=
-                  ctx.measureText(additionalIcons.place).width +
-                  iconSize +
-                  5 +
-                  additionalIconsGap;
-
-                drawIconText(
-                  '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png',
-                  additionalIcons.time,
-                  currentX
-                );
-                currentX +=
-                  ctx.measureText(additionalIcons.time).width +
-                  iconSize +
-                  5 +
-                  additionalIconsGap;
-
-                drawIconText(
-                  '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png',
-                  additionalIcons.date,
-                  currentX
-                );
-              })
-              .catch((error) =>
-                console.error('Error loading custom top/bottom font:', error)
-              );
-          } else {
-            const drawIconText = (iconSrc: string, text: string, x: number) => {
-              const img = new Image();
-              img.src = iconSrc;
-              img.onload = () => {
-                ctx.drawImage(
-                  img,
-                  x,
-                  additionalIconsY - iconSize,
-                  iconSize,
-                  iconSize
-                );
-                ctx.fillText(text, x + iconSize + 5, additionalIconsY);
-              };
-            };
-
-            drawIconText(
-              '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png',
-              additionalIcons.place,
-              currentX
-            );
-            currentX +=
-              ctx.measureText(additionalIcons.place).width +
-              iconSize +
-              5 +
-              additionalIconsGap;
-
-            drawIconText(
-              '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png',
-              additionalIcons.time,
-              currentX
-            );
-            currentX +=
-              ctx.measureText(additionalIcons.time).width +
-              iconSize +
-              5 +
-              additionalIconsGap;
-
-            drawIconText(
-              '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png',
-              additionalIcons.date,
-              currentX
-            );
-          }
-
-          // Draw social media links
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          const socialIconSize = elementSizes.socialLinksSize;
-          let startX = socialLinksPosition.x - (socialLinksGap * 1.5 + socialIconSize * 1.5); // Adjusted calculation
-          const socialY = socialLinksPosition.y;
-
-          const drawSocialIcon = (iconSrc: string, link: string, x: number) => {
-            if (link && link !== '@username') {
-              const img = new Image();
-              img.src = iconSrc;
-              img.onload = () => {
-                ctx.drawImage(img, x, socialY - socialIconSize, socialIconSize, socialIconSize);
-              };
-            }
-          };
-
-          drawSocialIcon(
-            '/lovable-uploads/f6463394-9a58-499b-a89b-79ca45a9074a.png',
-            socialLinks.telegram,
-            startX
-          );
-          startX += socialLinksGap;
-
-          drawSocialIcon(
-            '/lovable-uploads/66659999-5839-469d-985f-9859109db09b.png',
-            socialLinks.instagram,
-            startX
-          );
-          startX += socialLinksGap;
-
-          drawSocialIcon(
-            '/lovable-uploads/86386999-943d-4c29-b644-8534e4496665.png',
-            socialLinks.tiktok,
-            startX
-          );
-
-          // Draw bottom bilingual text
-          if (bilingualEnabled) {
-            ctx.font = `${elementSizes.bottomTextSize}px ${
-              customFonts.topBottomFont ? 'CustomTopBottomFont' : fonts.topBottomFont
-            }`;
-            ctx.fillStyle =
-              textColors.topBottomColor === 'gradient'
-                ? 'white'
-                : textColors.topBottomColor;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-
-            const bottomText =
-              language === 'amharic'
-                ? 'በቴድሮስ ተሾመ የተሰራ'
-                : 'Tedros Teshomen hojjatame';
-
-            if (customFonts.topBottomFont) {
-              const fontFace = new FontFace(
-                'CustomTopBottomFont',
-                `url(${customFonts.topBottomFont})`
-              );
-              fontFace
-                .load()
-                .then((loadedFontFace) => {
-                  document.fonts.add(loadedFontFace);
-                  ctx.font = `${elementSizes.bottomTextSize}px CustomTopBottomFont`;
-                  ctx.fillText(
-                    bottomText,
-                    bottomTextPosition.x,
-                    bottomTextPosition.y
-                  );
-                })
-                .catch((error) =>
-                  console.error('Error loading custom top/bottom font:', error)
-                );
-            } else {
-              ctx.fillText(
-                bottomText,
-                bottomTextPosition.x,
-                bottomTextPosition.y
-              );
-            }
-          }
-
-          // Draw clipart
-          if (clipart.image) {
-            const clipImg = new Image();
-            clipImg.src = clipart.image;
-            clipImg.onload = () => {
-              ctx.drawImage(
-                clipImg,
-                clipart.x - clipart.width / 2,
-                clipart.y - clipart.height / 2,
-                clipart.width,
-                clipart.height
-              );
-            };
-          }
-
-          // Apply frame style
-          applyFrameStyle(ctx, frameStyle, width, height);
-        };
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
       }
-    }, [
-      backgroundImage,
-      title,
-      mainText,
-      quotedText,
-      template,
-      gradientHeight,
-      gradientStrength,
-      gradientInnerHeight,
-      language,
-      socialLinks,
-      textPositions,
-      quoteBoxSize,
-      quoteBoxStyle,
-      fonts,
-      fontSizes,
-      customFonts,
-      bilingualEnabled,
-      frameStyle,
-      textColors,
-      mainTextWidth,
-      additionalIcons,
-      additionalIconsY,
-      socialLinksGap,
-      imageCrop,
-      clipart,
-      additionalIconsGap,
-      socialLinksPosition,
-      bottomTextPosition,
-      elementSizes
-    ]);
 
-    return <canvas ref={canvasRef} />;
+      const quoteFontFamily = customFonts.quoteFont || fonts.quoteFont;
+      const quoteText = quoteBoxStyle === 'none' ? text : `"${text}"`;
+      
+      if (textColors.quoteColor === 'gradient') {
+        drawGoldenText(
+          ctx,
+          quoteText,
+          fontSizes.quoteSize,
+          quoteFontFamily,
+          boxX + quoteBoxSize.width / 2,
+          boxY + 50,
+          quoteBoxSize.width - 40,
+          fontSizes.quoteSize * 1.4
+        );
+      } else {
+        ctx.fillStyle = textColors.quoteColor;
+        ctx.font = `${fontSizes.quoteSize}px ${quoteFontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+        
+        wrapText(ctx, quoteText, boxX + quoteBoxSize.width / 2, boxY + 50, quoteBoxSize.width - 40, fontSizes.quoteSize * 1.4);
+        
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
+    };
+
+    const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
+      const words = text.split(' ');
+      let line = '';
+      let currentY = y;
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const testWidth = ctx.measureText(testLine).width;
+
+        if (testWidth > maxWidth && n > 0) {
+          ctx.fillText(line, x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, currentY);
+    };
+
+    const wrapTextWithGradient = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, useGradient: boolean) => {
+      const words = text.split(' ');
+      let line = '';
+      let currentY = y;
+
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const testWidth = ctx.measureText(testLine).width;
+
+        if (testWidth > maxWidth && n > 0) {
+          if (useGradient) {
+            const gradient = ctx.createLinearGradient(x - maxWidth/2, currentY, x + maxWidth/2, currentY + lineHeight);
+            gradient.addColorStop(0, '#ffd700');
+            gradient.addColorStop(0.3, '#ffed4e');
+            gradient.addColorStop(0.7, '#d97706');
+            gradient.addColorStop(1, '#b45309');
+            ctx.fillStyle = gradient;
+          }
+          ctx.fillText(line, x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      
+      if (useGradient) {
+        const gradient = ctx.createLinearGradient(x - maxWidth/2, currentY, x + maxWidth/2, currentY + lineHeight);
+        gradient.addColorStop(0, '#ffd700');
+        gradient.addColorStop(0.3, '#ffed4e');
+        gradient.addColorStop(0.7, '#d97706');
+        gradient.addColorStop(1, '#b45309');
+        ctx.fillStyle = gradient;
+      }
+      ctx.fillText(line, x, currentY);
+    };
+
+    return (
+      <div className="relative">
+        <canvas
+          ref={(node) => {
+            canvasRef.current = node;
+            if (typeof ref === 'function') {
+              ref(node);
+            } else if (ref) {
+              ref.current = node;
+            }
+          }}
+          className="max-w-full h-auto border border-white/20 rounded-lg shadow-2xl"
+          style={{ aspectRatio: '1/1' }}
+        />
+      </div>
+    );
   }
 );
+
+PosterCanvas.displayName = 'PosterCanvas';
