@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { PosterCanvas } from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -31,7 +30,7 @@ const Index = () => {
     width: 600,
     height: 150
   });
-  const [quoteBoxStyle, setQuoteBoxStyle] = useState<'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none'>('rounded');
+  const [quoteBoxStyle, setQuoteBoxStyle] = useState<'rectangle' | 'rounded' | 'none'>('rounded');
   const [fonts, setFonts] = useState({
     titleFont: 'Georgia, serif',
     textFont: 'Georgia, serif',
@@ -78,6 +77,13 @@ const Index = () => {
     y: 540,
     width: 100,
     height: 100
+  });
+  
+  // New state for additional positioning
+  const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
+  const [socialLinksPosition, setSocialLinksPosition] = useState({
+    x: 540,
+    y: 1000
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -241,6 +247,8 @@ const Index = () => {
                 socialLinksGap={socialLinksGap}
                 imageCrop={imageCrop}
                 clipart={clipart}
+                additionalIconsGap={additionalIconsGap}
+                socialLinksPosition={socialLinksPosition}
               />
             </div>
           </div>
@@ -308,6 +316,10 @@ const Index = () => {
               clipart={clipart}
               onClipartChange={setClipart}
               onClipartUpload={handleClipartUpload}
+              additionalIconsGap={additionalIconsGap}
+              onAdditionalIconsGapChange={setAdditionalIconsGap}
+              socialLinksPosition={socialLinksPosition}
+              onSocialLinksPositionChange={setSocialLinksPosition}
             />
 
             <ActionButtons 

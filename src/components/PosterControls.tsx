@@ -7,7 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Type, Move, Palette, Image, Settings, FileText, Crop, ImageIcon, Calendar, Clock, MapPin } from 'lucide-react';
+import { Type, Move, Palette, Image, Settings, FileText, Crop, ImageIcon, Trash2, X } from 'lucide-react';
 
 interface PosterControlsProps {
   title: string;
@@ -41,8 +41,8 @@ interface PosterControlsProps {
     height: number;
   };
   onQuoteBoxSizeChange: (size: { width: number; height: number }) => void;
-  quoteBoxStyle: 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none';
-  onQuoteBoxStyleChange: (style: 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none') => void;
+  quoteBoxStyle: 'rectangle' | 'rounded' | 'none';
+  onQuoteBoxStyleChange: (style: 'rectangle' | 'rounded' | 'none') => void;
   fonts: {
     titleFont: string;
     textFont: string;
@@ -102,6 +102,13 @@ interface PosterControlsProps {
   };
   onClipartChange: (clipart: { image: string | null; x: number; y: number; width: number; height: number }) => void;
   onClipartUpload: (file: File) => void;
+  additionalIconsGap: number;
+  onAdditionalIconsGapChange: (gap: number) => void;
+  socialLinksPosition: {
+    x: number;
+    y: number;
+  };
+  onSocialLinksPositionChange: (position: { x: number; y: number }) => void;
 }
 
 export const PosterControls = ({ 
@@ -116,7 +123,8 @@ export const PosterControls = ({
   textColors, onTextColorsChange, mainTextWidth, onMainTextWidthChange,
   additionalIcons, onAdditionalIconsChange, additionalIconsY, onAdditionalIconsYChange,
   socialLinksGap, onSocialLinksGapChange, imageCrop, onImageCropChange,
-  clipart, onClipartChange, onClipartUpload
+  clipart, onClipartChange, onClipartUpload, additionalIconsGap, onAdditionalIconsGapChange,
+  socialLinksPosition, onSocialLinksPositionChange
 }: PosterControlsProps) => {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
@@ -144,6 +152,20 @@ export const PosterControls = ({
     if (file) {
       onClipartUpload(file);
     }
+  };
+
+  const removeFontFile = (fontType: keyof typeof customFonts) => {
+    onCustomFontsChange({
+      ...customFonts,
+      [fontType]: null
+    });
+  };
+
+  const removeClipart = () => {
+    onClipartChange({
+      ...clipart,
+      image: null
+    });
   };
 
   return (
@@ -294,12 +316,24 @@ export const PosterControls = ({
                   <SelectItem value="'Courier New', monospace">Courier New</SelectItem>
                 </SelectContent>
               </Select>
-              <input
-                type="file"
-                accept=".ttf,.otf,.woff,.woff2"
-                onChange={(e) => handleFileUpload(e, 'titleFont')}
-                className="text-sm text-white/70"
-              />
+              <div className="flex gap-2 items-center">
+                <input
+                  type="file"
+                  accept=".ttf,.otf,.woff,.woff2"
+                  onChange={(e) => handleFileUpload(e, 'titleFont')}
+                  className="text-sm text-white/70 flex-1"
+                />
+                {customFonts.titleFont && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeFontFile('titleFont')}
+                    className="text-red-400 hover:text-red-300 p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -330,12 +364,24 @@ export const PosterControls = ({
                   <SelectItem value="'Courier New', monospace">Courier New</SelectItem>
                 </SelectContent>
               </Select>
-              <input
-                type="file"
-                accept=".ttf,.otf,.woff,.woff2"
-                onChange={(e) => handleFileUpload(e, 'textFont')}
-                className="text-sm text-white/70"
-              />
+              <div className="flex gap-2 items-center">
+                <input
+                  type="file"
+                  accept=".ttf,.otf,.woff,.woff2"
+                  onChange={(e) => handleFileUpload(e, 'textFont')}
+                  className="text-sm text-white/70 flex-1"
+                />
+                {customFonts.textFont && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeFontFile('textFont')}
+                    className="text-red-400 hover:text-red-300 p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -366,12 +412,24 @@ export const PosterControls = ({
                   <SelectItem value="'Courier New', monospace">Courier New</SelectItem>
                 </SelectContent>
               </Select>
-              <input
-                type="file"
-                accept=".ttf,.otf,.woff,.woff2"
-                onChange={(e) => handleFileUpload(e, 'quoteFont')}
-                className="text-sm text-white/70"
-              />
+              <div className="flex gap-2 items-center">
+                <input
+                  type="file"
+                  accept=".ttf,.otf,.woff,.woff2"
+                  onChange={(e) => handleFileUpload(e, 'quoteFont')}
+                  className="text-sm text-white/70 flex-1"
+                />
+                {customFonts.quoteFont && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeFontFile('quoteFont')}
+                    className="text-red-400 hover:text-red-300 p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -402,12 +460,24 @@ export const PosterControls = ({
                   <SelectItem value="'Courier New', monospace">Courier New</SelectItem>
                 </SelectContent>
               </Select>
-              <input
-                type="file"
-                accept=".ttf,.otf,.woff,.woff2"
-                onChange={(e) => handleFileUpload(e, 'topBottomFont')}
-                className="text-sm text-white/70"
-              />
+              <div className="flex gap-2 items-center">
+                <input
+                  type="file"
+                  accept=".ttf,.otf,.woff,.woff2"
+                  onChange={(e) => handleFileUpload(e, 'topBottomFont')}
+                  className="text-sm text-white/70 flex-1"
+                />
+                {customFonts.topBottomFont && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => removeFontFile('topBottomFont')}
+                    className="text-red-400 hover:text-red-300 p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -619,6 +689,42 @@ export const PosterControls = ({
             </div>
 
             <div className="space-y-2">
+              <Label className="text-white">Additional Icons Gap: {additionalIconsGap}px</Label>
+              <Slider
+                value={[additionalIconsGap]}
+                onValueChange={([value]) => onAdditionalIconsGapChange(value)}
+                max={100}
+                min={10}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Social Links X: {socialLinksPosition.x}px</Label>
+              <Slider
+                value={[socialLinksPosition.x]}
+                onValueChange={([value]) => onSocialLinksPositionChange({ ...socialLinksPosition, x: value })}
+                max={1000}
+                min={100}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Social Links Y: {socialLinksPosition.y}px</Label>
+              <Slider
+                value={[socialLinksPosition.y]}
+                onValueChange={([value]) => onSocialLinksPositionChange({ ...socialLinksPosition, y: value })}
+                max={1050}
+                min={900}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label className="text-white">Social Links Gap: {socialLinksGap}px</Label>
               <Slider
                 value={[socialLinksGap]}
@@ -675,7 +781,7 @@ export const PosterControls = ({
               <Label className="text-white">Quote Box Style</Label>
               <Select
                 value={quoteBoxStyle}
-                onValueChange={(value: 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none') => onQuoteBoxStyleChange(value)}
+                onValueChange={(value: 'rectangle' | 'rounded' | 'none') => onQuoteBoxStyleChange(value)}
               >
                 <SelectTrigger className="bg-white/20 border-white/30 text-white">
                   <SelectValue />
@@ -683,9 +789,7 @@ export const PosterControls = ({
                 <SelectContent>
                   <SelectItem value="none">No Box</SelectItem>
                   <SelectItem value="rectangle">Rectangle</SelectItem>
-                  <SelectItem value="rounded">Rounded</SelectItem>
-                  <SelectItem value="circle">Circle</SelectItem>
-                  <SelectItem value="diamond">Diamond</SelectItem>
+                  <SelectItem value="rounded">Rounded Rectangle</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -772,6 +876,41 @@ export const PosterControls = ({
                 />
               </div>
             </div>
+
+            <div className="space-y-3">
+              <Label className="text-white">Additional Icons</Label>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <img src="/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png" alt="Location" className="w-4 h-4" />
+                  <Input
+                    placeholder="Place/Location"
+                    value={additionalIcons.place}
+                    onChange={(e) => onAdditionalIconsChange({ ...additionalIcons, place: e.target.value })}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <img src="/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png" alt="Time" className="w-4 h-4" />
+                  <Input
+                    placeholder="Time"
+                    value={additionalIcons.time}
+                    onChange={(e) => onAdditionalIconsChange({ ...additionalIcons, time: e.target.value })}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <img src="/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png" alt="Date" className="w-4 h-4" />
+                  <Input
+                    placeholder="Date"
+                    value={additionalIcons.date}
+                    onChange={(e) => onAdditionalIconsChange({ ...additionalIcons, date: e.target.value })}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -824,7 +963,20 @@ export const PosterControls = ({
       {/* Clipart Section */}
       {openSections.clipart && (
         <div className="bg-white/5 rounded-lg p-4 space-y-4">
-          <h3 className="text-lg font-semibold text-white mb-3">Clipart</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-white">Clipart</h3>
+            {clipart.image && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={removeClipart}
+                className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+              >
+                <Trash2 className="w-4 h-4 mr-1" />
+                Remove
+              </Button>
+            )}
+          </div>
           
           <div className="space-y-4">
             <div className="space-y-2">
@@ -888,45 +1040,6 @@ export const PosterControls = ({
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Icons Section with Custom Icons */}
-      {openSections.icons && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
-          <h3 className="text-lg font-semibold text-white mb-3">Additional Icons</h3>
-          
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <img src="/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png" alt="Location" className="w-4 h-4" />
-              <Input
-                placeholder="Place/Location"
-                value={additionalIcons.place}
-                onChange={(e) => onAdditionalIconsChange({ ...additionalIcons, place: e.target.value })}
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <img src="/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png" alt="Time" className="w-4 h-4" />
-              <Input
-                placeholder="Time"
-                value={additionalIcons.time}
-                onChange={(e) => onAdditionalIconsChange({ ...additionalIcons, time: e.target.value })}
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <img src="/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png" alt="Date" className="w-4 h-4" />
-              <Input
-                placeholder="Date"
-                value={additionalIcons.date}
-                onChange={(e) => onAdditionalIconsChange({ ...additionalIcons, date: e.target.value })}
-                className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-              />
-            </div>
           </div>
         </div>
       )}
