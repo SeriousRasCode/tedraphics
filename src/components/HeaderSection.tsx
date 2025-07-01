@@ -10,7 +10,7 @@ export const HeaderSection = () => {
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-600 mb-3 sm:mb-4">
-            TedrGraphics
+            Tedraphics
           </h1>
           <p className="text-lg sm:text-xl text-blue-100/90 mb-4 sm:mb-6 max-w-2xl mx-auto">
             Create beautiful 1080×1080 posters easy
@@ -25,13 +25,13 @@ export const HeaderSection = () => {
           </DialogTrigger>
           <DialogContent className="bg-slate-800 border-slate-600 text-white">
             <DialogHeader>
-              <DialogTitle className="text-yellow-400">About TedrGraphics</DialogTitle>
+              <DialogTitle className="text-yellow-400">About Tedraphics</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
                 <h3 className="text-lg font-semibold mb-2">About</h3>
                 <p className="text-slate-300">
-                  TedrGraphics is a powerful poster creation tool designed for creating beautiful 1080×1080 posters.
+                  Tedraphics is a powerful poster creation tool designed for creating beautiful 1080×1080 posters.
                 </p>
               </div>
               <div>

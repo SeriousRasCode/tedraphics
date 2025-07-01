@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Type, Move, Palette, Image, Settings, FileText, Crop, ImageIcon, Trash2, X } from 'lucide-react';
+import { TemplateSelector } from '@/components/TemplateSelector';
+import { ImageUpload } from '@/components/ImageUpload';
 
 interface PosterControlsProps {
   title: string;
@@ -109,6 +110,20 @@ interface PosterControlsProps {
     y: number;
   };
   onSocialLinksPositionChange: (position: { x: number; y: number }) => void;
+  selectedTemplate: number;
+  onTemplateChange: (template: number) => void;
+  onImageUpload: (file: File) => void;
+  bottomTextPosition: {
+    x: number;
+    y: number;
+  };
+  onBottomTextPositionChange: (position: { x: number; y: number }) => void;
+  elementSizes: {
+    socialLinksSize: number;
+    additionalIconsSize: number;
+    bottomTextSize: number;
+  };
+  onElementSizesChange: (sizes: { socialLinksSize: number; additionalIconsSize: number; bottomTextSize: number }) => void;
 }
 
 export const PosterControls = ({ 
@@ -124,10 +139,10 @@ export const PosterControls = ({
   additionalIcons, onAdditionalIconsChange, additionalIconsY, onAdditionalIconsYChange,
   socialLinksGap, onSocialLinksGapChange, imageCrop, onImageCropChange,
   clipart, onClipartChange, onClipartUpload, additionalIconsGap, onAdditionalIconsGapChange,
-  socialLinksPosition, onSocialLinksPositionChange
+  socialLinksPosition, onSocialLinksPositionChange, selectedTemplate, onTemplateChange,
+  onImageUpload, bottomTextPosition, onBottomTextPositionChange, elementSizes, onElementSizesChange
 }: PosterControlsProps) => {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-  const [showContentStyle, setShowContentStyle] = useState(false);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -171,61 +186,28 @@ export const PosterControls = ({
 
   return (
     <div className="space-y-4">
-      {/* Content & Style Section - Icon Only */}
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            onClick={() => setShowContentStyle(!showContentStyle)}
-            className="text-white hover:bg-white/20 p-2"
-          >
-            <FileText className="w-6 h-6" />
-          </Button>
-          <span className="text-xl sm:text-2xl font-semibold text-white">Content & Style</span>
-        </div>
-        
-        {showContentStyle && (
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="title" className="text-white">Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => onTitleChange(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                  placeholder="Enter poster title"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="mainText" className="text-white">Main Text</Label>
-                <Textarea
-                  id="mainText"
-                  value={mainText}
-                  onChange={(e) => onMainTextChange(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70 min-h-[100px]"
-                  placeholder="Enter main content"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="quotedText" className="text-white">Quoted Text</Label>
-                <Textarea
-                  id="quotedText"
-                  value={quotedText}
-                  onChange={(e) => onQuotedTextChange(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                  placeholder="Enter quoted text"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Horizontal Options Bar */}
-      <div className="flex flex-wrap gap-2 justify-center border-t border-white/20 pt-4">
+      <div className="flex flex-wrap gap-2 justify-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => toggleSection('design')}
+          className={`text-white hover:bg-white/20 ${openSections.design ? 'bg-white/20' : ''}`}
+        >
+          <Settings className="w-4 h-4 mr-2" />
+          Design
+        </Button>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => toggleSection('content')}
+          className={`text-white hover:bg-white/20 ${openSections.content ? 'bg-white/20' : ''}`}
+        >
+          <FileText className="w-4 h-4 mr-2" />
+          Content
+        </Button>
+        
         <Button
           variant="ghost"
           size="sm"
@@ -269,16 +251,6 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('settings')}
-          className={`text-white hover:bg-white/20 ${openSections.settings ? 'bg-white/20' : ''}`}
-        >
-          <Settings className="w-4 h-4 mr-2" />
-          Settings
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="sm"
           onClick={() => toggleSection('crop')}
           className={`text-white hover:bg-white/20 ${openSections.crop ? 'bg-white/20' : ''}`}
         >
@@ -296,6 +268,62 @@ export const PosterControls = ({
           Clipart
         </Button>
       </div>
+
+      {/* Design Section */}
+      {openSections.design && (
+        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+          <h3 className="text-lg font-semibold text-white mb-3">Design Settings</h3>
+          
+          <TemplateSelector 
+            selectedTemplate={selectedTemplate}
+            onTemplateChange={onTemplateChange}
+          />
+          
+          <ImageUpload onImageUpload={onImageUpload} />
+        </div>
+      )}
+
+      {/* Content Section */}
+      {openSections.content && (
+        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+          <h3 className="text-lg font-semibold text-white mb-3">Content & Style</h3>
+          
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-white">Title</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => onTitleChange(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                placeholder="Enter poster title"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="mainText" className="text-white">Main Text</Label>
+              <Textarea
+                id="mainText"
+                value={mainText}
+                onChange={(e) => onMainTextChange(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/70 min-h-[100px]"
+                placeholder="Enter main content"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="quotedText" className="text-white">Quoted Text</Label>
+              <Textarea
+                id="quotedText"
+                value={quotedText}
+                onChange={(e) => onQuotedTextChange(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                placeholder="Enter quoted text"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Typography Section */}
       {openSections.typography && (
@@ -628,7 +656,7 @@ export const PosterControls = ({
       {/* Positions Section */}
       {openSections.positions && (
         <div className="bg-white/5 rounded-lg p-4 space-y-4">
-          <h3 className="text-lg font-semibold text-white mb-3">Positions</h3>
+          <h3 className="text-lg font-semibold text-white mb-3">Positions & Sizes</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -675,6 +703,66 @@ export const PosterControls = ({
                 max={900}
                 min={300}
                 step={10}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Bottom Text X: {bottomTextPosition.x}px</Label>
+              <Slider
+                value={[bottomTextPosition.x]}
+                onValueChange={([value]) => onBottomTextPositionChange({ ...bottomTextPosition, x: value })}
+                max={1000}
+                min={100}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Bottom Text Y: {bottomTextPosition.y}px</Label>
+              <Slider
+                value={[bottomTextPosition.y]}
+                onValueChange={([value]) => onBottomTextPositionChange({ ...bottomTextPosition, y: value })}
+                max={150}
+                min={20}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Social Links Size: {elementSizes.socialLinksSize}px</Label>
+              <Slider
+                value={[elementSizes.socialLinksSize]}
+                onValueChange={([value]) => onElementSizesChange({ ...elementSizes, socialLinksSize: value })}
+                max={40}
+                min={12}
+                step={2}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Additional Icons Size: {elementSizes.additionalIconsSize}px</Label>
+              <Slider
+                value={[elementSizes.additionalIconsSize]}
+                onValueChange={([value]) => onElementSizesChange({ ...elementSizes, additionalIconsSize: value })}
+                max={30}
+                min={12}
+                step={2}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Bottom Text Size: {elementSizes.bottomTextSize}px</Label>
+              <Slider
+                value={[elementSizes.bottomTextSize]}
+                onValueChange={([value]) => onElementSizesChange({ ...elementSizes, bottomTextSize: value })}
+                max={24}
+                min={10}
+                step={2}
                 className="w-full"
               />
             </div>
@@ -822,16 +910,7 @@ export const PosterControls = ({
                 />
               </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* Settings Section */}
-      {openSections.settings && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
-          <h3 className="text-lg font-semibold text-white mb-3">Settings</h3>
-          
-          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Label className="text-white">Enable Bilingual Text</Label>
               <Switch
