@@ -7,10 +7,11 @@ import { toast } from 'sonner';
 import { HeaderSection } from '@/components/HeaderSection';
 import { ActionButtons } from '@/components/ActionButtons';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, FileText } from 'lucide-react';
 
 const Index = () => {
   const [showDesignSettings, setShowDesignSettings] = useState(false);
+  const [showContentStyle, setShowContentStyle] = useState(false);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [title, setTitle] = useState('Your Title Here');
   const [mainText, setMainText] = useState('Main content goes here.');
@@ -82,12 +83,19 @@ const Index = () => {
     height: 100
   });
   
-  // New state for additional positioning
+  // New state for additional positioning and sizing
   const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
   const [socialLinksPosition, setSocialLinksPosition] = useState({
     x: 540,
     y: 1000
   });
+  const [bottomTextPosition, setBottomTextPosition] = useState({
+    x: 540,
+    y: 1020
+  });
+  const [bottomTextSize, setBottomTextSize] = useState(24);
+  const [socialLinksSize, setSocialLinksSize] = useState(28);
+  const [additionalIconsSize, setAdditionalIconsSize] = useState(28);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -252,26 +260,43 @@ const Index = () => {
                 clipart={clipart}
                 additionalIconsGap={additionalIconsGap}
                 socialLinksPosition={socialLinksPosition}
+                bottomTextPosition={bottomTextPosition}
+                bottomTextSize={bottomTextSize}
+                socialLinksSize={socialLinksSize}
+                additionalIconsSize={additionalIconsSize}
               />
             </div>
           </div>
 
           <div className="order-2 lg:order-1 space-y-4 sm:space-y-6">
             
-            {/* Design Settings - Icon Only */}
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-              <div className="flex items-center justify-between mb-4">
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowDesignSettings(!showDesignSettings)}
-                  className="text-white hover:bg-white/20 p-2"
-                >
-                  <Settings className="w-6 h-6" />
-                </Button>
-                <span className="text-xl sm:text-2xl font-semibold text-white">Design Settings</span>
-              </div>
+            {/* Design Settings - Compact Icon */}
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDesignSettings(!showDesignSettings)}
+                className={`text-white hover:bg-white/20 ${showDesignSettings ? 'bg-white/20' : ''}`}
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Design Settings
+              </Button>
               
-              {showDesignSettings && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowContentStyle(!showContentStyle)}
+                className={`text-white hover:bg-white/20 ${showContentStyle ? 'bg-white/20' : ''}`}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Content & Style
+              </Button>
+            </div>
+
+            {/* Design Settings Section */}
+            {showDesignSettings && (
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
+                <h3 className="text-lg font-semibold text-white mb-4">Design Settings</h3>
                 <div className="space-y-4">
                   <TemplateSelector 
                     selectedTemplate={selectedTemplate}
@@ -280,8 +305,16 @@ const Index = () => {
                   
                   <ImageUpload onImageUpload={handleImageUpload} />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Content & Style Section */}
+            {showContentStyle && (
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
+                <h3 className="text-lg font-semibold text-white mb-4">Content & Style</h3>
+                {/* Content inputs will be handled in PosterControls */}
+              </div>
+            )}
 
             <PosterControls
               title={title}
@@ -335,6 +368,15 @@ const Index = () => {
               onAdditionalIconsGapChange={setAdditionalIconsGap}
               socialLinksPosition={socialLinksPosition}
               onSocialLinksPositionChange={setSocialLinksPosition}
+              bottomTextPosition={bottomTextPosition}
+              onBottomTextPositionChange={setBottomTextPosition}
+              bottomTextSize={bottomTextSize}
+              onBottomTextSizeChange={setBottomTextSize}
+              socialLinksSize={socialLinksSize}
+              onSocialLinksSizeChange={setSocialLinksSize}
+              additionalIconsSize={additionalIconsSize}
+              onAdditionalIconsSizeChange={setAdditionalIconsSize}
+              showContentStyle={showContentStyle}
             />
 
             <ActionButtons 

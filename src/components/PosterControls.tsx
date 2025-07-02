@@ -6,8 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Type, Move, Palette, Image, Settings, FileText, Crop, ImageIcon, Trash2, X } from 'lucide-react';
+import { Type, Move, Palette, Image, Settings, Crop, ImageIcon, Trash2, X } from 'lucide-react';
 
 interface PosterControlsProps {
   title: string;
@@ -109,6 +108,18 @@ interface PosterControlsProps {
     y: number;
   };
   onSocialLinksPositionChange: (position: { x: number; y: number }) => void;
+  bottomTextPosition: {
+    x: number;
+    y: number;
+  };
+  onBottomTextPositionChange: (position: { x: number; y: number }) => void;
+  bottomTextSize: number;
+  onBottomTextSizeChange: (size: number) => void;
+  socialLinksSize: number;
+  onSocialLinksSizeChange: (size: number) => void;
+  additionalIconsSize: number;
+  onAdditionalIconsSizeChange: (size: number) => void;
+  showContentStyle: boolean;
 }
 
 export const PosterControls = ({ 
@@ -124,10 +135,11 @@ export const PosterControls = ({
   additionalIcons, onAdditionalIconsChange, additionalIconsY, onAdditionalIconsYChange,
   socialLinksGap, onSocialLinksGapChange, imageCrop, onImageCropChange,
   clipart, onClipartChange, onClipartUpload, additionalIconsGap, onAdditionalIconsGapChange,
-  socialLinksPosition, onSocialLinksPositionChange
+  socialLinksPosition, onSocialLinksPositionChange, bottomTextPosition, onBottomTextPositionChange,
+  bottomTextSize, onBottomTextSizeChange, socialLinksSize, onSocialLinksSizeChange,
+  additionalIconsSize, onAdditionalIconsSizeChange, showContentStyle
 }: PosterControlsProps) => {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-  const [showContentStyle, setShowContentStyle] = useState(false);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
@@ -171,58 +183,46 @@ export const PosterControls = ({
 
   return (
     <div className="space-y-4">
-      {/* Content & Style Section - Icon Only */}
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            onClick={() => setShowContentStyle(!showContentStyle)}
-            className="text-white hover:bg-white/20 p-2"
-          >
-            <FileText className="w-6 h-6" />
-          </Button>
-          <span className="text-xl sm:text-2xl font-semibold text-white">Content & Style</span>
-        </div>
-        
-        {showContentStyle && (
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="title" className="text-white">Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => onTitleChange(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                  placeholder="Enter poster title"
-                />
-              </div>
+      
+      {/* Content & Style Inputs - Show when parent showContentStyle is true */}
+      {showContentStyle && (
+        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-white">Title</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => onTitleChange(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                placeholder="Enter poster title"
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="mainText" className="text-white">Main Text</Label>
-                <Textarea
-                  id="mainText"
-                  value={mainText}
-                  onChange={(e) => onMainTextChange(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70 min-h-[100px]"
-                  placeholder="Enter main content"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="mainText" className="text-white">Main Text</Label>
+              <Textarea
+                id="mainText"
+                value={mainText}
+                onChange={(e) => onMainTextChange(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/70 min-h-[100px]"
+                placeholder="Enter main content"
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="quotedText" className="text-white">Quoted Text</Label>
-                <Textarea
-                  id="quotedText"
-                  value={quotedText}
-                  onChange={(e) => onQuotedTextChange(e.target.value)}
-                  className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
-                  placeholder="Enter quoted text"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="quotedText" className="text-white">Quoted Text</Label>
+              <Textarea
+                id="quotedText"
+                value={quotedText}
+                onChange={(e) => onQuotedTextChange(e.target.value)}
+                className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                placeholder="Enter quoted text"
+              />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Horizontal Options Bar */}
       <div className="flex flex-wrap gap-2 justify-center border-t border-white/20 pt-4">
@@ -346,6 +346,43 @@ export const PosterControls = ({
                 onValueChange={([value]) => onFontSizesChange({ ...fontSizes, titleSize: value })}
                 max={120}
                 min={20}
+                step={2}
+                className="w-full"
+              />
+            </div>
+
+            {/* Add Bottom Text Size Control */}
+            <div className="space-y-2">
+              <Label className="text-white">Bottom Text Size: {bottomTextSize}px</Label>
+              <Slider
+                value={[bottomTextSize]}
+                onValueChange={([value]) => onBottomTextSizeChange(value)}
+                max={40}
+                min={12}
+                step={2}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Social Links Size: {socialLinksSize}px</Label>
+              <Slider
+                value={[socialLinksSize]}
+                onValueChange={([value]) => onSocialLinksSizeChange(value)}
+                max={40}
+                min={16}
+                step={2}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Additional Icons Size: {additionalIconsSize}px</Label>
+              <Slider
+                value={[additionalIconsSize]}
+                onValueChange={([value]) => onAdditionalIconsSizeChange(value)}
+                max={40}
+                min={16}
                 step={2}
                 className="w-full"
               />
@@ -675,6 +712,31 @@ export const PosterControls = ({
                 max={900}
                 min={300}
                 step={10}
+                className="w-full"
+              />
+            </div>
+
+            {/* Add Bottom Text Position Controls */}
+            <div className="space-y-2">
+              <Label className="text-white">Bottom Text X: {bottomTextPosition.x}px</Label>
+              <Slider
+                value={[bottomTextPosition.x]}
+                onValueChange={([value]) => onBottomTextPositionChange({ ...bottomTextPosition, x: value })}
+                max={1000}
+                min={100}
+                step={5}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Bottom Text Y: {bottomTextPosition.y}px</Label>
+              <Slider
+                value={[bottomTextPosition.y]}
+                onValueChange={([value]) => onBottomTextPositionChange({ ...bottomTextPosition, y: value })}
+                max={1070}
+                min={950}
+                step={5}
                 className="w-full"
               />
             </div>
