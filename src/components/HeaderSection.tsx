@@ -13,7 +13,7 @@ export const HeaderSection = () => {
             Tedraphics
           </h1>
           <p className="text-lg sm:text-xl text-blue-100/90 mb-4 sm:mb-6 max-w-2xl text-left">
-            Create beautiful 1080×1080 posters easy
+            1080×1080px - 1:1
           </p>
         </div>
         
