@@ -228,7 +228,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     };
 
     const drawAdditionalIcons = (ctx: CanvasRenderingContext2D) => {
-      const iconSize = 16;
+      const iconSize = Math.max(12, additionalIconsSize * 0.8); // Scale icon size with font size
       const fontFamily = customFonts.textFont || fonts.textFont;
       ctx.font = `${additionalIconsSize}px ${fontFamily}`;
       ctx.textBaseline = 'middle';
@@ -287,7 +287,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     };
 
     const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
-      const iconSize = 20;
+      const iconSize = Math.max(16, socialLinksSize * 0.9); // Scale icon size with font size
       const fontFamily = customFonts.textFont || fonts.textFont;
       ctx.font = `${socialLinksSize}px ${fontFamily}`;
       ctx.textBaseline = 'middle';
