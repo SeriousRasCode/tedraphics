@@ -84,6 +84,18 @@ interface PosterCanvasProps {
   bottomTextSize: number;
   socialLinksSize: number;
   additionalIconsSize: number;
+  topTextEnabled: boolean;
+  bottomTextEnabled: boolean;
+  customBilingualTexts: {
+    amharic: {
+      top: string;
+      bottom: string;
+    };
+    oromic: {
+      top: string;
+      bottom: string;
+    };
+  };
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
@@ -118,7 +130,10 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     bottomTextPosition,
     bottomTextSize,
     socialLinksSize,
-    additionalIconsSize
+    additionalIconsSize,
+    topTextEnabled,
+    bottomTextEnabled,
+    customBilingualTexts
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -168,14 +183,12 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         };
         img.src = backgroundImage;
       } else {
-        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-        gradient.addColorStop(0, currentTemplate.colors.primary);
-        gradient.addColorStop(1, currentTemplate.colors.secondary);
-        ctx.fillStyle = gradient;
+        // Set base background color to #083765
+        ctx.fillStyle = '#083765';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
       const alpha = gradientStrength / 100;
@@ -198,7 +211,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     };
 
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
-      const texts = bilingualTexts[language];
+      const texts = customBilingualTexts[language];
       const fontFamily = customFonts.topBottomFont || fonts.topBottomFont;
       ctx.font = `${bottomTextSize}px ${fontFamily}`;
       ctx.textAlign = 'center';
@@ -218,8 +231,15 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillStyle = textColors.topBottomColor;
       }
 
-      wrapTextWithGradient(ctx, texts.top, 540, 40, 1000, bottomTextSize * 1.2, textColors.topBottomColor === 'gradient');
-      wrapTextWithGradient(ctx, texts.bottom, bottomTextPosition.x, bottomTextPosition.y, 1000, bottomTextSize * 1.2, textColors.topBottomColor === 'gradient');
+      // Draw top text only if enabled
+      if (topTextEnabled) {
+        wrapTextWithGradient(ctx, texts.top, 540, 40, 1000, bottomTextSize * 1.2, textColors.topBottomColor === 'gradient');
+      }
+      
+      // Draw bottom text only if enabled
+      if (bottomTextEnabled) {
+        wrapTextWithGradient(ctx, texts.bottom, bottomTextPosition.x, bottomTextPosition.y, 1000, bottomTextSize * 1.2, textColors.topBottomColor === 'gradient');
+      }
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;

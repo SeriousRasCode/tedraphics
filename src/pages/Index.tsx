@@ -96,6 +96,20 @@ const Index = () => {
   const [bottomTextSize, setBottomTextSize] = useState(24);
   const [socialLinksSize, setSocialLinksSize] = useState(28);
   const [additionalIconsSize, setAdditionalIconsSize] = useState(28);
+
+  // New state for bilingual text controls
+  const [topTextEnabled, setTopTextEnabled] = useState(true);
+  const [bottomTextEnabled, setBottomTextEnabled] = useState(true);
+  const [customBilingualTexts, setCustomBilingualTexts] = useState({
+    amharic: {
+      top: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ አሐዱ አምላክ አሜን',
+      bottom: 'የጅማ ዩንቨርስቲ ቴክኖሎጂ ኢንስቲትዩት ግቢ ጉባኤ'
+    },
+    oromic: {
+      top: 'Maqaa Abbaa kan ilmaa kan afuura qulqulluu waaqa tokko ameen',
+      bottom: 'Yaa\'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa'
+    }
+  });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -264,6 +278,9 @@ const Index = () => {
                 bottomTextSize={bottomTextSize}
                 socialLinksSize={socialLinksSize}
                 additionalIconsSize={additionalIconsSize}
+                topTextEnabled={topTextEnabled}
+                bottomTextEnabled={bottomTextEnabled}
+                customBilingualTexts={customBilingualTexts}
               />
             </div>
           </div>
@@ -377,6 +394,12 @@ const Index = () => {
               additionalIconsSize={additionalIconsSize}
               onAdditionalIconsSizeChange={setAdditionalIconsSize}
               showContentStyle={showContentStyle}
+              topTextEnabled={topTextEnabled}
+              onTopTextEnabledChange={setTopTextEnabled}
+              bottomTextEnabled={bottomTextEnabled}
+              onBottomTextEnabledChange={setBottomTextEnabled}
+              customBilingualTexts={customBilingualTexts}
+              onCustomBilingualTextsChange={setCustomBilingualTexts}
             />
 
             <ActionButtons 
