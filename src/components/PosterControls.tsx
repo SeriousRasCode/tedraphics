@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -120,6 +121,30 @@ interface PosterControlsProps {
   additionalIconsSize: number;
   onAdditionalIconsSizeChange: (size: number) => void;
   showContentStyle: boolean;
+  topTextEnabled: boolean;
+  onTopTextEnabledChange: (enabled: boolean) => void;
+  bottomTextEnabled: boolean;
+  onBottomTextEnabledChange: (enabled: boolean) => void;
+  customBilingualTexts: {
+    amharic: {
+      top: string;
+      bottom: string;
+    };
+    oromic: {
+      top: string;
+      bottom: string;
+    };
+  };
+  onCustomBilingualTextsChange: (texts: {
+    amharic: {
+      top: string;
+      bottom: string;
+    };
+    oromic: {
+      top: string;
+      bottom: string;
+    };
+  }) => void;
 }
 
 export const PosterControls = ({ 
@@ -137,7 +162,9 @@ export const PosterControls = ({
   clipart, onClipartChange, onClipartUpload, additionalIconsGap, onAdditionalIconsGapChange,
   socialLinksPosition, onSocialLinksPositionChange, bottomTextPosition, onBottomTextPositionChange,
   bottomTextSize, onBottomTextSizeChange, socialLinksSize, onSocialLinksSizeChange,
-  additionalIconsSize, onAdditionalIconsSizeChange, showContentStyle
+  additionalIconsSize, onAdditionalIconsSizeChange, showContentStyle,
+  topTextEnabled, onTopTextEnabledChange, bottomTextEnabled, onBottomTextEnabledChange,
+  customBilingualTexts, onCustomBilingualTextsChange
 }: PosterControlsProps) => {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
@@ -902,6 +929,23 @@ export const PosterControls = ({
               />
             </div>
 
+            {/* Top and Bottom Text Toggle Controls */}
+            <div className="flex items-center justify-between">
+              <Label className="text-white">Show Top Text</Label>
+              <Switch
+                checked={topTextEnabled}
+                onCheckedChange={onTopTextEnabledChange}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label className="text-white">Show Bottom Text</Label>
+              <Switch
+                checked={bottomTextEnabled}
+                onCheckedChange={onBottomTextEnabledChange}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label className="text-white">Language</Label>
               <Select
@@ -916,6 +960,68 @@ export const PosterControls = ({
                   <SelectItem value="oromic">Oromic</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Custom Bilingual Text Inputs */}
+            <div className="space-y-3">
+              <Label className="text-white">Custom Bilingual Texts</Label>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-white text-sm">Amharic Top Text</Label>
+                  <Textarea
+                    value={customBilingualTexts.amharic.top}
+                    onChange={(e) => onCustomBilingualTextsChange({
+                      ...customBilingualTexts,
+                      amharic: { ...customBilingualTexts.amharic, top: e.target.value }
+                    })}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                    placeholder="Enter Amharic top text"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white text-sm">Amharic Bottom Text</Label>
+                  <Textarea
+                    value={customBilingualTexts.amharic.bottom}
+                    onChange={(e) => onCustomBilingualTextsChange({
+                      ...customBilingualTexts,
+                      amharic: { ...customBilingualTexts.amharic, bottom: e.target.value }
+                    })}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                    placeholder="Enter Amharic bottom text"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white text-sm">Oromic Top Text</Label>
+                  <Textarea
+                    value={customBilingualTexts.oromic.top}
+                    onChange={(e) => onCustomBilingualTextsChange({
+                      ...customBilingualTexts,
+                      oromic: { ...customBilingualTexts.oromic, top: e.target.value }
+                    })}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                    placeholder="Enter Oromic top text"
+                    rows={2}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-white text-sm">Oromic Bottom Text</Label>
+                  <Textarea
+                    value={customBilingualTexts.oromic.bottom}
+                    onChange={(e) => onCustomBilingualTextsChange({
+                      ...customBilingualTexts,
+                      oromic: { ...customBilingualTexts.oromic, bottom: e.target.value }
+                    })}
+                    className="bg-white/20 border-white/30 text-white placeholder:text-white/70"
+                    placeholder="Enter Oromic bottom text"
+                    rows={2}
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="space-y-3">
