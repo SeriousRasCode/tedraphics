@@ -77,6 +77,13 @@ interface PosterCanvasProps {
     x: number;
     y: number;
   };
+  bottomTextPosition: {
+    x: number;
+    y: number;
+  };
+  bottomTextSize: number;
+  socialLinksSize: number;
+  additionalIconsSize: number;
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
@@ -107,7 +114,11 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     imageCrop,
     clipart,
     additionalIconsGap,
-    socialLinksPosition
+    socialLinksPosition,
+    bottomTextPosition,
+    bottomTextSize,
+    socialLinksSize,
+    additionalIconsSize
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -164,7 +175,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
       const alpha = gradientStrength / 100;
@@ -189,7 +200,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
       const texts = bilingualTexts[language];
       const fontFamily = customFonts.topBottomFont || fonts.topBottomFont;
-      ctx.font = `${fontSizes.topBottomSize}px ${fontFamily}`;
+      ctx.font = `${bottomTextSize}px ${fontFamily}`;
       ctx.textAlign = 'center';
       ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
       ctx.shadowBlur = 4;
@@ -207,8 +218,8 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillStyle = textColors.topBottomColor;
       }
 
-      wrapTextWithGradient(ctx, texts.top, 540, 40, 1000, fontSizes.topBottomSize * 1.2, textColors.topBottomColor === 'gradient');
-      wrapTextWithGradient(ctx, texts.bottom, 540, 950, 1000, fontSizes.topBottomSize * 1.2, textColors.topBottomColor === 'gradient');
+      wrapTextWithGradient(ctx, texts.top, 540, 40, 1000, bottomTextSize * 1.2, textColors.topBottomColor === 'gradient');
+      wrapTextWithGradient(ctx, texts.bottom, bottomTextPosition.x, bottomTextPosition.y, 1000, bottomTextSize * 1.2, textColors.topBottomColor === 'gradient');
 
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
@@ -218,9 +229,8 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
 
     const drawAdditionalIcons = (ctx: CanvasRenderingContext2D) => {
       const iconSize = 16;
-      const fontSize = 18;
       const fontFamily = customFonts.textFont || fonts.textFont;
-      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.font = `${additionalIconsSize}px ${fontFamily}`;
       ctx.textBaseline = 'middle';
 
       const additionalIconsData = [
@@ -278,9 +288,8 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
 
     const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
       const iconSize = 20;
-      const fontSize = 16;
       const fontFamily = customFonts.textFont || fonts.textFont;
-      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.font = `${socialLinksSize}px ${fontFamily}`;
       ctx.textBaseline = 'middle';
 
       const links = [
