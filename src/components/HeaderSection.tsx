@@ -6,13 +6,13 @@ import { Menu } from 'lucide-react';
 
 export const HeaderSection = () => {
   return (
-    <div className="text-center mb-6 sm:mb-12">
+    <div className="mb-6 sm:mb-12">
       <div className="flex items-center justify-between">
         <div className="flex-1">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-600 mb-3 sm:mb-4">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-600 mb-3 sm:mb-4 text-left">
             Tedraphics
           </h1>
-          <p className="text-lg sm:text-xl text-blue-100/90 mb-4 sm:mb-6 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-blue-100/90 mb-4 sm:mb-6 max-w-2xl text-left">
             Create beautiful 1080×1080 posters easy
           </p>
         </div>
