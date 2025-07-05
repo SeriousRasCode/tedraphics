@@ -66,7 +66,7 @@ const Index = () => {
     time: '2:00 PM',
     date: 'December 30, 2024'
   });
-  const [additionalIconsY, setAdditionalIconsY] = useState(940); // Updated to 940px
+  const [additionalIconsY, setAdditionalIconsY] = useState(940);
   const [socialLinksGap, setSocialLinksGap] = useState(50);
   const [gradientInnerHeight, setGradientInnerHeight] = useState(200);
   const [imageCrop, setImageCrop] = useState({
@@ -81,6 +81,10 @@ const Index = () => {
     width: 100,
     height: 100
   });
+  
+  // New state for social links color and gradient angle
+  const [socialLinksColor, setSocialLinksColor] = useState('#ffffff');
+  const [gradientAngle, setGradientAngle] = useState(45);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -290,6 +294,8 @@ const Index = () => {
                 topTextEnabled={topTextEnabled}
                 bottomTextEnabled={bottomTextEnabled}
                 customBilingualTexts={customBilingualTexts}
+                socialLinksColor={socialLinksColor}
+                gradientAngle={gradientAngle}
               />
             </div>
           </div>
@@ -446,6 +452,10 @@ const Index = () => {
               onCustomBilingualTextsChange={setCustomBilingualTexts}
               openSections={openSections}
               onToggleSection={toggleSection}
+              socialLinksColor={socialLinksColor}
+              onSocialLinksColorChange={setSocialLinksColor}
+              gradientAngle={gradientAngle}
+              onGradientAngleChange={setGradientAngle}
             />
 
             <ActionButtons 

@@ -146,6 +146,10 @@ interface PosterControlsProps {
   }) => void;
   openSections: { [key: string]: boolean };
   onToggleSection: (section: string) => void;
+  socialLinksColor: string;
+  onSocialLinksColorChange: (color: string) => void;
+  gradientAngle: number;
+  onGradientAngleChange: (angle: number) => void;
 }
 
 export const PosterControls = ({ 
@@ -165,8 +169,10 @@ export const PosterControls = ({
   bottomTextSize, onBottomTextSizeChange, socialLinksSize, onSocialLinksSizeChange,
   additionalIconsSize, onAdditionalIconsSizeChange, showContentStyle,
   topTextEnabled, onTopTextEnabledChange, bottomTextEnabled, onBottomTextEnabledChange,
-  customBilingualTexts, onCustomBilingualTextsChange, openSections, onToggleSection
+  customBilingualTexts, onCustomBilingualTextsChange, openSections, onToggleSection,
+  socialLinksColor, onSocialLinksColorChange, gradientAngle, onGradientAngleChange
 }: PosterControlsProps) => {
+  
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, fontType: keyof typeof customFonts) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -642,9 +648,31 @@ export const PosterControls = ({
                 </Button>
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label className="text-white">Social Links Color</Label>
+              <input
+                type="color"
+                value={socialLinksColor}
+                onChange={(e) => onSocialLinksColorChange(e.target.value)}
+                className="w-12 h-8 rounded border border-white/30"
+              />
+            </div>
           </div>
 
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-white">Text Gradient Angle: {gradientAngle}°</Label>
+              <Slider
+                value={[gradientAngle]}
+                onValueChange={([value]) => onGradientAngleChange(value)}
+                max={360}
+                min={0}
+                step={15}
+                className="w-full"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label className="text-white">Background Gradient Height: {gradientHeight}px</Label>
               <Slider
