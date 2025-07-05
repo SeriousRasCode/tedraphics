@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { PosterCanvas } from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -67,7 +66,7 @@ const Index = () => {
     time: '2:00 PM',
     date: 'December 30, 2024'
   });
-  const [additionalIconsY, setAdditionalIconsY] = useState(820); // Moved up to be below quote
+  const [additionalIconsY, setAdditionalIconsY] = useState(940); // Updated to 940px
   const [socialLinksGap, setSocialLinksGap] = useState(50);
   const [gradientInnerHeight, setGradientInnerHeight] = useState(200);
   const [imageCrop, setImageCrop] = useState({
