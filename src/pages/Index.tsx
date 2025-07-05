@@ -82,34 +82,6 @@ const Index = () => {
     height: 100
   });
   
-  // New state for additional positioning and sizing
-  const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
-  const [socialLinksPosition, setSocialLinksPosition] = useState({
-    x: 540,
-    y: 1050 // Moved down to be below bilingual text
-  });
-  const [bottomTextPosition, setBottomTextPosition] = useState({
-    x: 540,
-    y: 1000 // Adjusted to be above social links
-  });
-  const [bottomTextSize, setBottomTextSize] = useState(24);
-  const [socialLinksSize, setSocialLinksSize] = useState(28);
-  const [additionalIconsSize, setAdditionalIconsSize] = useState(28);
-
-  // New state for bilingual text controls
-  const [topTextEnabled, setTopTextEnabled] = useState(true);
-  const [bottomTextEnabled, setBottomTextEnabled] = useState(true);
-  const [customBilingualTexts, setCustomBilingualTexts] = useState({
-    amharic: {
-      top: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ አሐዱ አምላክ አሜን',
-      bottom: 'የጅማ ዩንቨርስቲ ቴክኖሎጂ ኢንስቲትዩት ግቢ ጉባኤ'
-    },
-    oromic: {
-      top: 'Maqaa Abbaa kan ilmaa kan afuura qulqulluu waaqa tokko ameen',
-      bottom: 'Yaa\'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa'
-    }
-  });
-  
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const toggleSection = (section: string) => {
@@ -243,6 +215,34 @@ const Index = () => {
       }
     }
   };
+
+  // New state for additional positioning and sizing
+  const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
+  const [socialLinksPosition, setSocialLinksPosition] = useState({
+    x: 540,
+    y: 1030 // Updated to 1030px
+  });
+  const [bottomTextPosition, setBottomTextPosition] = useState({
+    x: 540,
+    y: 975 // Updated to 975px
+  });
+  const [bottomTextSize, setBottomTextSize] = useState(24);
+  const [socialLinksSize, setSocialLinksSize] = useState(28);
+  const [additionalIconsSize, setAdditionalIconsSize] = useState(28);
+
+  // New state for bilingual text controls
+  const [topTextEnabled, setTopTextEnabled] = useState(true);
+  const [bottomTextEnabled, setBottomTextEnabled] = useState(true);
+  const [customBilingualTexts, setCustomBilingualTexts] = useState({
+    amharic: {
+      top: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ አሐዱ አምላክ አሜን',
+      bottom: 'የጅማ ዩንቨርስቲ ቴክኖሎጂ ኢንስቲትዩት ግቢ ጉባኤ'
+    },
+    oromic: {
+      top: 'Maqaa Abbaa kan ilmaa kan afuura qulqulluu waaqa tokko ameen',
+      bottom: 'Yaa\'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa'
+    }
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
