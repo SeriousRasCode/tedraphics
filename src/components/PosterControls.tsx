@@ -144,6 +144,8 @@ interface PosterControlsProps {
       bottom: string;
     };
   }) => void;
+  openSections: { [key: string]: boolean };
+  onToggleSection: (section: string) => void;
 }
 
 export const PosterControls = ({ 
@@ -163,20 +165,8 @@ export const PosterControls = ({
   bottomTextSize, onBottomTextSizeChange, socialLinksSize, onSocialLinksSizeChange,
   additionalIconsSize, onAdditionalIconsSizeChange, showContentStyle,
   topTextEnabled, onTopTextEnabledChange, bottomTextEnabled, onBottomTextEnabledChange,
-  customBilingualTexts, onCustomBilingualTextsChange
+  customBilingualTexts, onCustomBilingualTextsChange, openSections, onToggleSection
 }: PosterControlsProps) => {
-  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-
-  const toggleSection = (section: string) => {
-    if (openSections[section]) {
-      // If the section is already open, close it
-      setOpenSections({});
-    } else {
-      // Close all sections and open only the clicked one
-      setOpenSections({ [section]: true });
-    }
-  };
-
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, fontType: keyof typeof customFonts) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -261,7 +251,7 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('typography')}
+          onClick={() => onToggleSection('typography')}
           className={`text-white hover:bg-white/20 ${openSections.typography ? 'bg-white/20' : ''}`}
         >
           <Type className="w-4 h-4 mr-2" />
@@ -271,7 +261,7 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('colors')}
+          onClick={() => onToggleSection('colors')}
           className={`text-white hover:bg-white/20 ${openSections.colors ? 'bg-white/20' : ''}`}
         >
           <Palette className="w-4 h-4 mr-2" />
@@ -281,7 +271,7 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('positions')}
+          onClick={() => onToggleSection('positions')}
           className={`text-white hover:bg-white/20 ${openSections.positions ? 'bg-white/20' : ''}`}
         >
           <Move className="w-4 h-4 mr-2" />
@@ -291,7 +281,7 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('styling')}
+          onClick={() => onToggleSection('styling')}
           className={`text-white hover:bg-white/20 ${openSections.styling ? 'bg-white/20' : ''}`}
         >
           <Image className="w-4 h-4 mr-2" />
@@ -301,7 +291,7 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('settings')}
+          onClick={() => onToggleSection('settings')}
           className={`text-white hover:bg-white/20 ${openSections.settings ? 'bg-white/20' : ''}`}
         >
           <Settings className="w-4 h-4 mr-2" />
@@ -311,7 +301,7 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('crop')}
+          onClick={() => onToggleSection('crop')}
           className={`text-white hover:bg-white/20 ${openSections.crop ? 'bg-white/20' : ''}`}
         >
           <Crop className="w-4 h-4 mr-2" />
@@ -321,7 +311,7 @@ export const PosterControls = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => toggleSection('clipart')}
+          onClick={() => onToggleSection('clipart')}
           className={`text-white hover:bg-white/20 ${openSections.clipart ? 'bg-white/20' : ''}`}
         >
           <ImageIcon className="w-4 h-4 mr-2" />

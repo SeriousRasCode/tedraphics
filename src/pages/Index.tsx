@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { PosterCanvas } from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -10,8 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Settings, FileText } from 'lucide-react';
 
 const Index = () => {
-  const [showDesignSettings, setShowDesignSettings] = useState(false);
-  const [showContentStyle, setShowContentStyle] = useState(false);
+  const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [title, setTitle] = useState('Your Title Here');
   const [mainText, setMainText] = useState('Main content goes here.');
@@ -67,7 +67,7 @@ const Index = () => {
     time: '2:00 PM',
     date: 'December 30, 2024'
   });
-  const [additionalIconsY, setAdditionalIconsY] = useState(890);
+  const [additionalIconsY, setAdditionalIconsY] = useState(820); // Moved up to be below quote
   const [socialLinksGap, setSocialLinksGap] = useState(50);
   const [gradientInnerHeight, setGradientInnerHeight] = useState(200);
   const [imageCrop, setImageCrop] = useState({
@@ -87,11 +87,11 @@ const Index = () => {
   const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
   const [socialLinksPosition, setSocialLinksPosition] = useState({
     x: 540,
-    y: 1000
+    y: 1050 // Moved down to be below bilingual text
   });
   const [bottomTextPosition, setBottomTextPosition] = useState({
     x: 540,
-    y: 1020
+    y: 1000 // Adjusted to be above social links
   });
   const [bottomTextSize, setBottomTextSize] = useState(24);
   const [socialLinksSize, setSocialLinksSize] = useState(28);
@@ -112,6 +112,16 @@ const Index = () => {
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const toggleSection = (section: string) => {
+    if (openSections[section]) {
+      // If the section is already open, close it
+      setOpenSections({});
+    } else {
+      // Close all sections and open only the clicked one
+      setOpenSections({ [section]: true });
+    }
+  };
 
   const handleImageUpload = (file: File) => {
     const reader = new FileReader();
@@ -292,8 +302,8 @@ const Index = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowDesignSettings(!showDesignSettings)}
-                className={`text-white hover:bg-white/20 ${showDesignSettings ? 'bg-white/20' : ''}`}
+                onClick={() => toggleSection('design-settings')}
+                className={`text-white hover:bg-white/20 ${openSections['design-settings'] ? 'bg-white/20' : ''}`}
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Design Settings
@@ -302,8 +312,8 @@ const Index = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowContentStyle(!showContentStyle)}
-                className={`text-white hover:bg-white/20 ${showContentStyle ? 'bg-white/20' : ''}`}
+                onClick={() => toggleSection('content-style')}
+                className={`text-white hover:bg-white/20 ${openSections['content-style'] ? 'bg-white/20' : ''}`}
               >
                 <FileText className="w-4 h-4 mr-2" />
                 Content & Style
@@ -311,7 +321,7 @@ const Index = () => {
             </div>
 
             {/* Design Settings Section */}
-            {showDesignSettings && (
+            {openSections['design-settings'] && (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
                 <h3 className="text-lg font-semibold text-white mb-4">Design Settings</h3>
                 <div className="space-y-4">
@@ -326,10 +336,45 @@ const Index = () => {
             )}
 
             {/* Content & Style Section */}
-            {showContentStyle && (
+            {openSections['content-style'] && (
               <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
                 <h3 className="text-lg font-semibold text-white mb-4">Content & Style</h3>
-                {/* Content inputs will be handled in PosterControls */}
+                <div className="bg-white/5 rounded-lg p-4 space-y-4">
+                  <div className="space-y-3">
+                    <div className="space-y-2">
+                      <label htmlFor="title" className="text-white">Title</label>
+                      <input
+                        id="title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full bg-white/20 border border-white/30 text-white placeholder:text-white/70 rounded px-3 py-2"
+                        placeholder="Enter poster title"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="mainText" className="text-white">Main Text</label>
+                      <textarea
+                        id="mainText"
+                        value={mainText}
+                        onChange={(e) => setMainText(e.target.value)}
+                        className="w-full bg-white/20 border border-white/30 text-white placeholder:text-white/70 min-h-[100px] rounded px-3 py-2"
+                        placeholder="Enter main content"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="quotedText" className="text-white">Quoted Text</label>
+                      <textarea
+                        id="quotedText"
+                        value={quotedText}
+                        onChange={(e) => setQuotedText(e.target.value)}
+                        className="w-full bg-white/20 border border-white/30 text-white placeholder:text-white/70 rounded px-3 py-2"
+                        placeholder="Enter quoted text"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -393,18 +438,21 @@ const Index = () => {
               onSocialLinksSizeChange={setSocialLinksSize}
               additionalIconsSize={additionalIconsSize}
               onAdditionalIconsSizeChange={setAdditionalIconsSize}
-              showContentStyle={showContentStyle}
+              showContentStyle={false}
               topTextEnabled={topTextEnabled}
               onTopTextEnabledChange={setTopTextEnabled}
               bottomTextEnabled={bottomTextEnabled}
               onBottomTextEnabledChange={setBottomTextEnabled}
               customBilingualTexts={customBilingualTexts}
               onCustomBilingualTextsChange={setCustomBilingualTexts}
+              openSections={openSections}
+              onToggleSection={toggleSection}
             />
 
             <ActionButtons 
               onDownload={handleDownload}
               onTelegramShare={handleTelegramShare}
+              hideTelegramShare={true}
             />
           </div>
         </div>
