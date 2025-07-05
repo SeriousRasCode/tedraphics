@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -169,7 +168,13 @@ export const PosterControls = ({
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
 
   const toggleSection = (section: string) => {
-    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+    if (openSections[section]) {
+      // If the section is already open, close it
+      setOpenSections({});
+    } else {
+      // Close all sections and open only the clicked one
+      setOpenSections({ [section]: true });
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, fontType: keyof typeof customFonts) => {
