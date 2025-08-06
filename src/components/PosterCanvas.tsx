@@ -1,3 +1,4 @@
+
 import React, { useEffect, useCallback, useRef } from 'react';
 import { GradientConfig } from './GradientControls';
 
@@ -293,43 +294,54 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   const drawSocialLinks = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     const iconSize = props.socialLinksSize;
     const gap = props.socialLinksGap;
+    const textMargin = 10;
     
-    // Calculate total width and center the social links horizontally
-    const totalWidth = iconSize * 3 + gap * 2;
+    // Calculate text widths for each social link
+    ctx.font = `${iconSize * 0.6}px Arial`;
+    const telegramTextWidth = ctx.measureText(props.socialLinks.telegram).width;
+    const instagramTextWidth = ctx.measureText(props.socialLinks.instagram).width;
+    const tiktokTextWidth = ctx.measureText(props.socialLinks.tiktok).width;
+    
+    // Calculate individual item widths (icon + text)
+    const telegramItemWidth = iconSize + textMargin + telegramTextWidth;
+    const instagramItemWidth = iconSize + textMargin + instagramTextWidth;
+    const tiktokItemWidth = iconSize + textMargin + tiktokTextWidth;
+    
+    // Calculate total width and center horizontally
+    const totalWidth = telegramItemWidth + instagramItemWidth + tiktokItemWidth + (gap * 2);
     let startX = (width - totalWidth) / 2;
     const y = props.socialLinksPosition.y;
 
     ctx.fillStyle = props.socialLinksColor;
-    ctx.font = `${iconSize * 0.6}px Arial`;
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
-    // Telegram icon
+    // Telegram icon and text
     const telegramIcon = new Image();
     telegramIcon.crossOrigin = 'anonymous';
     telegramIcon.onload = () => {
       ctx.drawImage(telegramIcon, startX, y - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.socialLinks.telegram, startX + iconSize/2, y + iconSize * 0.8);
+      ctx.fillText(props.socialLinks.telegram, startX + iconSize + textMargin, y);
     };
     telegramIcon.src = '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png';
 
-    // Instagram icon
+    // Instagram icon and text
     const instagramIcon = new Image();
     instagramIcon.crossOrigin = 'anonymous';
     instagramIcon.onload = () => {
-      const instagramX = startX + iconSize + gap;
+      const instagramX = startX + telegramItemWidth + gap;
       ctx.drawImage(instagramIcon, instagramX, y - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.socialLinks.instagram, instagramX + iconSize/2, y + iconSize * 0.8);
+      ctx.fillText(props.socialLinks.instagram, instagramX + iconSize + textMargin, y);
     };
     instagramIcon.src = '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png';
 
-    // TikTok icon
+    // TikTok icon and text
     const tiktokIcon = new Image();
     tiktokIcon.crossOrigin = 'anonymous';
     tiktokIcon.onload = () => {
-      const tiktokX = startX + 2 * (iconSize + gap);
+      const tiktokX = startX + telegramItemWidth + instagramItemWidth + (gap * 2);
       ctx.drawImage(tiktokIcon, tiktokX, y - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.socialLinks.tiktok, tiktokX + iconSize/2, y + iconSize * 0.8);
+      ctx.fillText(props.socialLinks.tiktok, tiktokX + iconSize + textMargin, y);
     };
     tiktokIcon.src = '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png';
   }, [props]);
@@ -337,16 +349,25 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   const drawAdditionalIcons = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     const iconSize = props.additionalIconsSize;
     const gap = props.additionalIconsGap;
+    const textMargin = 10;
     const startY = props.additionalIconsY;
 
-    // Calculate total width for horizontal layout with proper spacing
-    const textWidth = 180; // Space allocated for text
-    const itemWidth = iconSize + textWidth;
-    const totalWidth = itemWidth * 3 + gap * 2;
+    // Calculate text widths for each item
+    ctx.font = `${iconSize - 4}px Arial`;
+    const placeTextWidth = ctx.measureText(props.additionalIcons.place).width;
+    const timeTextWidth = ctx.measureText(props.additionalIcons.time).width;
+    const dateTextWidth = ctx.measureText(props.additionalIcons.date).width;
+    
+    // Calculate individual item widths (icon + text)
+    const placeItemWidth = iconSize + textMargin + placeTextWidth;
+    const timeItemWidth = iconSize + textMargin + timeTextWidth;
+    const dateItemWidth = iconSize + textMargin + dateTextWidth;
+    
+    // Calculate total width and center horizontally
+    const totalWidth = placeItemWidth + timeItemWidth + dateItemWidth + (gap * 2);
     let startX = (width - totalWidth) / 2;
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = `${iconSize - 4}px Arial`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
@@ -355,7 +376,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     locationIcon.crossOrigin = 'anonymous';
     locationIcon.onload = () => {
       ctx.drawImage(locationIcon, startX, startY - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.additionalIcons.place, startX + iconSize + 10, startY);
+      ctx.fillText(props.additionalIcons.place, startX + iconSize + textMargin, startY);
     };
     locationIcon.src = '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png';
 
@@ -363,9 +384,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const timeIcon = new Image();
     timeIcon.crossOrigin = 'anonymous';
     timeIcon.onload = () => {
-      const timeX = startX + itemWidth + gap;
+      const timeX = startX + placeItemWidth + gap;
       ctx.drawImage(timeIcon, timeX, startY - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.additionalIcons.time, timeX + iconSize + 10, startY);
+      ctx.fillText(props.additionalIcons.time, timeX + iconSize + textMargin, startY);
     };
     timeIcon.src = '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png';
 
@@ -373,9 +394,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const dateIcon = new Image();
     dateIcon.crossOrigin = 'anonymous';
     dateIcon.onload = () => {
-      const dateX = startX + 2 * (itemWidth + gap);
+      const dateX = startX + placeItemWidth + timeItemWidth + (gap * 2);
       ctx.drawImage(dateIcon, dateX, startY - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.additionalIcons.date, dateX + iconSize + 10, startY);
+      ctx.fillText(props.additionalIcons.date, dateX + iconSize + textMargin, startY);
     };
     dateIcon.src = '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png';
   }, [props]);
