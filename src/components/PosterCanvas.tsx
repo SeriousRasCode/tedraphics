@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useCallback } from 'react';
 import { GradientConfig } from './GradientControls';
 
 interface PosterCanvasProps {
@@ -140,22 +141,8 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
   gradientAngle,
   gradientConfig
 }, ref) => {
-  useEffect(() => {
-    // Get canvas element from ref
-    let canvas: HTMLCanvasElement | null = null;
-    
-    if (ref) {
-      if (typeof ref === 'function') {
-        // Callback ref - we can't access the element directly
-        return;
-      } else {
-        // Ref object
-        canvas = ref.current;
-      }
-    }
-    
-    if (!canvas) return;
 
+  const drawPoster = useCallback((canvas: HTMLCanvasElement) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -223,6 +210,21 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
       drawFrame(ctx, width, height);
     }
   }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle, gradientConfig]);
+
+  const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
+    if (canvas) {
+      drawPoster(canvas);
+      
+      // Handle the forwarded ref
+      if (ref) {
+        if (typeof ref === 'function') {
+          ref(canvas);
+        } else {
+          ref.current = canvas;
+        }
+      }
+    }
+  }, [drawPoster, ref]);
 
   const drawGradient = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (!gradientConfig.enabled) return;
@@ -600,7 +602,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
 
   return (
     <canvas
-      ref={ref}
+      ref={canvasRef}
       width={1080}
       height={1080}
     />
