@@ -96,6 +96,8 @@ interface PosterCanvasProps {
       bottom: string;
     };
   };
+  socialLinksColor: string;
+  gradientAngle: number;
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
@@ -133,7 +135,9 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     additionalIconsSize,
     topTextEnabled,
     bottomTextEnabled,
-    customBilingualTexts
+    customBilingualTexts,
+    socialLinksColor,
+    gradientAngle
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -188,7 +192,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
       const alpha = gradientStrength / 100;
@@ -221,7 +225,12 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       ctx.shadowOffsetY = 2;
 
       if (textColors.topBottomColor === 'gradient') {
-        const gradient = ctx.createLinearGradient(0, 25, 0, 55);
+        const angleRad = (gradientAngle * Math.PI) / 180;
+        const x1 = 540 - Math.cos(angleRad) * 500;
+        const y1 = 40 - Math.sin(angleRad) * 500;
+        const x2 = 540 + Math.cos(angleRad) * 500;
+        const y2 = 40 + Math.sin(angleRad) * 500;
+        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
         gradient.addColorStop(0, '#ffd700');
         gradient.addColorStop(0.3, '#ffed4e');
         gradient.addColorStop(0.7, '#d97706');
@@ -365,7 +374,7 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
 
         blocks.forEach(block => {
           ctx.drawImage(block.img, x, socialLinksPosition.y - iconSize / 2, iconSize, iconSize);
-          ctx.fillStyle = '#ffd700';
+          ctx.fillStyle = socialLinksColor;
           ctx.fillText(block.text, x + iconSize + 8, socialLinksPosition.y);
           x += block.width + socialLinksGap;
         });
