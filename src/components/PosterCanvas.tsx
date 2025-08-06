@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { GradientConfig } from './GradientControls';
 
 interface PosterCanvasProps {
@@ -102,50 +102,13 @@ interface PosterCanvasProps {
   gradientConfig: GradientConfig;
 }
 
-const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
-  backgroundImage,
-  title,
-  mainText,
-  quotedText,
-  template,
-  gradientHeight,
-  gradientStrength,
-  gradientInnerHeight,
-  language,
-  socialLinks,
-  textPositions,
-  quoteBoxSize,
-  quoteBoxStyle,
-  fonts,
-  fontSizes,
-  customFonts,
-  bilingualEnabled,
-  frameStyle,
-  textColors,
-  mainTextWidth,
-  additionalIcons,
-  additionalIconsY,
-  socialLinksGap,
-  imageCrop,
-  clipart,
-  additionalIconsGap,
-  socialLinksPosition,
-  bottomTextPosition,
-  bottomTextSize,
-  socialLinksSize,
-  additionalIconsSize,
-  topTextEnabled,
-  bottomTextEnabled,
-  customBilingualTexts,
-  socialLinksColor,
-  gradientAngle,
-  gradientConfig
-}, ref) => {
+const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((props, ref) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const drawGradient = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (!gradientConfig.enabled) return;
+    if (!props.gradientConfig.enabled) return;
 
-    const { type, direction, angle, height: gradientHeight, stops } = gradientConfig;
+    const { type, direction, angle, height: gradientHeight, stops } = props.gradientConfig;
     
     let gradient: CanvasGradient;
     
@@ -247,7 +210,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
         ctx.fillRect(0, 0, width, height);
       }
     }
-  }, [gradientConfig]);
+  }, [props.gradientConfig]);
 
   const drawText = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     ctx.textAlign = 'center';
@@ -257,7 +220,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
     const applyTextColor = (colorType: string, text: string, x: number, y: number, font: string, size: number) => {
       ctx.font = `${size}px ${font}`;
       if (colorType === 'gradient') {
-        const gradient = ctx.createLinearGradient(x - mainTextWidth / 2, y - size / 2, x + mainTextWidth / 2, y + size / 2);
+        const gradient = ctx.createLinearGradient(x - props.mainTextWidth / 2, y - size / 2, x + props.mainTextWidth / 2, y + size / 2);
         gradient.addColorStop(0, '#ffffff');
         gradient.addColorStop(1, '#a1a1aa');
         ctx.fillStyle = gradient;
@@ -268,21 +231,21 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
     };
 
     // Title
-    applyTextColor(textColors.titleColor, title, width / 2, textPositions.titleY, customFonts.titleFont || fonts.titleFont, fontSizes.titleSize);
+    applyTextColor(props.textColors.titleColor, props.title, width / 2, props.textPositions.titleY, props.customFonts.titleFont || props.fonts.titleFont, props.fontSizes.titleSize);
 
     // Main Text
-    ctx.font = `${fontSizes.textSize}px ${customFonts.textFont || fonts.textFont}`;
-    ctx.fillStyle = textColors.textColor;
-    const words = mainText.split(' ');
+    ctx.font = `${props.fontSizes.textSize}px ${props.customFonts.textFont || props.fonts.textFont}`;
+    ctx.fillStyle = props.textColors.textColor;
+    const words = props.mainText.split(' ');
     let line = '';
-    let y = textPositions.textY;
-    const lineHeight = fontSizes.textSize * 1.2;
+    let y = props.textPositions.textY;
+    const lineHeight = props.fontSizes.textSize * 1.2;
 
     for (let n = 0; n < words.length; n++) {
       const testLine = line + words[n] + ' ';
       const metrics = ctx.measureText(testLine);
       const testWidth = metrics.width;
-      if (testWidth > mainTextWidth && n > 0) {
+      if (testWidth > props.mainTextWidth && n > 0) {
         ctx.fillText(line, width / 2, y);
         line = words[n] + ' ';
         y += lineHeight;
@@ -293,35 +256,35 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
     ctx.fillText(line, width / 2, y);
 
     // Quoted Text
-    applyTextColor(textColors.quoteColor, quotedText, width / 2, textPositions.quoteY, customFonts.quoteFont || fonts.quoteFont, fontSizes.quoteSize);
+    applyTextColor(props.textColors.quoteColor, props.quotedText, width / 2, props.textPositions.quoteY, props.customFonts.quoteFont || props.fonts.quoteFont, props.fontSizes.quoteSize);
 
     // Bilingual Text (Top)
-    if (bilingualEnabled && topTextEnabled) {
-      ctx.font = `${fontSizes.topBottomSize}px ${customFonts.topBottomFont || fonts.topBottomFont}`;
-      applyTextColor(textColors.topBottomColor, customBilingualTexts[language].top, width / 2, 50, customFonts.topBottomFont || fonts.topBottomFont, fontSizes.topBottomSize);
+    if (props.bilingualEnabled && props.topTextEnabled) {
+      ctx.font = `${props.fontSizes.topBottomSize}px ${props.customFonts.topBottomFont || props.fonts.topBottomFont}`;
+      applyTextColor(props.textColors.topBottomColor, props.customBilingualTexts[props.language].top, width / 2, 50, props.customFonts.topBottomFont || props.fonts.topBottomFont, props.fontSizes.topBottomSize);
     }
 
     // Bilingual Text (Bottom)
-    if (bilingualEnabled && bottomTextEnabled) {
-      ctx.font = `${bottomTextSize}px ${customFonts.topBottomFont || fonts.topBottomFont}`;
-      applyTextColor(textColors.topBottomColor, customBilingualTexts[language].bottom, bottomTextPosition.x, bottomTextPosition.y, customFonts.topBottomFont || fonts.topBottomFont, bottomTextSize);
+    if (props.bilingualEnabled && props.bottomTextEnabled) {
+      ctx.font = `${props.bottomTextSize}px ${props.customFonts.topBottomFont || props.fonts.topBottomFont}`;
+      applyTextColor(props.textColors.topBottomColor, props.customBilingualTexts[props.language].bottom, props.bottomTextPosition.x, props.bottomTextPosition.y, props.customFonts.topBottomFont || props.fonts.topBottomFont, props.bottomTextSize);
     }
-  }, [textColors, title, textPositions, customFonts, fonts, fontSizes, mainText, mainTextWidth, quotedText, bilingualEnabled, topTextEnabled, bottomTextEnabled, customBilingualTexts, language, bottomTextSize, bottomTextPosition]);
+  }, [props]);
 
   const drawQuoteBox = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (quoteBoxStyle === 'none') return;
+    if (props.quoteBoxStyle === 'none') return;
 
-    const boxWidth = quoteBoxSize.width;
-    const boxHeight = quoteBoxSize.height;
+    const boxWidth = props.quoteBoxSize.width;
+    const boxHeight = props.quoteBoxSize.height;
     const x = (width - boxWidth) / 2;
-    const y = textPositions.quoteY - boxHeight / 2;
+    const y = props.textPositions.quoteY - boxHeight / 2;
     const cornerRadius = 15;
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
 
     ctx.beginPath();
 
-    if (quoteBoxStyle === 'rounded') {
+    if (props.quoteBoxStyle === 'rounded') {
       ctx.moveTo(x + cornerRadius, y);
       ctx.lineTo(x + boxWidth - cornerRadius, y);
       ctx.quadraticCurveTo(x + boxWidth, y, x + boxWidth, y + cornerRadius);
@@ -337,15 +300,15 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
 
     ctx.closePath();
     ctx.fill();
-  }, [quoteBoxStyle, quoteBoxSize, textPositions]);
+  }, [props]);
 
   const drawSocialLinks = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    const iconSize = socialLinksSize;
-    const gap = socialLinksGap;
-    let startX = socialLinksPosition.x - (iconSize * 3 + gap * 2) / 2;
-    const y = socialLinksPosition.y;
+    const iconSize = props.socialLinksSize;
+    const gap = props.socialLinksGap;
+    let startX = props.socialLinksPosition.x - (iconSize * 3 + gap * 2) / 2;
+    const y = props.socialLinksPosition.y;
 
-    ctx.fillStyle = socialLinksColor;
+    ctx.fillStyle = props.socialLinksColor;
     ctx.font = `${iconSize}px FontAwesome`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -357,12 +320,12 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
     drawIcon('\uf264', startX); // Telegram
     drawIcon('\uf16d', startX + iconSize + gap); // Instagram
     drawIcon('\ue07b', startX + 2 * (iconSize + gap)); // TikTok
-  }, [socialLinksSize, socialLinksGap, socialLinksPosition, socialLinksColor]);
+  }, [props]);
 
   const drawAdditionalIcons = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    const iconSize = additionalIconsSize;
-    const gap = additionalIconsGap;
-    let startY = additionalIconsY;
+    const iconSize = props.additionalIconsSize;
+    const gap = props.additionalIconsGap;
+    let startY = props.additionalIconsY;
 
     ctx.fillStyle = '#ffffff';
     ctx.font = `${iconSize}px FontAwesome`;
@@ -375,29 +338,29 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
       ctx.fillText(text, width / 2 + 40, y);
     };
 
-    drawIconWithText('\uf041', additionalIcons.place, startY); // Map Pin
-    drawIconWithText('\uf017', additionalIcons.time, startY + iconSize + gap); // Clock
-    drawIconWithText('\uf073', additionalIcons.date, startY + 2 * (iconSize + gap)); // Calendar
-  }, [additionalIconsSize, additionalIconsGap, additionalIconsY, additionalIcons]);
+    drawIconWithText('\uf041', props.additionalIcons.place, startY); // Map Pin
+    drawIconWithText('\uf017', props.additionalIcons.time, startY + iconSize + gap); // Clock
+    drawIconWithText('\uf073', props.additionalIcons.date, startY + 2 * (iconSize + gap)); // Calendar
+  }, [props]);
 
   const drawClipart = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (!clipart.image) return;
+    if (!props.clipart.image) return;
 
     const img = new Image();
-    img.src = clipart.image;
+    img.src = props.clipart.image;
     img.onload = () => {
       ctx.drawImage(
         img,
-        clipart.x - clipart.width / 2,
-        clipart.y - clipart.height / 2,
-        clipart.width,
-        clipart.height
+        props.clipart.x - props.clipart.width / 2,
+        props.clipart.y - props.clipart.height / 2,
+        props.clipart.width,
+        props.clipart.height
       );
     };
-  }, [clipart]);
+  }, [props]);
 
   const drawFrame = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
-    if (frameStyle === 'none') return;
+    if (props.frameStyle === 'none') return;
 
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 5;
@@ -513,10 +476,13 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
       }
     };
 
-    drawFrameStyle(frameStyle);
-  }, [frameStyle]);
+    drawFrameStyle(props.frameStyle);
+  }, [props]);
 
-  const drawPoster = useCallback((canvas: HTMLCanvasElement) => {
+  const drawPoster = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -526,18 +492,18 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
     // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
-    // Draw background image
-    if (backgroundImage) {
+    // Draw background image or default background
+    if (props.backgroundImage) {
       const img = new Image();
-      img.src = backgroundImage;
+      img.src = props.backgroundImage;
       img.onload = () => {
         const imageWidth = img.width;
         const imageHeight = img.height;
 
-        const cropX = imageCrop.x * imageWidth;
-        const cropY = imageCrop.y * imageHeight;
-        const cropWidth = imageWidth * imageCrop.scale;
-        const cropHeight = imageHeight * imageCrop.scale;
+        const cropX = props.imageCrop.x * imageWidth;
+        const cropY = props.imageCrop.y * imageHeight;
+        const cropWidth = imageWidth * props.imageCrop.scale;
+        const cropHeight = imageHeight * props.imageCrop.scale;
 
         const destX = 0;
         const destY = 0;
@@ -556,10 +522,8 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
           destHeight
         );
 
-        // Apply gradient overlay
+        // Apply all drawing functions after background is loaded
         drawGradient(ctx, width, height);
-
-        // Draw text and other elements
         drawText(ctx, width, height);
         drawQuoteBox(ctx, width, height);
         drawSocialLinks(ctx, width, height);
@@ -568,14 +532,12 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
         drawFrame(ctx, width, height);
       };
     } else {
-      // If no background image, fill with a default color or gradient
+      // Default background
       ctx.fillStyle = '#1e3a8a';
       ctx.fillRect(0, 0, width, height);
 
-      // Apply gradient overlay
+      // Apply all drawing functions
       drawGradient(ctx, width, height);
-
-      // Draw text and other elements
       drawText(ctx, width, height);
       drawQuoteBox(ctx, width, height);
       drawSocialLinks(ctx, width, height);
@@ -583,39 +545,34 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
       drawClipart(ctx, width, height);
       drawFrame(ctx, width, height);
     }
-  }, [backgroundImage, imageCrop, drawGradient, drawText, drawQuoteBox, drawSocialLinks, drawAdditionalIcons, drawClipart, drawFrame]);
+  }, [props, drawGradient, drawText, drawQuoteBox, drawSocialLinks, drawAdditionalIcons, drawClipart, drawFrame]);
 
-  const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
-    if (canvas) {
-      drawPoster(canvas);
-      
-      // Handle the forwarded ref
-      if (ref) {
-        if (typeof ref === 'function') {
-          ref(canvas);
-        } else {
-          ref.current = canvas;
-        }
+  // Initialize canvas and set up ref
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas && ref) {
+      if (typeof ref === 'function') {
+        ref(canvas);
+      } else {
+        ref.current = canvas;
       }
     }
+    drawPoster();
   }, [drawPoster, ref]);
 
-  // Re-draw when any props change
-  useEffect(() => {
-    const canvas = canvasRef as any;
-    if (canvas && canvas.current) {
-      drawPoster(canvas.current);
-    }
-  }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle, gradientConfig, drawPoster]);
-
   return (
-    <canvas
-      ref={canvasRef}
-      width={1080}
-      height={1080}
-    />
+    <div className="w-full max-w-md mx-auto">
+      <canvas
+        ref={canvasRef}
+        width={1080}
+        height={1080}
+        className="w-full h-auto border border-white/20 rounded-lg shadow-lg"
+      />
+    </div>
   );
 });
+
+PosterCanvas.displayName = 'PosterCanvas';
 
 export default PosterCanvas;
 export type { PosterCanvasProps };
