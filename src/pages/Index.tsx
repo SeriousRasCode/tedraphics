@@ -87,17 +87,25 @@ const Index = () => {
   const [socialLinksColor, setSocialLinksColor] = useState('#ffffff');
   const [gradientAngle, setGradientAngle] = useState(45);
   
-  // Advanced gradient configuration
+  // Updated gradient configuration for separate top/bottom controls
   const [gradientConfig, setGradientConfig] = useState<GradientConfig>({
     enabled: true,
-    type: 'linear',
-    direction: 'both',
-    angle: 90,
-    height: 400,
-    stops: [
-      { color: '#083765', opacity: 80, position: 0 },
-      { color: '#ffffff', opacity: 0, position: 100 }
-    ]
+    top: {
+      enabled: true,
+      height: 400,
+      stops: [
+        { color: '#083765', opacity: 80, position: 0 },
+        { color: '#083765', opacity: 0, position: 100 }
+      ]
+    },
+    bottom: {
+      enabled: true,
+      height: 400,
+      stops: [
+        { color: '#083765', opacity: 0, position: 0 },
+        { color: '#083765', opacity: 80, position: 100 }
+      ]
+    }
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -234,7 +242,6 @@ const Index = () => {
     }
   };
 
-  // New state for additional positioning and sizing
   const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
   const [socialLinksPosition, setSocialLinksPosition] = useState({
     x: 540,

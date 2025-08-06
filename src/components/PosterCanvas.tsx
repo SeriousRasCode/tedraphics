@@ -1,4 +1,3 @@
-
 import React, { useEffect, useCallback, useRef } from 'react';
 import { GradientConfig } from './GradientControls';
 
@@ -108,97 +107,32 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   const drawGradient = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (!props.gradientConfig.enabled) return;
 
-    const { type, direction, angle, height: gradientHeight, stops } = props.gradientConfig;
-    
-    let gradient: CanvasGradient;
-    
-    if (type === 'linear') {
-      if (direction === 'center') {
-        // For center direction, apply opacity to top and bottom to reveal the middle
-        const centerY = height / 2;
-        const gradientSpan = Math.min(gradientHeight, height / 2);
-        
-        // Create top gradient
-        const topGradient = ctx.createLinearGradient(0, 0, 0, gradientSpan);
-        stops.forEach(stop => {
-          const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
-          topGradient.addColorStop(stop.position / 100, color);
-        });
-        
-        // Create bottom gradient
-        const bottomGradient = ctx.createLinearGradient(0, height - gradientSpan, 0, height);
-        stops.forEach(stop => {
-          const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
-          bottomGradient.addColorStop(stop.position / 100, color);
-        });
-        
-        ctx.fillStyle = topGradient;
-        ctx.fillRect(0, 0, width, gradientSpan);
-        
-        ctx.fillStyle = bottomGradient;
-        ctx.fillRect(0, height - gradientSpan, width, gradientSpan);
-        
-        return;
-      } else {
-        const angleRad = (angle * Math.PI) / 180;
-        const cos = Math.cos(angleRad);
-        const sin = Math.sin(angleRad);
-        const gradientLength = Math.min(gradientHeight, height);
-        
-        let x0, y0, x1, y1;
-        
-        switch (direction) {
-          case 'top':
-            x0 = width / 2;
-            y0 = 0;
-            x1 = width / 2 + cos * gradientLength;
-            y1 = sin * gradientLength;
-            break;
-          case 'bottom':
-            x0 = width / 2;
-            y0 = height;
-            x1 = width / 2 + cos * gradientLength;
-            y1 = height - sin * gradientLength;
-            break;
-          case 'both':
-            x0 = width / 2 - cos * gradientLength / 2;
-            y0 = height / 2 - sin * gradientLength / 2;
-            x1 = width / 2 + cos * gradientLength / 2;
-            y1 = height / 2 + sin * gradientLength / 2;
-            break;
-          default:
-            x0 = 0;
-            y0 = 0;
-            x1 = width;
-            y1 = 0;
-        }
-        
-        gradient = ctx.createLinearGradient(x0, y0, x1, y1);
-      }
-    } else {
-      // Radial gradient
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const radius = Math.min(gradientHeight, Math.min(width, height) / 2);
+    // Draw top gradient
+    if (props.gradientConfig.top.enabled) {
+      const topHeight = Math.min(props.gradientConfig.top.height, height / 2);
+      const topGradient = ctx.createLinearGradient(0, 0, 0, topHeight);
       
-      gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-    }
-    
-    if (direction !== 'center') {
-      stops.forEach(stop => {
+      props.gradientConfig.top.stops.forEach(stop => {
         const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
-        gradient.addColorStop(stop.position / 100, color);
+        topGradient.addColorStop(stop.position / 100, color);
       });
       
-      ctx.fillStyle = gradient;
+      ctx.fillStyle = topGradient;
+      ctx.fillRect(0, 0, width, topHeight);
+    }
+
+    // Draw bottom gradient
+    if (props.gradientConfig.bottom.enabled) {
+      const bottomHeight = Math.min(props.gradientConfig.bottom.height, height / 2);
+      const bottomGradient = ctx.createLinearGradient(0, height - bottomHeight, 0, height);
       
-      if (direction === 'top') {
-        ctx.fillRect(0, 0, width, Math.min(gradientHeight, height));
-      } else if (direction === 'bottom') {
-        ctx.fillRect(0, Math.max(0, height - gradientHeight), width, Math.min(gradientHeight, height));
-      } else {
-        ctx.fillRect(0, 0, width, height);
-      }
+      props.gradientConfig.bottom.stops.forEach(stop => {
+        const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
+        bottomGradient.addColorStop(stop.position / 100, color);
+      });
+      
+      ctx.fillStyle = bottomGradient;
+      ctx.fillRect(0, height - bottomHeight, width, bottomHeight);
     }
   }, [props.gradientConfig]);
 
