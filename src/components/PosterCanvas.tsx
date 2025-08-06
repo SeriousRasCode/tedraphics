@@ -142,91 +142,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
   gradientConfig
 }, ref) => {
 
-  const drawPoster = useCallback((canvas: HTMLCanvasElement) => {
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-
-    // Draw background image
-    if (backgroundImage) {
-      const img = new Image();
-      img.src = backgroundImage;
-      img.onload = () => {
-        const imageWidth = img.width;
-        const imageHeight = img.height;
-
-        const cropX = imageCrop.x * imageWidth;
-        const cropY = imageCrop.y * imageHeight;
-        const cropWidth = imageWidth * imageCrop.scale;
-        const cropHeight = imageHeight * imageCrop.scale;
-
-        const destX = 0;
-        const destY = 0;
-        const destWidth = width;
-        const destHeight = height;
-
-        ctx.drawImage(
-          img,
-          cropX,
-          cropY,
-          cropWidth,
-          cropHeight,
-          destX,
-          destY,
-          destWidth,
-          destHeight
-        );
-
-        // Apply gradient overlay
-        drawGradient(ctx, width, height);
-
-        // Draw text and other elements
-        drawText(ctx, width, height);
-        drawQuoteBox(ctx, width, height);
-        drawSocialLinks(ctx, width, height);
-        drawAdditionalIcons(ctx, width, height);
-        drawClipart(ctx, width, height);
-        drawFrame(ctx, width, height);
-      };
-    } else {
-      // If no background image, fill with a default color or gradient
-      ctx.fillStyle = '#1e3a8a';
-      ctx.fillRect(0, 0, width, height);
-
-      // Apply gradient overlay
-      drawGradient(ctx, width, height);
-
-      // Draw text and other elements
-      drawText(ctx, width, height);
-      drawQuoteBox(ctx, width, height);
-      drawSocialLinks(ctx, width, height);
-      drawAdditionalIcons(ctx, width, height);
-      drawClipart(ctx, width, height);
-      drawFrame(ctx, width, height);
-    }
-  }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle, gradientConfig]);
-
-  const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
-    if (canvas) {
-      drawPoster(canvas);
-      
-      // Handle the forwarded ref
-      if (ref) {
-        if (typeof ref === 'function') {
-          ref(canvas);
-        } else {
-          ref.current = canvas;
-        }
-      }
-    }
-  }, [drawPoster, ref]);
-
-  const drawGradient = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawGradient = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (!gradientConfig.enabled) return;
 
     const { type, direction, angle, height: gradientHeight, stops } = gradientConfig;
@@ -331,9 +247,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
         ctx.fillRect(0, 0, width, height);
       }
     }
-  };
+  }, [gradientConfig]);
 
-  const drawText = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawText = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
@@ -390,9 +306,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
       ctx.font = `${bottomTextSize}px ${customFonts.topBottomFont || fonts.topBottomFont}`;
       applyTextColor(textColors.topBottomColor, customBilingualTexts[language].bottom, bottomTextPosition.x, bottomTextPosition.y, customFonts.topBottomFont || fonts.topBottomFont, bottomTextSize);
     }
-  };
+  }, [textColors, title, textPositions, customFonts, fonts, fontSizes, mainText, mainTextWidth, quotedText, bilingualEnabled, topTextEnabled, bottomTextEnabled, customBilingualTexts, language, bottomTextSize, bottomTextPosition]);
 
-  const drawQuoteBox = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawQuoteBox = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (quoteBoxStyle === 'none') return;
 
     const boxWidth = quoteBoxSize.width;
@@ -421,9 +337,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
 
     ctx.closePath();
     ctx.fill();
-  };
+  }, [quoteBoxStyle, quoteBoxSize, textPositions]);
 
-  const drawSocialLinks = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawSocialLinks = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     const iconSize = socialLinksSize;
     const gap = socialLinksGap;
     let startX = socialLinksPosition.x - (iconSize * 3 + gap * 2) / 2;
@@ -441,9 +357,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
     drawIcon('\uf264', startX); // Telegram
     drawIcon('\uf16d', startX + iconSize + gap); // Instagram
     drawIcon('\ue07b', startX + 2 * (iconSize + gap)); // TikTok
-  };
+  }, [socialLinksSize, socialLinksGap, socialLinksPosition, socialLinksColor]);
 
-  const drawAdditionalIcons = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawAdditionalIcons = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     const iconSize = additionalIconsSize;
     const gap = additionalIconsGap;
     let startY = additionalIconsY;
@@ -462,9 +378,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
     drawIconWithText('\uf041', additionalIcons.place, startY); // Map Pin
     drawIconWithText('\uf017', additionalIcons.time, startY + iconSize + gap); // Clock
     drawIconWithText('\uf073', additionalIcons.date, startY + 2 * (iconSize + gap)); // Calendar
-  };
+  }, [additionalIconsSize, additionalIconsGap, additionalIconsY, additionalIcons]);
 
-  const drawClipart = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawClipart = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (!clipart.image) return;
 
     const img = new Image();
@@ -478,9 +394,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
         clipart.height
       );
     };
-  };
+  }, [clipart]);
 
-  const drawFrame = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+  const drawFrame = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (frameStyle === 'none') return;
 
     ctx.strokeStyle = '#ffffff';
@@ -598,7 +514,99 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
     };
 
     drawFrameStyle(frameStyle);
-  };
+  }, [frameStyle]);
+
+  const drawPoster = useCallback((canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw background image
+    if (backgroundImage) {
+      const img = new Image();
+      img.src = backgroundImage;
+      img.onload = () => {
+        const imageWidth = img.width;
+        const imageHeight = img.height;
+
+        const cropX = imageCrop.x * imageWidth;
+        const cropY = imageCrop.y * imageHeight;
+        const cropWidth = imageWidth * imageCrop.scale;
+        const cropHeight = imageHeight * imageCrop.scale;
+
+        const destX = 0;
+        const destY = 0;
+        const destWidth = width;
+        const destHeight = height;
+
+        ctx.drawImage(
+          img,
+          cropX,
+          cropY,
+          cropWidth,
+          cropHeight,
+          destX,
+          destY,
+          destWidth,
+          destHeight
+        );
+
+        // Apply gradient overlay
+        drawGradient(ctx, width, height);
+
+        // Draw text and other elements
+        drawText(ctx, width, height);
+        drawQuoteBox(ctx, width, height);
+        drawSocialLinks(ctx, width, height);
+        drawAdditionalIcons(ctx, width, height);
+        drawClipart(ctx, width, height);
+        drawFrame(ctx, width, height);
+      };
+    } else {
+      // If no background image, fill with a default color or gradient
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(0, 0, width, height);
+
+      // Apply gradient overlay
+      drawGradient(ctx, width, height);
+
+      // Draw text and other elements
+      drawText(ctx, width, height);
+      drawQuoteBox(ctx, width, height);
+      drawSocialLinks(ctx, width, height);
+      drawAdditionalIcons(ctx, width, height);
+      drawClipart(ctx, width, height);
+      drawFrame(ctx, width, height);
+    }
+  }, [backgroundImage, imageCrop, drawGradient, drawText, drawQuoteBox, drawSocialLinks, drawAdditionalIcons, drawClipart, drawFrame]);
+
+  const canvasRef = useCallback((canvas: HTMLCanvasElement | null) => {
+    if (canvas) {
+      drawPoster(canvas);
+      
+      // Handle the forwarded ref
+      if (ref) {
+        if (typeof ref === 'function') {
+          ref(canvas);
+        } else {
+          ref.current = canvas;
+        }
+      }
+    }
+  }, [drawPoster, ref]);
+
+  // Re-draw when any props change
+  useEffect(() => {
+    const canvas = canvasRef as any;
+    if (canvas && canvas.current) {
+      drawPoster(canvas.current);
+    }
+  }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle, gradientConfig, drawPoster]);
 
   return (
     <canvas
