@@ -267,7 +267,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const y = props.textPositions.quoteY - boxHeight / 2;
     const cornerRadius = 15;
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+    // Only draw border, no background fill
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
 
     if (props.quoteBoxStyle === 'rounded') {
@@ -285,13 +287,16 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     }
 
     ctx.closePath();
-    ctx.fill();
+    ctx.stroke(); // Only stroke, no fill
   }, [props]);
 
   const drawSocialLinks = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     const iconSize = props.socialLinksSize;
     const gap = props.socialLinksGap;
-    let startX = props.socialLinksPosition.x - (iconSize * 3 + gap * 2) / 2;
+    
+    // Calculate total width and center the social links
+    const totalWidth = iconSize * 3 + gap * 2;
+    let startX = (width - totalWidth) / 2;
     const y = props.socialLinksPosition.y;
 
     ctx.fillStyle = props.socialLinksColor;
@@ -299,28 +304,30 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Load and draw PNG icons
+    // Load and draw PNG icons for social media
     const telegramIcon = new Image();
     telegramIcon.crossOrigin = 'anonymous';
     telegramIcon.onload = () => {
-      ctx.drawImage(telegramIcon, startX - iconSize/2, y - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.socialLinks.telegram, startX, y + iconSize * 0.8);
+      ctx.drawImage(telegramIcon, startX, y - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.socialLinks.telegram, startX + iconSize/2, y + iconSize * 0.8);
     };
     telegramIcon.src = '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png';
 
     const instagramIcon = new Image();
     instagramIcon.crossOrigin = 'anonymous';
     instagramIcon.onload = () => {
-      ctx.drawImage(instagramIcon, startX + iconSize + gap - iconSize/2, y - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.socialLinks.instagram, startX + iconSize + gap, y + iconSize * 0.8);
+      const instagramX = startX + iconSize + gap;
+      ctx.drawImage(instagramIcon, instagramX, y - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.socialLinks.instagram, instagramX + iconSize/2, y + iconSize * 0.8);
     };
     instagramIcon.src = '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png';
 
     const tiktokIcon = new Image();
     tiktokIcon.crossOrigin = 'anonymous';
     tiktokIcon.onload = () => {
-      ctx.drawImage(tiktokIcon, startX + 2 * (iconSize + gap) - iconSize/2, y - iconSize/2, iconSize, iconSize);
-      ctx.fillText(props.socialLinks.tiktok, startX + 2 * (iconSize + gap), y + iconSize * 0.8);
+      const tiktokX = startX + 2 * (iconSize + gap);
+      ctx.drawImage(tiktokIcon, tiktokX, y - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.socialLinks.tiktok, tiktokX + iconSize/2, y + iconSize * 0.8);
     };
     tiktokIcon.src = '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png';
   }, [props]);
@@ -330,9 +337,10 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const gap = props.additionalIconsGap;
     const startY = props.additionalIconsY;
 
-    // Calculate total width for horizontal layout
-    const totalItemWidth = iconSize + 200; // icon + text space
-    const totalWidth = totalItemWidth * 3 + gap * 2;
+    // Calculate total width for horizontal layout with proper spacing
+    const textWidth = 180; // Space allocated for text
+    const itemWidth = iconSize + textWidth;
+    const totalWidth = itemWidth * 3 + gap * 2;
     let startX = (width - totalWidth) / 2;
 
     ctx.fillStyle = '#ffffff';
@@ -353,7 +361,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const timeIcon = new Image();
     timeIcon.crossOrigin = 'anonymous';
     timeIcon.onload = () => {
-      const timeX = startX + totalItemWidth + gap;
+      const timeX = startX + itemWidth + gap;
       ctx.drawImage(timeIcon, timeX, startY - iconSize/2, iconSize, iconSize);
       ctx.fillText(props.additionalIcons.time, timeX + iconSize + 10, startY);
     };
@@ -363,7 +371,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const dateIcon = new Image();
     dateIcon.crossOrigin = 'anonymous';
     dateIcon.onload = () => {
-      const dateX = startX + 2 * (totalItemWidth + gap);
+      const dateX = startX + 2 * (itemWidth + gap);
       ctx.drawImage(dateIcon, dateX, startY - iconSize/2, iconSize, iconSize);
       ctx.fillText(props.additionalIcons.date, dateX + iconSize + 10, startY);
     };
