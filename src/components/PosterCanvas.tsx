@@ -113,43 +113,39 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     let gradient: CanvasGradient;
     
     if (type === 'linear') {
-      // Calculate gradient coordinates based on angle and direction
-      const angleRad = (angle * Math.PI) / 180;
-      let x0, y0, x1, y1;
-      
       if (direction === 'center') {
         // For center direction, apply opacity to top and bottom to reveal the middle
         const centerY = height / 2;
         const gradientSpan = Math.min(gradientHeight, height / 2);
         
-        // Create top gradient (opacity overlay on top)
+        // Create top gradient
         const topGradient = ctx.createLinearGradient(0, 0, 0, gradientSpan);
         stops.forEach(stop => {
           const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
           topGradient.addColorStop(stop.position / 100, color);
         });
         
-        // Create bottom gradient (opacity overlay on bottom)
+        // Create bottom gradient
         const bottomGradient = ctx.createLinearGradient(0, height - gradientSpan, 0, height);
         stops.forEach(stop => {
           const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
           bottomGradient.addColorStop(stop.position / 100, color);
         });
         
-        // Apply top overlay
         ctx.fillStyle = topGradient;
         ctx.fillRect(0, 0, width, gradientSpan);
         
-        // Apply bottom overlay
         ctx.fillStyle = bottomGradient;
         ctx.fillRect(0, height - gradientSpan, width, gradientSpan);
         
         return;
       } else {
-        // Handle other directions
+        const angleRad = (angle * Math.PI) / 180;
         const cos = Math.cos(angleRad);
         const sin = Math.sin(angleRad);
         const gradientLength = Math.min(gradientHeight, height);
+        
+        let x0, y0, x1, y1;
         
         switch (direction) {
           case 'top':
@@ -185,15 +181,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
       const centerY = height / 2;
       const radius = Math.min(gradientHeight, Math.min(width, height) / 2);
       
-      if (direction === 'center') {
-        // For radial center, create inner circle that's transparent/low opacity
-        gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-      } else {
-        gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-      }
+      gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
     }
     
-    // Add color stops for non-center directions
     if (direction !== 'center') {
       stops.forEach(stop => {
         const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
@@ -216,7 +206,6 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Function to apply text color based on the color type (solid or gradient)
     const applyTextColor = (colorType: string, text: string, x: number, y: number, font: string, size: number) => {
       ctx.font = `${size}px ${font}`;
       if (colorType === 'gradient') {
@@ -233,13 +222,14 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     // Title
     applyTextColor(props.textColors.titleColor, props.title, width / 2, props.textPositions.titleY, props.customFonts.titleFont || props.fonts.titleFont, props.fontSizes.titleSize);
 
-    // Main Text
-    ctx.font = `${props.fontSizes.textSize}px ${props.customFonts.textFont || props.fonts.textFont}`;
-    ctx.fillStyle = props.textColors.textColor;
+    // Main Text with word wrapping
     const words = props.mainText.split(' ');
     let line = '';
     let y = props.textPositions.textY;
     const lineHeight = props.fontSizes.textSize * 1.2;
+    
+    ctx.font = `${props.fontSizes.textSize}px ${props.customFonts.textFont || props.fonts.textFont}`;
+    ctx.fillStyle = props.textColors.textColor;
 
     for (let n = 0; n < words.length; n++) {
       const testLine = line + words[n] + ' ';
@@ -260,13 +250,11 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
 
     // Bilingual Text (Top)
     if (props.bilingualEnabled && props.topTextEnabled) {
-      ctx.font = `${props.fontSizes.topBottomSize}px ${props.customFonts.topBottomFont || props.fonts.topBottomFont}`;
       applyTextColor(props.textColors.topBottomColor, props.customBilingualTexts[props.language].top, width / 2, 50, props.customFonts.topBottomFont || props.fonts.topBottomFont, props.fontSizes.topBottomSize);
     }
 
     // Bilingual Text (Bottom)
     if (props.bilingualEnabled && props.bottomTextEnabled) {
-      ctx.font = `${props.bottomTextSize}px ${props.customFonts.topBottomFont || props.fonts.topBottomFont}`;
       applyTextColor(props.textColors.topBottomColor, props.customBilingualTexts[props.language].bottom, props.bottomTextPosition.x, props.bottomTextPosition.y, props.customFonts.topBottomFont || props.fonts.topBottomFont, props.bottomTextSize);
     }
   }, [props]);
@@ -281,7 +269,6 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const cornerRadius = 15;
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
-
     ctx.beginPath();
 
     if (props.quoteBoxStyle === 'rounded') {
@@ -309,17 +296,20 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const y = props.socialLinksPosition.y;
 
     ctx.fillStyle = props.socialLinksColor;
-    ctx.font = `${iconSize}px FontAwesome`;
-    ctx.textAlign = 'left';
+    ctx.font = `${iconSize}px Arial`;
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const drawIcon = (icon: string, x: number) => {
-      ctx.fillText(icon, x, y);
-    };
+    // Draw social media icons as text symbols
+    ctx.fillText('📱', startX, y); // Telegram
+    ctx.fillText('📷', startX + iconSize + gap, y); // Instagram  
+    ctx.fillText('🎵', startX + 2 * (iconSize + gap), y); // TikTok
 
-    drawIcon('\uf264', startX); // Telegram
-    drawIcon('\uf16d', startX + iconSize + gap); // Instagram
-    drawIcon('\ue07b', startX + 2 * (iconSize + gap)); // TikTok
+    // Draw usernames
+    ctx.font = `${iconSize * 0.6}px Arial`;
+    ctx.fillText(props.socialLinks.telegram, startX, y + iconSize * 0.8);
+    ctx.fillText(props.socialLinks.instagram, startX + iconSize + gap, y + iconSize * 0.8);
+    ctx.fillText(props.socialLinks.tiktok, startX + 2 * (iconSize + gap), y + iconSize * 0.8);
   }, [props]);
 
   const drawAdditionalIcons = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -328,26 +318,27 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     let startY = props.additionalIconsY;
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = `${iconSize}px FontAwesome`;
+    ctx.font = `${iconSize}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
     const drawIconWithText = (icon: string, text: string, y: number) => {
       ctx.fillText(icon, width / 2 - 50, y);
-      ctx.font = `${iconSize - 4}px sans-serif`;
+      ctx.font = `${iconSize - 4}px Arial`;
       ctx.fillText(text, width / 2 + 40, y);
+      ctx.font = `${iconSize}px Arial`;
     };
 
-    drawIconWithText('\uf041', props.additionalIcons.place, startY); // Map Pin
-    drawIconWithText('\uf017', props.additionalIcons.time, startY + iconSize + gap); // Clock
-    drawIconWithText('\uf073', props.additionalIcons.date, startY + 2 * (iconSize + gap)); // Calendar
+    drawIconWithText('📍', props.additionalIcons.place, startY);
+    drawIconWithText('🕐', props.additionalIcons.time, startY + iconSize + gap);
+    drawIconWithText('📅', props.additionalIcons.date, startY + 2 * (iconSize + gap));
   }, [props]);
 
   const drawClipart = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (!props.clipart.image) return;
 
     const img = new Image();
-    img.src = props.clipart.image;
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
       ctx.drawImage(
         img,
@@ -357,6 +348,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         props.clipart.height
       );
     };
+    img.src = props.clipart.image;
   }, [props]);
 
   const drawFrame = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
@@ -365,119 +357,109 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 5;
 
-    const drawFrameStyle = (style: string) => {
-      switch (style) {
-        case 'simple':
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          break;
-        case 'elegant':
-          ctx.setLineDash([20, 10]);
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.setLineDash([]);
-          break;
-        case 'bold':
-          ctx.lineWidth = 10;
-          ctx.strokeRect(10, 10, width - 20, height - 20);
-          ctx.lineWidth = 5;
-          break;
-        case 'rounded':
-          ctx.lineJoin = "round";
-          ctx.lineWidth = 20;
-          ctx.strokeRect(10, 10, width - 20, height - 20);
-          ctx.lineJoin = "miter";
-          ctx.lineWidth = 5;
-          break;
-        case 'double':
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.strokeRect(20, 20, width - 40, height - 40);
-          break;
-        case 'dashed':
-          ctx.setLineDash([15, 15]);
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.setLineDash([]);
-          break;
-        case 'dotted':
-          ctx.setLineDash([5, 10]);
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.setLineDash([]);
-          break;
-        case 'shadow':
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-          ctx.shadowBlur = 15;
-          ctx.shadowOffsetX = 10;
-          ctx.shadowOffsetY = 10;
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-          break;
-        case 'glow':
-          ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
-          ctx.shadowBlur = 20;
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          break;
-        case 'vintage':
-          ctx.lineWidth = 3;
-          ctx.strokeRect(15, 15, width - 30, height - 30);
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.lineWidth = 5;
-          break;
-        case 'modern':
-          ctx.lineWidth = 8;
-          ctx.strokeRect(25, 5, width - 30, height - 10);
-          ctx.lineWidth = 5;
-          break;
-        case 'neon':
-          ctx.shadowColor = '#00ffff';
-          ctx.shadowBlur = 10;
-          ctx.strokeStyle = '#00ffff';
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.shadowColor = 'transparent';
-          ctx.shadowBlur = 0;
-          ctx.strokeStyle = '#ffffff';
-          break;
-        case 'artistic':
-          ctx.lineWidth = 4;
-          ctx.setLineDash([25, 15]);
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.setLineDash([]);
-          ctx.lineWidth = 5;
-          break;
-        case 'minimal':
-          ctx.lineWidth = 2;
-          ctx.strokeRect(5, 5, width - 10, height - 10);
-          ctx.lineWidth = 5;
-          break;
-        case 'partial-top-right':
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(width, 0);
-          ctx.lineTo(width, height);
-          ctx.stroke();
-          break;
-        case 'partial-bottom-left':
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(0, height);
-          ctx.lineTo(width, height);
-          ctx.stroke();
-          break;
-        case 'partial-diagonal':
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.lineTo(width, height);
-          ctx.stroke();
-          break;
-        default:
-          break;
-      }
-    };
-
-    drawFrameStyle(props.frameStyle);
-  }, [props]);
+    switch (props.frameStyle) {
+      case 'simple':
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        break;
+      case 'elegant':
+        ctx.setLineDash([20, 10]);
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        ctx.setLineDash([]);
+        break;
+      case 'bold':
+        ctx.lineWidth = 10;
+        ctx.strokeRect(10, 10, width - 20, height - 20);
+        break;
+      case 'rounded':
+        ctx.lineJoin = "round";
+        ctx.lineWidth = 20;
+        ctx.strokeRect(10, 10, width - 20, height - 20);
+        ctx.lineJoin = "miter";
+        break;
+      case 'double':
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        ctx.strokeRect(20, 20, width - 40, height - 40);
+        break;
+      case 'dashed':
+        ctx.setLineDash([15, 15]);
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        ctx.setLineDash([]);
+        break;
+      case 'dotted':
+        ctx.setLineDash([5, 10]);
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        ctx.setLineDash([]);
+        break;
+      case 'shadow':
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        ctx.shadowBlur = 15;
+        ctx.shadowOffsetX = 10;
+        ctx.shadowOffsetY = 10;
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        break;
+      case 'glow':
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+        ctx.shadowBlur = 20;
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        break;
+      case 'vintage':
+        ctx.lineWidth = 3;
+        ctx.strokeRect(15, 15, width - 30, height - 30);
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        break;
+      case 'modern':
+        ctx.lineWidth = 8;
+        ctx.strokeRect(25, 5, width - 30, height - 10);
+        break;
+      case 'neon':
+        ctx.shadowColor = '#00ffff';
+        ctx.shadowBlur = 10;
+        ctx.strokeStyle = '#00ffff';
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#ffffff';
+        break;
+      case 'artistic':
+        ctx.lineWidth = 4;
+        ctx.setLineDash([25, 15]);
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        ctx.setLineDash([]);
+        break;
+      case 'minimal':
+        ctx.lineWidth = 2;
+        ctx.strokeRect(5, 5, width - 10, height - 10);
+        break;
+      case 'partial-top-right':
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(width, 0);
+        ctx.lineTo(width, height);
+        ctx.stroke();
+        break;
+      case 'partial-bottom-left':
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, height);
+        ctx.lineTo(width, height);
+        ctx.stroke();
+        break;
+      case 'partial-diagonal':
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(width, height);
+        ctx.stroke();
+        break;
+      default:
+        break;
+    }
+  }, [props.frameStyle]);
 
   const drawPoster = useCallback(() => {
     const canvas = canvasRef.current;
@@ -495,48 +477,61 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     // Draw background image or default background
     if (props.backgroundImage) {
       const img = new Image();
-      img.src = props.backgroundImage;
+      img.crossOrigin = 'anonymous';
       img.onload = () => {
-        const imageWidth = img.width;
-        const imageHeight = img.height;
+        try {
+          const imageWidth = img.width;
+          const imageHeight = img.height;
 
-        const cropX = props.imageCrop.x * imageWidth;
-        const cropY = props.imageCrop.y * imageHeight;
-        const cropWidth = imageWidth * props.imageCrop.scale;
-        const cropHeight = imageHeight * props.imageCrop.scale;
+          const cropX = props.imageCrop.x * imageWidth;
+          const cropY = props.imageCrop.y * imageHeight;
+          const cropWidth = imageWidth * props.imageCrop.scale;
+          const cropHeight = imageHeight * props.imageCrop.scale;
 
-        const destX = 0;
-        const destY = 0;
-        const destWidth = width;
-        const destHeight = height;
+          ctx.drawImage(
+            img,
+            cropX,
+            cropY,
+            cropWidth,
+            cropHeight,
+            0,
+            0,
+            width,
+            height
+          );
 
-        ctx.drawImage(
-          img,
-          cropX,
-          cropY,
-          cropWidth,
-          cropHeight,
-          destX,
-          destY,
-          destWidth,
-          destHeight
-        );
-
-        // Apply all drawing functions after background is loaded
-        drawGradient(ctx, width, height);
-        drawText(ctx, width, height);
-        drawQuoteBox(ctx, width, height);
-        drawSocialLinks(ctx, width, height);
-        drawAdditionalIcons(ctx, width, height);
-        drawClipart(ctx, width, height);
-        drawFrame(ctx, width, height);
+          // Draw all elements after background is loaded
+          drawGradient(ctx, width, height);
+          drawText(ctx, width, height);
+          drawQuoteBox(ctx, width, height);
+          drawSocialLinks(ctx, width, height);
+          drawAdditionalIcons(ctx, width, height);
+          drawClipart(ctx, width, height);
+          drawFrame(ctx, width, height);
+        } catch (error) {
+          console.error('Error drawing background image:', error);
+          // Fallback to default background
+          ctx.fillStyle = '#1e3a8a';
+          ctx.fillRect(0, 0, width, height);
+          drawAllElements();
+        }
       };
+      img.onerror = () => {
+        console.error('Failed to load background image');
+        // Fallback to default background
+        ctx.fillStyle = '#1e3a8a';
+        ctx.fillRect(0, 0, width, height);
+        drawAllElements();
+      };
+      img.src = props.backgroundImage;
     } else {
       // Default background
       ctx.fillStyle = '#1e3a8a';
       ctx.fillRect(0, 0, width, height);
+      drawAllElements();
+    }
 
-      // Apply all drawing functions
+    function drawAllElements() {
       drawGradient(ctx, width, height);
       drawText(ctx, width, height);
       drawQuoteBox(ctx, width, height);
@@ -557,8 +552,12 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         ref.current = canvas;
       }
     }
+  }, [ref]);
+
+  // Draw poster when component mounts or props change
+  useEffect(() => {
     drawPoster();
-  }, [drawPoster, ref]);
+  }, [drawPoster]);
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -567,6 +566,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         width={1080}
         height={1080}
         className="w-full h-auto border border-white/20 rounded-lg shadow-lg"
+        style={{ maxWidth: '100%', height: 'auto' }}
       />
     </div>
   );
