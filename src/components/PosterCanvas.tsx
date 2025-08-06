@@ -107,12 +107,15 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   const drawGradient = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (!props.gradientConfig.enabled) return;
 
-    // Draw top gradient
+    // Draw top gradient - solid at top, fade toward center
     if (props.gradientConfig.top.enabled) {
       const topHeight = Math.min(props.gradientConfig.top.height, height / 2);
       const topGradient = ctx.createLinearGradient(0, 0, 0, topHeight);
       
-      props.gradientConfig.top.stops.forEach(stop => {
+      // Sort stops by position to ensure correct gradient order
+      const sortedTopStops = [...props.gradientConfig.top.stops].sort((a, b) => a.position - b.position);
+      
+      sortedTopStops.forEach(stop => {
         const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
         topGradient.addColorStop(stop.position / 100, color);
       });
@@ -121,12 +124,15 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
       ctx.fillRect(0, 0, width, topHeight);
     }
 
-    // Draw bottom gradient
+    // Draw bottom gradient - solid at bottom, fade toward center
     if (props.gradientConfig.bottom.enabled) {
       const bottomHeight = Math.min(props.gradientConfig.bottom.height, height / 2);
       const bottomGradient = ctx.createLinearGradient(0, height - bottomHeight, 0, height);
       
-      props.gradientConfig.bottom.stops.forEach(stop => {
+      // Sort stops by position to ensure correct gradient order
+      const sortedBottomStops = [...props.gradientConfig.bottom.stops].sort((a, b) => a.position - b.position);
+      
+      sortedBottomStops.forEach(stop => {
         const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
         bottomGradient.addColorStop(stop.position / 100, color);
       });

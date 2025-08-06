@@ -94,7 +94,7 @@ const Index = () => {
       enabled: true,
       height: 400,
       stops: [
-        { color: '#083765', opacity: 80, position: 0 },
+        { color: '#083765', opacity: 100, position: 0 },
         { color: '#083765', opacity: 0, position: 100 }
       ]
     },
@@ -103,7 +103,7 @@ const Index = () => {
       height: 400,
       stops: [
         { color: '#083765', opacity: 0, position: 0 },
-        { color: '#083765', opacity: 80, position: 100 }
+        { color: '#083765', opacity: 100, position: 100 }
       ]
     }
   });
