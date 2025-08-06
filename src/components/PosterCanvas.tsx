@@ -1,4 +1,3 @@
-
 import React, { useEffect, useCallback, useRef } from 'react';
 import { GradientConfig } from './GradientControls';
 
@@ -296,42 +295,79 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const y = props.socialLinksPosition.y;
 
     ctx.fillStyle = props.socialLinksColor;
-    ctx.font = `${iconSize}px Arial`;
+    ctx.font = `${iconSize * 0.6}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Draw social media icons as text symbols
-    ctx.fillText('📱', startX, y); // Telegram
-    ctx.fillText('📷', startX + iconSize + gap, y); // Instagram  
-    ctx.fillText('🎵', startX + 2 * (iconSize + gap), y); // TikTok
+    // Load and draw PNG icons
+    const telegramIcon = new Image();
+    telegramIcon.crossOrigin = 'anonymous';
+    telegramIcon.onload = () => {
+      ctx.drawImage(telegramIcon, startX - iconSize/2, y - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.socialLinks.telegram, startX, y + iconSize * 0.8);
+    };
+    telegramIcon.src = '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png';
 
-    // Draw usernames
-    ctx.font = `${iconSize * 0.6}px Arial`;
-    ctx.fillText(props.socialLinks.telegram, startX, y + iconSize * 0.8);
-    ctx.fillText(props.socialLinks.instagram, startX + iconSize + gap, y + iconSize * 0.8);
-    ctx.fillText(props.socialLinks.tiktok, startX + 2 * (iconSize + gap), y + iconSize * 0.8);
+    const instagramIcon = new Image();
+    instagramIcon.crossOrigin = 'anonymous';
+    instagramIcon.onload = () => {
+      ctx.drawImage(instagramIcon, startX + iconSize + gap - iconSize/2, y - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.socialLinks.instagram, startX + iconSize + gap, y + iconSize * 0.8);
+    };
+    instagramIcon.src = '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png';
+
+    const tiktokIcon = new Image();
+    tiktokIcon.crossOrigin = 'anonymous';
+    tiktokIcon.onload = () => {
+      ctx.drawImage(tiktokIcon, startX + 2 * (iconSize + gap) - iconSize/2, y - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.socialLinks.tiktok, startX + 2 * (iconSize + gap), y + iconSize * 0.8);
+    };
+    tiktokIcon.src = '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png';
   }, [props]);
 
   const drawAdditionalIcons = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     const iconSize = props.additionalIconsSize;
     const gap = props.additionalIconsGap;
-    let startY = props.additionalIconsY;
+    const startY = props.additionalIconsY;
+
+    // Calculate total width for horizontal layout
+    const totalItemWidth = iconSize + 200; // icon + text space
+    const totalWidth = totalItemWidth * 3 + gap * 2;
+    let startX = (width - totalWidth) / 2;
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = `${iconSize}px Arial`;
-    ctx.textAlign = 'center';
+    ctx.font = `${iconSize - 4}px Arial`;
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
 
-    const drawIconWithText = (icon: string, text: string, y: number) => {
-      ctx.fillText(icon, width / 2 - 50, y);
-      ctx.font = `${iconSize - 4}px Arial`;
-      ctx.fillText(text, width / 2 + 40, y);
-      ctx.font = `${iconSize}px Arial`;
+    // Location icon and text
+    const locationIcon = new Image();
+    locationIcon.crossOrigin = 'anonymous';
+    locationIcon.onload = () => {
+      ctx.drawImage(locationIcon, startX, startY - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.additionalIcons.place, startX + iconSize + 10, startY);
     };
+    locationIcon.src = '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png';
 
-    drawIconWithText('📍', props.additionalIcons.place, startY);
-    drawIconWithText('🕐', props.additionalIcons.time, startY + iconSize + gap);
-    drawIconWithText('📅', props.additionalIcons.date, startY + 2 * (iconSize + gap));
+    // Time icon and text
+    const timeIcon = new Image();
+    timeIcon.crossOrigin = 'anonymous';
+    timeIcon.onload = () => {
+      const timeX = startX + totalItemWidth + gap;
+      ctx.drawImage(timeIcon, timeX, startY - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.additionalIcons.time, timeX + iconSize + 10, startY);
+    };
+    timeIcon.src = '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png';
+
+    // Date icon and text
+    const dateIcon = new Image();
+    dateIcon.crossOrigin = 'anonymous';
+    dateIcon.onload = () => {
+      const dateX = startX + 2 * (totalItemWidth + gap);
+      ctx.drawImage(dateIcon, dateX, startY - iconSize/2, iconSize, iconSize);
+      ctx.fillText(props.additionalIcons.date, dateX + iconSize + 10, startY);
+    };
+    dateIcon.src = '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png';
   }, [props]);
 
   const drawClipart = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
