@@ -1,5 +1,4 @@
-import React, { useRef, useEffect, forwardRef } from 'react';
-import { templates } from '@/utils/posterTemplates';
+import React, { useEffect } from 'react';
 import { GradientConfig } from './GradientControls';
 
 interface PosterCanvasProps {
@@ -26,7 +25,7 @@ interface PosterCanvasProps {
     width: number;
     height: number;
   };
-  quoteBoxStyle: 'rectangle' | 'rounded' | 'circle' | 'diamond' | 'none';
+  quoteBoxStyle: 'rectangle' | 'rounded' | 'none';
   fonts: {
     titleFont: string;
     textFont: string;
@@ -102,700 +101,501 @@ interface PosterCanvasProps {
   gradientConfig: GradientConfig;
 }
 
-export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
-  ({
-    backgroundImage,
-    title,
-    mainText,
-    quotedText,
-    template,
-    gradientHeight,
-    gradientStrength,
-    gradientInnerHeight,
-    language,
-    socialLinks,
-    textPositions,
-    quoteBoxSize,
-    quoteBoxStyle,
-    fonts,
-    fontSizes,
-    customFonts,
-    bilingualEnabled,
-    frameStyle,
-    textColors,
-    mainTextWidth,
-    additionalIcons,
-    additionalIconsY,
-    socialLinksGap,
-    imageCrop,
-    clipart,
-    additionalIconsGap,
-    socialLinksPosition,
-    bottomTextPosition,
-    bottomTextSize,
-    socialLinksSize,
-    additionalIconsSize,
-    topTextEnabled,
-    bottomTextEnabled,
-    customBilingualTexts,
-    socialLinksColor,
-    gradientAngle,
-    gradientConfig
-  }, ref) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
+  backgroundImage,
+  title,
+  mainText,
+  quotedText,
+  template,
+  gradientHeight,
+  gradientStrength,
+  gradientInnerHeight,
+  language,
+  socialLinks,
+  textPositions,
+  quoteBoxSize,
+  quoteBoxStyle,
+  fonts,
+  fontSizes,
+  customFonts,
+  bilingualEnabled,
+  frameStyle,
+  textColors,
+  mainTextWidth,
+  additionalIcons,
+  additionalIconsY,
+  socialLinksGap,
+  imageCrop,
+  clipart,
+  additionalIconsGap,
+  socialLinksPosition,
+  bottomTextPosition,
+  bottomTextSize,
+  socialLinksSize,
+  additionalIconsSize,
+  topTextEnabled,
+  bottomTextEnabled,
+  customBilingualTexts,
+  socialLinksColor,
+  gradientAngle,
+  gradientConfig
+}, ref) => {
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
 
-    const bilingualTexts = {
-      amharic: {
-        top: 'በስመ አብ ወወልድ ወመንፈስ ቅዱስ አሐዱ አምላክ አሜን',
-        bottom: 'የጅማ ዩንቨርስቲ ቴክኖሎጂ ኢንስቲትዩት ግቢ ጉባኤ'
-      },
-      oromic: {
-        top: 'Maqaa Abbaa kan ilmaa kan afuura qulqulluu waaqa tokko ameen',
-        bottom: 'Yaa\'ii Mooraa Inistiitiyuutii Teeknooloojii Yuunivarsiitii Jimmaa'
-      }
-    };
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    useEffect(() => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+    const width = canvas.width;
+    const height = canvas.height;
 
-      canvas.width = 1080;
-      canvas.height = 1080;
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
 
-      const currentTemplate = templates[template] || templates[2];
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Draw background image
+    if (backgroundImage) {
+      const img = new Image();
+      img.src = backgroundImage;
+      img.onload = () => {
+        const imageWidth = img.width;
+        const imageHeight = img.height;
 
-      const draw = () => {
-        drawGradientOverlays(ctx);
-        drawTemplate(ctx, currentTemplate, title, mainText, quotedText);
-        if (bilingualEnabled) {
-          drawBilingualTexts(ctx);
-        }
-        drawAdditionalIcons(ctx);
-        drawSocialLinks(ctx);
-        drawClipart(ctx);
-        drawFrame(ctx);
+        const cropX = imageCrop.x * imageWidth;
+        const cropY = imageCrop.y * imageHeight;
+        const cropWidth = imageWidth * imageCrop.scale;
+        const cropHeight = imageHeight * imageCrop.scale;
+
+        const destX = 0;
+        const destY = 0;
+        const destWidth = width;
+        const destHeight = height;
+
+        ctx.drawImage(
+          img,
+          cropX,
+          cropY,
+          cropWidth,
+          cropHeight,
+          destX,
+          destY,
+          destWidth,
+          destHeight
+        );
+
+        // Apply gradient overlay
+        drawGradient(ctx, width, height);
+
+        // Draw text and other elements
+        drawText(ctx, width, height);
+        drawQuoteBox(ctx, width, height);
+        drawSocialLinks(ctx, width, height);
+        drawAdditionalIcons(ctx, width, height);
+        drawClipart(ctx, width, height);
+        drawFrame(ctx, width, height);
       };
+    } else {
+      // If no background image, fill with a default color or gradient
+      ctx.fillStyle = '#1e3a8a';
+      ctx.fillRect(0, 0, width, height);
 
-      if (backgroundImage) {
-        const img = new Image();
-        img.onload = () => {
-          const scale = Math.max(canvas.width / img.width, canvas.height / img.height) * imageCrop.scale;
-          const x = (canvas.width - img.width * scale) / 2 + imageCrop.x;
-          const y = (canvas.height - img.height * scale) / 2 + imageCrop.y;
-          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-          draw();
-        };
-        img.src = backgroundImage;
-      } else {
-        // Set base background color to #083765
-        ctx.fillStyle = '#083765';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        draw();
-      }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle, gradientConfig]);
+      // Apply gradient overlay
+      drawGradient(ctx, width, height);
 
-    const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
-      // Use new advanced gradient if enabled, otherwise fall back to legacy
-      if (gradientConfig.enabled) {
-        drawAdvancedGradient(ctx);
-      } else {
-        drawLegacyGradient(ctx);
-      }
-    };
+      // Draw text and other elements
+      drawText(ctx, width, height);
+      drawQuoteBox(ctx, width, height);
+      drawSocialLinks(ctx, width, height);
+      drawAdditionalIcons(ctx, width, height);
+      drawClipart(ctx, width, height);
+      drawFrame(ctx, width, height);
+    }
+  }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle, gradientConfig]);
 
-    const drawAdvancedGradient = (ctx: CanvasRenderingContext2D) => {
-      const { type, direction, angle, height, stops } = gradientConfig;
-      
-      // Sort stops by position for proper gradient rendering
-      const sortedStops = [...stops].sort((a, b) => a.position - b.position);
-      
-      if (type === 'linear') {
-        if (direction === 'both' || direction === 'top') {
-          drawLinearGradient(ctx, sortedStops, 0, 0, 1080, height, angle);
-        }
-        if (direction === 'both' || direction === 'bottom') {
-          drawLinearGradient(ctx, sortedStops, 0, 1080 - height, 1080, height, angle + 180);
-        }
-        if (direction === 'center') {
-          drawLinearGradient(ctx, sortedStops, 0, (1080 - height) / 2, 1080, height, angle);
-        }
-      } else if (type === 'radial') {
-        drawRadialGradient(ctx, sortedStops, direction, height);
-      }
-    };
+  const drawGradient = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (!gradientConfig.enabled) return;
 
-    const drawLinearGradient = (ctx: CanvasRenderingContext2D, stops: any[], x: number, y: number, width: number, height: number, angle: number) => {
+    const { type, direction, angle, height: gradientHeight, stops } = gradientConfig;
+    
+    let gradient: CanvasGradient;
+    
+    if (type === 'linear') {
+      // Calculate gradient coordinates based on angle and direction
       const angleRad = (angle * Math.PI) / 180;
-      const centerX = x + width / 2;
-      const centerY = y + height / 2;
-      const radius = Math.max(width, height) / 2;
+      let x0, y0, x1, y1;
       
-      const x1 = centerX - Math.cos(angleRad) * radius;
-      const y1 = centerY - Math.sin(angleRad) * radius;
-      const x2 = centerX + Math.cos(angleRad) * radius;
-      const y2 = centerY + Math.sin(angleRad) * radius;
+      if (direction === 'center') {
+        // For center direction, create gradient from top to center and center to bottom
+        // This reveals the center while applying opacity to top and bottom
+        const centerY = height / 2;
+        const gradientSpan = Math.min(gradientHeight, height / 2);
+        
+        // Create top gradient (from top down to center)
+        const topGradient = ctx.createLinearGradient(0, 0, 0, centerY);
+        stops.forEach(stop => {
+          const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
+          topGradient.addColorStop(stop.position / 100, color);
+        });
+        
+        // Create bottom gradient (from center down to bottom)
+        const bottomGradient = ctx.createLinearGradient(0, centerY, 0, height);
+        stops.forEach(stop => {
+          const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
+          bottomGradient.addColorStop(stop.position / 100, color);
+        });
+        
+        // Apply top gradient
+        ctx.fillStyle = topGradient;
+        ctx.fillRect(0, 0, width, Math.min(gradientSpan, centerY));
+        
+        // Apply bottom gradient
+        ctx.fillStyle = bottomGradient;
+        ctx.fillRect(0, Math.max(centerY, height - gradientSpan), width, Math.min(gradientSpan, height - centerY));
+        
+        return;
+      } else {
+        // Handle other directions
+        const cos = Math.cos(angleRad);
+        const sin = Math.sin(angleRad);
+        const gradientLength = Math.min(gradientHeight, height);
+        
+        switch (direction) {
+          case 'top':
+            x0 = width / 2;
+            y0 = 0;
+            x1 = width / 2 + cos * gradientLength;
+            y1 = sin * gradientLength;
+            break;
+          case 'bottom':
+            x0 = width / 2;
+            y0 = height;
+            x1 = width / 2 + cos * gradientLength;
+            y1 = height - sin * gradientLength;
+            break;
+          case 'both':
+            x0 = width / 2 - cos * gradientLength / 2;
+            y0 = height / 2 - sin * gradientLength / 2;
+            x1 = width / 2 + cos * gradientLength / 2;
+            y1 = height / 2 + sin * gradientLength / 2;
+            break;
+          default:
+            x0 = 0;
+            y0 = 0;
+            x1 = width;
+            y1 = 0;
+        }
+        
+        gradient = ctx.createLinearGradient(x0, y0, x1, y1);
+      }
+    } else {
+      // Radial gradient
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const radius = Math.min(gradientHeight, Math.min(width, height) / 2);
       
-      const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-      
+      if (direction === 'center') {
+        // For radial center, create inner circle that's transparent/low opacity
+        gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+      } else {
+        gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+      }
+    }
+    
+    // Add color stops for non-center directions
+    if (direction !== 'center') {
       stops.forEach(stop => {
-        const alpha = stop.opacity / 100;
-        const color = hexToRgb(stop.color);
-        gradient.addColorStop(stop.position / 100, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`);
+        const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
+        gradient.addColorStop(stop.position / 100, color);
       });
       
       ctx.fillStyle = gradient;
-      ctx.fillRect(x, y, width, height);
-    };
-
-    const drawRadialGradient = (ctx: CanvasRenderingContext2D, stops: any[], direction: string, height: number) => {
-      const centerX = 540;
-      const centerY = direction === 'center' ? 540 : (direction === 'top' ? 0 : 1080);
-      const radius = height;
       
-      const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
-      
-      stops.forEach(stop => {
-        const alpha = stop.opacity / 100;
-        const color = hexToRgb(stop.color);
-        gradient.addColorStop(stop.position / 100, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`);
-      });
-      
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 1080, 1080);
-    };
+      if (direction === 'top') {
+        ctx.fillRect(0, 0, width, Math.min(gradientHeight, height));
+      } else if (direction === 'bottom') {
+        ctx.fillRect(0, Math.max(0, height - gradientHeight), width, Math.min(gradientHeight, height));
+      } else {
+        ctx.fillRect(0, 0, width, height);
+      }
+    }
+  };
 
-    const drawLegacyGradient = (ctx: CanvasRenderingContext2D) => {
-      const alpha = gradientStrength / 100;
-      
-      // Top gradient overlay with smooth inner height transition
-      const top = ctx.createLinearGradient(0, 0, 0, gradientHeight);
-      top.addColorStop(0, `rgba(8, 55, 101, ${alpha})`);
-      top.addColorStop(Math.min(gradientInnerHeight / gradientHeight, 0.9), `rgba(8, 55, 101, ${alpha * 0.8})`);
-      top.addColorStop(1, 'rgba(8, 55, 101, 0)');
-      ctx.fillStyle = top;
-      ctx.fillRect(0, 0, 1080, gradientHeight);
+  const drawText = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-      // Bottom gradient overlay with smooth inner height transition
-      const bottom = ctx.createLinearGradient(0, 1080 - gradientHeight, 0, 1080);
-      bottom.addColorStop(0, 'rgba(8, 55, 101, 0)');
-      bottom.addColorStop(Math.max(1 - (gradientInnerHeight / gradientHeight), 0.1), `rgba(8, 55, 101, ${alpha * 0.8})`);
-      bottom.addColorStop(1, `rgba(8, 55, 101, ${alpha})`);
-      ctx.fillStyle = bottom;
-      ctx.fillRect(0, 1080 - gradientHeight, 1080, gradientHeight);
-    };
-
-    const hexToRgb = (hex: string) => {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-      return result ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-      } : { r: 8, g: 55, b: 101 };
-    };
-
-    const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {
-      const texts = customBilingualTexts[language];
-      const fontFamily = customFonts.topBottomFont || fonts.topBottomFont;
-      ctx.font = `${bottomTextSize}px ${fontFamily}`;
-      ctx.textAlign = 'center';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-
-      if (textColors.topBottomColor === 'gradient') {
-        const angleRad = (gradientAngle * Math.PI) / 180;
-        const x1 = 540 - Math.cos(angleRad) * 500;
-        const y1 = 40 - Math.sin(angleRad) * 500;
-        const x2 = 540 + Math.cos(angleRad) * 500;
-        const y2 = 40 + Math.sin(angleRad) * 500;
-        const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-        gradient.addColorStop(0, '#ffd700');
-        gradient.addColorStop(0.3, '#ffed4e');
-        gradient.addColorStop(0.7, '#d97706');
-        gradient.addColorStop(1, '#b45309');
+    // Function to apply text color based on the color type (solid or gradient)
+    const applyTextColor = (colorType: string, text: string, x: number, y: number, font: string, size: number) => {
+      ctx.font = `${size}px ${font}`;
+      if (colorType === 'gradient') {
+        const gradient = ctx.createLinearGradient(x - mainTextWidth / 2, y - size / 2, x + mainTextWidth / 2, y + size / 2);
+        gradient.addColorStop(0, '#ffffff');
+        gradient.addColorStop(1, '#a1a1aa');
         ctx.fillStyle = gradient;
       } else {
-        ctx.fillStyle = textColors.topBottomColor;
+        ctx.fillStyle = colorType;
       }
+      ctx.fillText(text, x, y);
+    };
 
-      // Draw top text only if enabled
-      if (topTextEnabled) {
-        wrapTextWithGradient(ctx, texts.top, 540, 40, 1000, bottomTextSize * 1.2, textColors.topBottomColor === 'gradient');
+    // Title
+    applyTextColor(textColors.titleColor, title, width / 2, textPositions.titleY, customFonts.titleFont || fonts.titleFont, fontSizes.titleSize);
+
+    // Main Text
+    ctx.font = `${fontSizes.textSize}px ${customFonts.textFont || fonts.textFont}`;
+    ctx.fillStyle = textColors.textColor;
+    const words = mainText.split(' ');
+    let line = '';
+    let y = textPositions.textY;
+    const lineHeight = fontSizes.textSize * 1.2;
+
+    for (let n = 0; n < words.length; n++) {
+      const testLine = line + words[n] + ' ';
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+      if (testWidth > mainTextWidth && n > 0) {
+        ctx.fillText(line, width / 2, y);
+        line = words[n] + ' ';
+        y += lineHeight;
+      } else {
+        line = testLine;
       }
-      
-      // Draw bottom text only if enabled
-      if (bottomTextEnabled) {
-        wrapTextWithGradient(ctx, texts.bottom, bottomTextPosition.x, bottomTextPosition.y, 1000, bottomTextSize * 1.2, textColors.topBottomColor === 'gradient');
-      }
+    }
+    ctx.fillText(line, width / 2, y);
 
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
+    // Quoted Text
+    applyTextColor(textColors.quoteColor, quotedText, width / 2, textPositions.quoteY, customFonts.quoteFont || fonts.quoteFont, fontSizes.quoteSize);
+
+    // Bilingual Text (Top)
+    if (bilingualEnabled && topTextEnabled) {
+      ctx.font = `${fontSizes.topBottomSize}px ${customFonts.topBottomFont || fonts.topBottomFont}`;
+      applyTextColor(textColors.topBottomColor, customBilingualTexts[language].top, width / 2, 50, customFonts.topBottomFont || fonts.topBottomFont, fontSizes.topBottomSize);
+    }
+
+    // Bilingual Text (Bottom)
+    if (bilingualEnabled && bottomTextEnabled) {
+      ctx.font = `${bottomTextSize}px ${customFonts.topBottomFont || fonts.topBottomFont}`;
+      applyTextColor(textColors.topBottomColor, customBilingualTexts[language].bottom, bottomTextPosition.x, bottomTextPosition.y, customFonts.topBottomFont || fonts.topBottomFont, bottomTextSize);
+    }
+  };
+
+  const drawQuoteBox = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (quoteBoxStyle === 'none') return;
+
+    const boxWidth = quoteBoxSize.width;
+    const boxHeight = quoteBoxSize.height;
+    const x = (width - boxWidth) / 2;
+    const y = textPositions.quoteY - boxHeight / 2;
+    const cornerRadius = 15;
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+
+    ctx.beginPath();
+
+    if (quoteBoxStyle === 'rounded') {
+      ctx.moveTo(x + cornerRadius, y);
+      ctx.lineTo(x + boxWidth - cornerRadius, y);
+      ctx.quadraticCurveTo(x + boxWidth, y, x + boxWidth, y + cornerRadius);
+      ctx.lineTo(x + boxWidth, y + boxHeight - cornerRadius);
+      ctx.quadraticCurveTo(x + boxWidth, y + boxHeight, x + boxWidth - cornerRadius, y + boxHeight);
+      ctx.lineTo(x + cornerRadius, y + boxHeight);
+      ctx.quadraticCurveTo(x, y + boxHeight, x, y + boxHeight - cornerRadius);
+      ctx.lineTo(x, y + cornerRadius);
+      ctx.quadraticCurveTo(x, y, x + cornerRadius, y);
+    } else {
+      ctx.rect(x, y, boxWidth, boxHeight);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+  };
+
+  const drawSocialLinks = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    const iconSize = socialLinksSize;
+    const gap = socialLinksGap;
+    let startX = socialLinksPosition.x - (iconSize * 3 + gap * 2) / 2;
+    const y = socialLinksPosition.y;
+
+    ctx.fillStyle = socialLinksColor;
+    ctx.font = `${iconSize}px FontAwesome`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+
+    const drawIcon = (icon: string, x: number) => {
+      ctx.fillText(icon, x, y);
     };
 
-    const drawAdditionalIcons = (ctx: CanvasRenderingContext2D) => {
-      const iconSize = Math.max(12, additionalIconsSize * 0.8); // Scale icon size with font size
-      const fontFamily = customFonts.textFont || fonts.textFont;
-      ctx.font = `${additionalIconsSize}px ${fontFamily}`;
-      ctx.textBaseline = 'middle';
+    drawIcon('\uf264', startX); // Telegram
+    drawIcon('\uf16d', startX + iconSize + gap); // Instagram
+    drawIcon('\ue07b', startX + 2 * (iconSize + gap)); // TikTok
+  };
 
-      const additionalIconsData = [
-        { text: additionalIcons.place, color: '#4ade80', iconSrc: '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png' },
-        { text: additionalIcons.time, color: '#60a5fa', iconSrc: '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png' },
-        { text: additionalIcons.date, color: '#f87171', iconSrc: '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png' }
-      ];
+  const drawAdditionalIcons = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    const iconSize = additionalIconsSize;
+    const gap = additionalIconsGap;
+    let startY = additionalIconsY;
 
-      const visibleIcons = additionalIconsData.filter(icon => icon.text.trim() !== '');
-      
-      if (visibleIcons.length === 0) return;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `${iconSize}px FontAwesome`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
-      const iconPromises = visibleIcons.map(icon => {
-        return new Promise<HTMLImageElement>((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = reject;
-          img.src = icon.iconSrc;
-        });
-      });
-
-      Promise.all(iconPromises).then(images => {
-        const blocks = visibleIcons.map((icon, i) => {
-          const textWidth = ctx.measureText(icon.text).width;
-          return {
-            img: images[i],
-            text: icon.text,
-            textWidth,
-            width: iconSize + 8 + textWidth,
-          };
-        });
-
-        const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + additionalIconsGap * (blocks.length - 1);
-        let x = (1080 - totalWidth) / 2;
-
-        ctx.textAlign = 'left';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = 3;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-
-        blocks.forEach(block => {
-          ctx.drawImage(block.img, x, additionalIconsY - iconSize / 2, iconSize, iconSize);
-          ctx.fillStyle = '#ffd700';
-          ctx.fillText(block.text, x + iconSize + 8, additionalIconsY);
-          x += block.width + additionalIconsGap;
-        });
-
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-      });
+    const drawIconWithText = (icon: string, text: string, y: number) => {
+      ctx.fillText(icon, width / 2 - 50, y);
+      ctx.font = `${iconSize - 4}px sans-serif`;
+      ctx.fillText(text, width / 2 + 40, y);
     };
 
-    const drawSocialLinks = (ctx: CanvasRenderingContext2D) => {
-      const iconSize = Math.max(16, socialLinksSize * 0.9); // Scale icon size with font size
-      const fontFamily = customFonts.textFont || fonts.textFont;
-      ctx.font = `${socialLinksSize}px ${fontFamily}`;
-      ctx.textBaseline = 'middle';
+    drawIconWithText('\uf041', additionalIcons.place, startY); // Map Pin
+    drawIconWithText('\uf017', additionalIcons.time, startY + iconSize + gap); // Clock
+    drawIconWithText('\uf073', additionalIcons.date, startY + 2 * (iconSize + gap)); // Calendar
+  };
 
-      const links = [
-        {
-          iconSrc: '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png',
-          text: socialLinks.telegram,
-          color: '#0088cc',
-        },
-        {
-          iconSrc: '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png',
-          text: socialLinks.instagram,
-          color: '#E4405F',
-        },
-        {
-          iconSrc: '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png',
-          text: socialLinks.tiktok,
-          color: '#ff0050',
-        },
-      ];
+  const drawClipart = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (!clipart.image) return;
 
-      const visibleLinks = links.filter(link => link.text.trim() !== '');
-      
-      if (visibleLinks.length === 0) return;
-
-      const imagePromises = visibleLinks.map(link => {
-        return new Promise<HTMLImageElement>((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = reject;
-          img.src = link.iconSrc;
-        });
-      });
-
-      Promise.all(imagePromises).then(images => {
-        const blocks = visibleLinks.map((link, i) => {
-          const textWidth = ctx.measureText(link.text).width;
-          return {
-            img: images[i],
-            text: link.text,
-            textWidth,
-            width: iconSize + 8 + textWidth,
-          };
-        });
-
-        const totalWidth = blocks.reduce((acc, block) => acc + block.width, 0) + socialLinksGap * (blocks.length - 1);
-        let x = socialLinksPosition.x - totalWidth / 2;
-
-        ctx.textAlign = 'left';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = 3;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-
-        blocks.forEach(block => {
-          ctx.drawImage(block.img, x, socialLinksPosition.y - iconSize / 2, iconSize, iconSize);
-          ctx.fillStyle = socialLinksColor;
-          ctx.fillText(block.text, x + iconSize + 8, socialLinksPosition.y);
-          x += block.width + socialLinksGap;
-        });
-
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-      });
+    const img = new Image();
+    img.src = clipart.image;
+    img.onload = () => {
+      ctx.drawImage(
+        img,
+        clipart.x - clipart.width / 2,
+        clipart.y - clipart.height / 2,
+        clipart.width,
+        clipart.height
+      );
     };
+  };
 
-    const drawClipart = (ctx: CanvasRenderingContext2D) => {
-      if (!clipart.image) return;
+  const drawFrame = (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+    if (frameStyle === 'none') return;
 
-      const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, clipart.x - clipart.width / 2, clipart.y - clipart.height / 2, clipart.width, clipart.height);
-      };
-      img.src = clipart.image;
-    };
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 5;
 
-    const drawFrame = (ctx: CanvasRenderingContext2D) => {
-      if (frameStyle === 'none') return;
-
-      ctx.strokeStyle = '#ffd700';
-      ctx.shadowColor = 'rgba(255, 215, 0, 0.5)';
-      ctx.shadowBlur = 10;
-
-      switch (frameStyle) {
+    const drawFrameStyle = (style: string) => {
+      switch (style) {
         case 'simple':
-          ctx.lineWidth = 4;
-          ctx.strokeRect(20, 20, 1040, 1040);
+          ctx.strokeRect(5, 5, width - 10, height - 10);
           break;
         case 'elegant':
-          ctx.lineWidth = 6;
-          ctx.strokeRect(15, 15, 1050, 1050);
-          ctx.lineWidth = 2;
-          ctx.strokeRect(25, 25, 1030, 1030);
+          ctx.setLineDash([20, 10]);
+          ctx.strokeRect(5, 5, width - 10, height - 10);
+          ctx.setLineDash([]);
           break;
         case 'bold':
           ctx.lineWidth = 10;
-          ctx.strokeRect(10, 10, 1060, 1060);
+          ctx.strokeRect(10, 10, width - 20, height - 20);
+          ctx.lineWidth = 5;
           break;
         case 'rounded':
-          ctx.lineWidth = 6;
-          ctx.beginPath();
-          ctx.roundRect(15, 15, 1050, 1050, 30);
-          ctx.stroke();
+          ctx.lineJoin = "round";
+          ctx.lineWidth = 20;
+          ctx.strokeRect(10, 10, width - 20, height - 20);
+          ctx.lineJoin = "miter";
+          ctx.lineWidth = 5;
           break;
         case 'double':
-          ctx.lineWidth = 3;
-          ctx.strokeRect(10, 10, 1060, 1060);
-          ctx.strokeRect(20, 20, 1040, 1040);
+          ctx.strokeRect(5, 5, width - 10, height - 10);
+          ctx.strokeRect(20, 20, width - 40, height - 40);
           break;
         case 'dashed':
-          ctx.lineWidth = 4;
-          ctx.setLineDash([20, 10]);
-          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.setLineDash([15, 15]);
+          ctx.strokeRect(5, 5, width - 10, height - 10);
           ctx.setLineDash([]);
           break;
         case 'dotted':
-          ctx.lineWidth = 4;
-          ctx.setLineDash([5, 15]);
-          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.setLineDash([5, 10]);
+          ctx.strokeRect(5, 5, width - 10, height - 10);
           ctx.setLineDash([]);
           break;
         case 'shadow':
-          ctx.lineWidth = 6;
-          ctx.shadowBlur = 20;
-          ctx.shadowOffsetX = 5;
-          ctx.shadowOffsetY = 5;
-          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+          ctx.shadowBlur = 15;
+          ctx.shadowOffsetX = 10;
+          ctx.shadowOffsetY = 10;
+          ctx.strokeRect(5, 5, width - 10, height - 10);
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
           break;
         case 'glow':
+          ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+          ctx.shadowBlur = 20;
+          ctx.strokeRect(5, 5, width - 10, height - 10);
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          break;
+        case 'vintage':
+          ctx.lineWidth = 3;
+          ctx.strokeRect(15, 15, width - 30, height - 30);
+          ctx.strokeRect(5, 5, width - 10, height - 10);
+          ctx.lineWidth = 5;
+          break;
+        case 'modern':
+          ctx.lineWidth = 8;
+          ctx.strokeRect(25, 5, width - 30, height - 10);
+          ctx.lineWidth = 5;
+          break;
+        case 'neon':
+          ctx.shadowColor = '#00ffff';
+          ctx.shadowBlur = 10;
+          ctx.strokeStyle = '#00ffff';
+          ctx.strokeRect(5, 5, width - 10, height - 10);
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.strokeStyle = '#ffffff';
+          break;
+        case 'artistic':
           ctx.lineWidth = 4;
-          ctx.shadowBlur = 30;
-          ctx.shadowColor = 'rgba(255, 215, 0, 0.8)';
-          ctx.strokeRect(15, 15, 1050, 1050);
+          ctx.setLineDash([25, 15]);
+          ctx.strokeRect(5, 5, width - 10, height - 10);
+          ctx.setLineDash([]);
+          ctx.lineWidth = 5;
+          break;
+        case 'minimal':
+          ctx.lineWidth = 2;
+          ctx.strokeRect(5, 5, width - 10, height - 10);
+          ctx.lineWidth = 5;
           break;
         case 'partial-top-right':
-          ctx.lineWidth = 6;
           ctx.beginPath();
-          ctx.moveTo(540, 15);
-          ctx.lineTo(1065, 15);
-          ctx.lineTo(1065, 540);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(width, 0);
+          ctx.lineTo(width, height);
           ctx.stroke();
           break;
         case 'partial-bottom-left':
-          ctx.lineWidth = 6;
           ctx.beginPath();
-          ctx.moveTo(15, 540);
-          ctx.lineTo(15, 1065);
-          ctx.lineTo(540, 1065);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(0, height);
+          ctx.lineTo(width, height);
           ctx.stroke();
           break;
         case 'partial-diagonal':
-          ctx.lineWidth = 6;
           ctx.beginPath();
-          ctx.moveTo(540, 15);
-          ctx.lineTo(1065, 15);
-          ctx.lineTo(1065, 540);
-          ctx.moveTo(15, 540);
-          ctx.lineTo(15, 1065);
-          ctx.lineTo(540, 1065);
+          ctx.moveTo(0, 0);
+          ctx.lineTo(width, height);
           ctx.stroke();
           break;
-      }
-
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-    };
-
-    const drawTemplate = (ctx: CanvasRenderingContext2D, template: any, title: string, mainText: string, quotedText: string) => {
-      const titleFontFamily = customFonts.titleFont || fonts.titleFont;
-      
-      // Draw title
-      if (textColors.titleColor === 'gradient') {
-        drawGoldenText(ctx, title, fontSizes.titleSize, titleFontFamily, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2, true);
-      } else {
-        ctx.fillStyle = textColors.titleColor;
-        ctx.font = `bold ${fontSizes.titleSize}px ${titleFontFamily}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = 8;
-        ctx.shadowOffsetX = 3;
-        ctx.shadowOffsetY = 3;
-        wrapText(ctx, title, 540, textPositions.titleY, 800, fontSizes.titleSize * 1.2);
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-      }
-
-      // Draw main text
-      const textFontFamily = customFonts.textFont || fonts.textFont;
-      ctx.font = `${fontSizes.textSize}px ${textFontFamily}`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-      ctx.shadowBlur = 6;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
-
-      if (textColors.textColor === 'gradient') {
-        wrapTextWithGradient(ctx, mainText, 540, textPositions.textY, mainTextWidth, fontSizes.textSize * 1.5, true);
-      } else {
-        ctx.fillStyle = textColors.textColor;
-        wrapText(ctx, mainText, 540, textPositions.textY, mainTextWidth, fontSizes.textSize * 1.5);
-      }
-
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-
-      if (quotedText.trim()) {
-        drawQuoteBox(ctx, template, quotedText);
+        default:
+          break;
       }
     };
 
-    const drawGoldenText = (
-      ctx: CanvasRenderingContext2D,
-      text: string,
-      fontSize: number,
-      fontFamily: string,
-      x: number,
-      y: number,
-      maxWidth: number,
-      lineHeight: number,
-      isTitle: boolean = false
-    ) => {
-      ctx.font = `${isTitle ? 'bold' : ''} ${fontSize}px ${fontFamily}`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowBlur = 8;
-      ctx.shadowOffsetX = 3;
-      ctx.shadowOffsetY = 3;
+    drawFrameStyle(frameStyle);
+  };
 
-      wrapTextWithGradient(ctx, text, x, y, maxWidth, lineHeight, true);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-    };
+  return (
+    <canvas
+      ref={ref}
+      width={1080}
+      height={1080}
+    />
+  );
+});
 
-    const drawQuoteBox = (ctx: CanvasRenderingContext2D, template: any, text: string) => {
-      const boxX = (1080 - quoteBoxSize.width) / 2;
-      const boxY = textPositions.quoteY;
+export default PosterCanvas;
 
-      if (quoteBoxStyle !== 'none') {
-        ctx.fillStyle = template.colors.quoteBackground;
-        ctx.beginPath();
-
-        switch (quoteBoxStyle) {
-          case 'rectangle':
-            ctx.rect(boxX, boxY, quoteBoxSize.width, quoteBoxSize.height);
-            break;
-          case 'rounded':
-            ctx.roundRect(boxX, boxY, quoteBoxSize.width, quoteBoxSize.height, 20);
-            break;
-          case 'circle':
-            const radius = Math.min(quoteBoxSize.width, quoteBoxSize.height) / 2;
-            ctx.arc(boxX + quoteBoxSize.width / 2, boxY + quoteBoxSize.height / 2, radius, 0, 2 * Math.PI);
-            break;
-          case 'diamond':
-            const centerX = boxX + quoteBoxSize.width / 2;
-            const centerY = boxY + quoteBoxSize.height / 2;
-            ctx.moveTo(centerX, boxY);
-            ctx.lineTo(boxX + quoteBoxSize.width, centerY);
-            ctx.lineTo(centerX, boxY + quoteBoxSize.height);
-            ctx.lineTo(boxX, centerY);
-            ctx.closePath();
-            break;
-        }
-
-        ctx.fill();
-
-        ctx.strokeStyle = template.colors.quoteBorder;
-        ctx.lineWidth = 3;
-        ctx.shadowColor = template.colors.quoteBorder;
-        ctx.shadowBlur = 10;
-        ctx.stroke();
-
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-      }
-
-      const quoteFontFamily = customFonts.quoteFont || fonts.quoteFont;
-      const quoteText = quoteBoxStyle === 'none' ? text : `"${text}"`;
-      
-      if (textColors.quoteColor === 'gradient') {
-        drawGoldenText(
-          ctx,
-          quoteText,
-          fontSizes.quoteSize,
-          quoteFontFamily,
-          boxX + quoteBoxSize.width / 2,
-          boxY + 50,
-          quoteBoxSize.width - 40,
-          fontSizes.quoteSize * 1.4
-        );
-      } else {
-        ctx.fillStyle = textColors.quoteColor;
-        ctx.font = `${fontSizes.quoteSize}px ${quoteFontFamily}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = 6;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
-        
-        wrapText(ctx, quoteText, boxX + quoteBoxSize.width / 2, boxY + 50, quoteBoxSize.width - 40, fontSizes.quoteSize * 1.4);
-        
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-      }
-    };
-
-    const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
-      const words = text.split(' ');
-      let line = '';
-      let currentY = y;
-
-      for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const testWidth = ctx.measureText(testLine).width;
-
-        if (testWidth > maxWidth && n > 0) {
-          ctx.fillText(line, x, currentY);
-          line = words[n] + ' ';
-          currentY += lineHeight;
-        } else {
-          line = testLine;
-        }
-      }
-      ctx.fillText(line, x, currentY);
-    };
-
-    const wrapTextWithGradient = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number, useGradient: boolean) => {
-      const words = text.split(' ');
-      let line = '';
-      let currentY = y;
-
-      for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const testWidth = ctx.measureText(testLine).width;
-
-        if (testWidth > maxWidth && n > 0) {
-          if (useGradient) {
-            const gradient = ctx.createLinearGradient(x - maxWidth/2, currentY, x + maxWidth/2, currentY + lineHeight);
-            gradient.addColorStop(0, '#ffd700');
-            gradient.addColorStop(0.3, '#ffed4e');
-            gradient.addColorStop(0.7, '#d97706');
-            gradient.addColorStop(1, '#b45309');
-            ctx.fillStyle = gradient;
-          }
-          ctx.fillText(line, x, currentY);
-          line = words[n] + ' ';
-          currentY += lineHeight;
-        } else {
-          line = testLine;
-        }
-      }
-      
-      if (useGradient) {
-        const gradient = ctx.createLinearGradient(x - maxWidth/2, currentY, x + maxWidth/2, currentY + lineHeight);
-        gradient.addColorStop(0, '#ffd700');
-        gradient.addColorStop(0.3, '#ffed4e');
-        gradient.addColorStop(0.7, '#d97706');
-        gradient.addColorStop(1, '#b45309');
-        ctx.fillStyle = gradient;
-      }
-      ctx.fillText(line, x, currentY);
-    };
-
-    return (
-      <div className="relative">
-        <canvas
-          ref={(node) => {
-            canvasRef.current = node;
-            if (typeof ref === 'function') {
-              ref(node);
-            } else if (ref) {
-              ref.current = node;
-            }
-          }}
-          className="max-w-full h-auto border border-white/20 rounded-lg shadow-2xl"
-          style={{ aspectRatio: '1/1' }}
-        />
-      </div>
-    );
-  }
-);
-
-PosterCanvas.displayName = 'PosterCanvas';
+export type { PosterCanvasProps };
