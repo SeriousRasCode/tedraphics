@@ -141,7 +141,8 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
   gradientConfig
 }, ref) => {
   useEffect(() => {
-    const canvas = ref.current;
+    // Handle both callback ref and ref object
+    const canvas = typeof ref === 'function' ? null : ref?.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -597,5 +598,4 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
 });
 
 export default PosterCanvas;
-
 export type { PosterCanvasProps };

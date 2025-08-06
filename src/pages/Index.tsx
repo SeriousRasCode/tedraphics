@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { PosterCanvas } from '@/components/PosterCanvas';
+import PosterCanvas from '@/components/PosterCanvas';
 import { TemplateSelector } from '@/components/TemplateSelector';
 import { PosterControls } from '@/components/PosterControls';
 import { ImageUpload } from '@/components/ImageUpload';
