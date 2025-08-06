@@ -5,8 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { GradientControls, GradientConfig } from './GradientControls';
 import { Button } from '@/components/ui/button';
+import { GradientControls, GradientConfig } from './GradientControls';
 import { Type, Move, Palette, Image, Settings, Crop, ImageIcon, Trash2, X } from 'lucide-react';
 
 interface PosterControlsProps {
