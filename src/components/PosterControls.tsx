@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
+import { GradientControls, GradientConfig } from './GradientControls';
 import { Button } from '@/components/ui/button';
 import { Type, Move, Palette, Image, Settings, Crop, ImageIcon, Trash2, X } from 'lucide-react';
 
@@ -150,6 +151,8 @@ interface PosterControlsProps {
   onSocialLinksColorChange: (color: string) => void;
   gradientAngle: number;
   onGradientAngleChange: (angle: number) => void;
+  gradientConfig: GradientConfig;
+  onGradientConfigChange: (config: GradientConfig) => void;
 }
 
 export const PosterControls = ({ 
@@ -170,7 +173,8 @@ export const PosterControls = ({
   additionalIconsSize, onAdditionalIconsSizeChange, showContentStyle,
   topTextEnabled, onTopTextEnabledChange, bottomTextEnabled, onBottomTextEnabledChange,
   customBilingualTexts, onCustomBilingualTextsChange, openSections, onToggleSection,
-  socialLinksColor, onSocialLinksColorChange, gradientAngle, onGradientAngleChange
+  socialLinksColor, onSocialLinksColorChange, gradientAngle, onGradientAngleChange,
+  gradientConfig, onGradientConfigChange
 }: PosterControlsProps) => {
   
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, fontType: keyof typeof customFonts) => {
@@ -673,13 +677,18 @@ export const PosterControls = ({
               />
             </div>
 
+            <GradientControls
+              gradient={gradientConfig}
+              onGradientChange={onGradientConfigChange}
+            />
+
             <div className="space-y-2">
-              <Label className="text-white">Background Gradient Height: {gradientHeight}px</Label>
+              <Label className="text-white">Legacy Gradient Height: {gradientHeight}px</Label>
               <Slider
                 value={[gradientHeight]}
                 onValueChange={([value]) => onGradientHeightChange(value)}
-                max={800}
-                min={200}
+                max={540}
+                min={0}
                 step={10}
                 className="w-full"
               />

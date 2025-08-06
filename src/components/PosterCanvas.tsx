@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, forwardRef } from 'react';
 import { templates } from '@/utils/posterTemplates';
+import { GradientConfig } from './GradientControls';
 
 interface PosterCanvasProps {
   backgroundImage: string | null;
@@ -98,6 +99,7 @@ interface PosterCanvasProps {
   };
   socialLinksColor: string;
   gradientAngle: number;
+  gradientConfig: GradientConfig;
 }
 
 export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
@@ -137,7 +139,8 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
     bottomTextEnabled,
     customBilingualTexts,
     socialLinksColor,
-    gradientAngle
+    gradientAngle,
+    gradientConfig
   }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -192,9 +195,79 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         draw();
       }
-    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle]);
+    }, [backgroundImage, title, mainText, quotedText, template, gradientHeight, gradientStrength, gradientInnerHeight, language, socialLinks, textPositions, quoteBoxSize, quoteBoxStyle, fonts, fontSizes, customFonts, bilingualEnabled, frameStyle, textColors, mainTextWidth, additionalIcons, additionalIconsY, socialLinksGap, imageCrop, clipart, additionalIconsGap, socialLinksPosition, bottomTextPosition, bottomTextSize, socialLinksSize, additionalIconsSize, topTextEnabled, bottomTextEnabled, customBilingualTexts, socialLinksColor, gradientAngle, gradientConfig]);
 
     const drawGradientOverlays = (ctx: CanvasRenderingContext2D) => {
+      // Use new advanced gradient if enabled, otherwise fall back to legacy
+      if (gradientConfig.enabled) {
+        drawAdvancedGradient(ctx);
+      } else {
+        drawLegacyGradient(ctx);
+      }
+    };
+
+    const drawAdvancedGradient = (ctx: CanvasRenderingContext2D) => {
+      const { type, direction, angle, height, stops } = gradientConfig;
+      
+      // Sort stops by position for proper gradient rendering
+      const sortedStops = [...stops].sort((a, b) => a.position - b.position);
+      
+      if (type === 'linear') {
+        if (direction === 'both' || direction === 'top') {
+          drawLinearGradient(ctx, sortedStops, 0, 0, 1080, height, angle);
+        }
+        if (direction === 'both' || direction === 'bottom') {
+          drawLinearGradient(ctx, sortedStops, 0, 1080 - height, 1080, height, angle + 180);
+        }
+        if (direction === 'center') {
+          drawLinearGradient(ctx, sortedStops, 0, (1080 - height) / 2, 1080, height, angle);
+        }
+      } else if (type === 'radial') {
+        drawRadialGradient(ctx, sortedStops, direction, height);
+      }
+    };
+
+    const drawLinearGradient = (ctx: CanvasRenderingContext2D, stops: any[], x: number, y: number, width: number, height: number, angle: number) => {
+      const angleRad = (angle * Math.PI) / 180;
+      const centerX = x + width / 2;
+      const centerY = y + height / 2;
+      const radius = Math.max(width, height) / 2;
+      
+      const x1 = centerX - Math.cos(angleRad) * radius;
+      const y1 = centerY - Math.sin(angleRad) * radius;
+      const x2 = centerX + Math.cos(angleRad) * radius;
+      const y2 = centerY + Math.sin(angleRad) * radius;
+      
+      const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+      
+      stops.forEach(stop => {
+        const alpha = stop.opacity / 100;
+        const color = hexToRgb(stop.color);
+        gradient.addColorStop(stop.position / 100, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`);
+      });
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, y, width, height);
+    };
+
+    const drawRadialGradient = (ctx: CanvasRenderingContext2D, stops: any[], direction: string, height: number) => {
+      const centerX = 540;
+      const centerY = direction === 'center' ? 540 : (direction === 'top' ? 0 : 1080);
+      const radius = height;
+      
+      const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+      
+      stops.forEach(stop => {
+        const alpha = stop.opacity / 100;
+        const color = hexToRgb(stop.color);
+        gradient.addColorStop(stop.position / 100, `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`);
+      });
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 1080, 1080);
+    };
+
+    const drawLegacyGradient = (ctx: CanvasRenderingContext2D) => {
       const alpha = gradientStrength / 100;
       
       // Top gradient overlay with smooth inner height transition
@@ -212,6 +285,15 @@ export const PosterCanvas = forwardRef<HTMLCanvasElement, PosterCanvasProps>(
       bottom.addColorStop(1, `rgba(8, 55, 101, ${alpha})`);
       ctx.fillStyle = bottom;
       ctx.fillRect(0, 1080 - gradientHeight, 1080, gradientHeight);
+    };
+
+    const hexToRgb = (hex: string) => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 8, g: 55, b: 101 };
     };
 
     const drawBilingualTexts = (ctx: CanvasRenderingContext2D) => {

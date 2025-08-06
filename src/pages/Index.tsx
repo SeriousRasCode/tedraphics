@@ -5,6 +5,7 @@ import { PosterControls } from '@/components/PosterControls';
 import { ImageUpload } from '@/components/ImageUpload';
 import { toast } from 'sonner';
 import { HeaderSection } from '@/components/HeaderSection';
+import { GradientConfig } from '@/components/GradientControls';
 import { ActionButtons } from '@/components/ActionButtons';
 import { Button } from '@/components/ui/button';
 import { Settings, FileText } from 'lucide-react';
@@ -85,6 +86,19 @@ const Index = () => {
   // New state for social links color and gradient angle
   const [socialLinksColor, setSocialLinksColor] = useState('#ffffff');
   const [gradientAngle, setGradientAngle] = useState(45);
+  
+  // Advanced gradient configuration
+  const [gradientConfig, setGradientConfig] = useState<GradientConfig>({
+    enabled: true,
+    type: 'linear',
+    direction: 'both',
+    angle: 90,
+    height: 400,
+    stops: [
+      { color: '#083765', opacity: 80, position: 0 },
+      { color: '#ffffff', opacity: 0, position: 100 }
+    ]
+  });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -296,6 +310,7 @@ const Index = () => {
                 customBilingualTexts={customBilingualTexts}
                 socialLinksColor={socialLinksColor}
                 gradientAngle={gradientAngle}
+                gradientConfig={gradientConfig}
               />
             </div>
           </div>
@@ -456,6 +471,8 @@ const Index = () => {
               onSocialLinksColorChange={setSocialLinksColor}
               gradientAngle={gradientAngle}
               onGradientAngleChange={setGradientAngle}
+              gradientConfig={gradientConfig}
+              onGradientConfigChange={setGradientConfig}
             />
 
             <ActionButtons 
