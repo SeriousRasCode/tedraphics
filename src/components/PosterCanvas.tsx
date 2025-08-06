@@ -141,8 +141,19 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
   gradientConfig
 }, ref) => {
   useEffect(() => {
-    // Handle both callback ref and ref object
-    const canvas = typeof ref === 'function' ? null : ref?.current;
+    // Get canvas element from ref
+    let canvas: HTMLCanvasElement | null = null;
+    
+    if (ref) {
+      if (typeof ref === 'function') {
+        // Callback ref - we can't access the element directly
+        return;
+      } else {
+        // Ref object
+        canvas = ref.current;
+      }
+    }
+    
     if (!canvas) return;
 
     const ctx = canvas.getContext('2d');
@@ -226,32 +237,31 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>(({
       let x0, y0, x1, y1;
       
       if (direction === 'center') {
-        // For center direction, create gradient from top to center and center to bottom
-        // This reveals the center while applying opacity to top and bottom
+        // For center direction, apply opacity to top and bottom to reveal the middle
         const centerY = height / 2;
         const gradientSpan = Math.min(gradientHeight, height / 2);
         
-        // Create top gradient (from top down to center)
-        const topGradient = ctx.createLinearGradient(0, 0, 0, centerY);
+        // Create top gradient (opacity overlay on top)
+        const topGradient = ctx.createLinearGradient(0, 0, 0, gradientSpan);
         stops.forEach(stop => {
           const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
           topGradient.addColorStop(stop.position / 100, color);
         });
         
-        // Create bottom gradient (from center down to bottom)
-        const bottomGradient = ctx.createLinearGradient(0, centerY, 0, height);
+        // Create bottom gradient (opacity overlay on bottom)
+        const bottomGradient = ctx.createLinearGradient(0, height - gradientSpan, 0, height);
         stops.forEach(stop => {
           const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
           bottomGradient.addColorStop(stop.position / 100, color);
         });
         
-        // Apply top gradient
+        // Apply top overlay
         ctx.fillStyle = topGradient;
-        ctx.fillRect(0, 0, width, Math.min(gradientSpan, centerY));
+        ctx.fillRect(0, 0, width, gradientSpan);
         
-        // Apply bottom gradient
+        // Apply bottom overlay
         ctx.fillStyle = bottomGradient;
-        ctx.fillRect(0, Math.max(centerY, height - gradientSpan), width, Math.min(gradientSpan, height - centerY));
+        ctx.fillRect(0, height - gradientSpan, width, gradientSpan);
         
         return;
       } else {
