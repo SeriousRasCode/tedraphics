@@ -104,43 +104,88 @@ interface PosterCanvasProps {
 const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const createGradientPattern = useCallback((
+    ctx: CanvasRenderingContext2D,
+    config: any,
+    width: number,
+    height: number,
+    isTop: boolean
+  ) => {
+    let gradient;
+    
+    if (config.type === 'radial') {
+      const centerX = (config.centerX / 100) * width;
+      const centerY = isTop 
+        ? (config.centerY / 100) * config.height
+        : height - config.height + (config.centerY / 100) * config.height;
+      const radius = Math.max(width, config.height) * 0.7;
+      
+      gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+    } else {
+      // Linear gradient
+      const angleRad = (config.angle * Math.PI) / 180;
+      const gradientHeight = config.height;
+      
+      let startX, startY, endX, endY;
+      
+      if (isTop) {
+        startX = width / 2 - Math.cos(angleRad) * gradientHeight / 2;
+        startY = gradientHeight / 2 - Math.sin(angleRad) * gradientHeight / 2;
+        endX = width / 2 + Math.cos(angleRad) * gradientHeight / 2;
+        endY = gradientHeight / 2 + Math.sin(angleRad) * gradientHeight / 2;
+      } else {
+        const bottomStart = height - gradientHeight;
+        startX = width / 2 - Math.cos(angleRad) * gradientHeight / 2;
+        startY = bottomStart + gradientHeight / 2 - Math.sin(angleRad) * gradientHeight / 2;
+        endX = width / 2 + Math.cos(angleRad) * gradientHeight / 2;
+        endY = bottomStart + gradientHeight / 2 + Math.sin(angleRad) * gradientHeight / 2;
+      }
+      
+      gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+    }
+    
+    // Sort stops by position and add to gradient
+    const sortedStops = [...config.stops].sort((a, b) => a.position - b.position);
+    
+    sortedStops.forEach(stop => {
+      const r = parseInt(stop.color.slice(1, 3), 16);
+      const g = parseInt(stop.color.slice(3, 5), 16);
+      const b = parseInt(stop.color.slice(5, 7), 16);
+      const alpha = (stop.opacity / 100) * (config.intensity / 100);
+      const color = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      gradient.addColorStop(stop.position / 100, color);
+    });
+    
+    return gradient;
+  }, []);
+
   const drawGradient = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (!props.gradientConfig.enabled) return;
 
-    // Draw top gradient - solid at top, fade toward center
+    // Save current context
+    const currentGlobalCompositeOperation = ctx.globalCompositeOperation;
+
+    // Draw top gradient
     if (props.gradientConfig.top.enabled) {
       const topHeight = Math.min(props.gradientConfig.top.height, height / 2);
-      const topGradient = ctx.createLinearGradient(0, 0, 0, topHeight);
       
-      // Sort stops by position to ensure correct gradient order
-      const sortedTopStops = [...props.gradientConfig.top.stops].sort((a, b) => a.position - b.position);
-      
-      sortedTopStops.forEach(stop => {
-        const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
-        topGradient.addColorStop(stop.position / 100, color);
-      });
-      
-      ctx.fillStyle = topGradient;
+      ctx.globalCompositeOperation = props.gradientConfig.top.blendMode;
+      ctx.fillStyle = createGradientPattern(ctx, props.gradientConfig.top, width, height, true);
       ctx.fillRect(0, 0, width, topHeight);
     }
 
-    // Draw bottom gradient - solid at bottom, fade toward center
+    // Draw bottom gradient
     if (props.gradientConfig.bottom.enabled) {
       const bottomHeight = Math.min(props.gradientConfig.bottom.height, height / 2);
-      const bottomGradient = ctx.createLinearGradient(0, height - bottomHeight, 0, height);
       
-      // Sort stops by position to ensure correct gradient order
-      const sortedBottomStops = [...props.gradientConfig.bottom.stops].sort((a, b) => a.position - b.position);
-      
-      sortedBottomStops.forEach(stop => {
-        const color = `rgba(${parseInt(stop.color.slice(1, 3), 16)}, ${parseInt(stop.color.slice(3, 5), 16)}, ${parseInt(stop.color.slice(5, 7), 16)}, ${stop.opacity / 100})`;
-        bottomGradient.addColorStop(stop.position / 100, color);
-      });
-      
-      ctx.fillStyle = bottomGradient;
+      ctx.globalCompositeOperation = props.gradientConfig.bottom.blendMode;
+      ctx.fillStyle = createGradientPattern(ctx, props.gradientConfig.bottom, width, height, false);
       ctx.fillRect(0, height - bottomHeight, width, bottomHeight);
     }
-  }, [props.gradientConfig]);
+
+    // Restore composite operation
+    ctx.globalCompositeOperation = currentGlobalCompositeOperation;
+  }, [props.gradientConfig, createGradientPattern]);
 
   const drawText = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     ctx.textAlign = 'center';

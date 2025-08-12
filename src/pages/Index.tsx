@@ -87,24 +87,36 @@ const Index = () => {
   const [socialLinksColor, setSocialLinksColor] = useState('#ffffff');
   const [gradientAngle, setGradientAngle] = useState(45);
   
-  // Updated gradient configuration for smooth fading
+  // Updated gradient configuration with enhanced controls
   const [gradientConfig, setGradientConfig] = useState<GradientConfig>({
     enabled: true,
     top: {
       enabled: true,
       height: 400,
       stops: [
-        { color: '#083765', opacity: 80, position: 0 },   // Solid at top
-        { color: '#083765', opacity: 0, position: 100 }   // Transparent toward center
-      ]
+        { color: '#083765', opacity: 80, position: 0 },
+        { color: '#083765', opacity: 0, position: 100 }
+      ],
+      type: 'linear',
+      angle: 180,
+      centerX: 50,
+      centerY: 50,
+      blendMode: 'normal',
+      intensity: 100
     },
     bottom: {
       enabled: true,
       height: 400,
       stops: [
-        { color: '#083765', opacity: 0, position: 0 },    // Transparent toward center
-        { color: '#083765', opacity: 80, position: 100 }  // Solid at bottom
-      ]
+        { color: '#083765', opacity: 0, position: 0 },
+        { color: '#083765', opacity: 80, position: 100 }
+      ],
+      type: 'linear',
+      angle: 0,
+      centerX: 50,
+      centerY: 50,
+      blendMode: 'normal',
+      intensity: 100
     }
   });
   
