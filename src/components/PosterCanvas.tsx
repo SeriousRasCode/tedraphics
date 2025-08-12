@@ -115,14 +115,20 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     
     if (config.type === 'radial') {
       const centerX = (config.centerX / 100) * width;
-      const centerY = isTop 
-        ? (config.centerY / 100) * config.height
-        : height - config.height + (config.centerY / 100) * config.height;
+      let centerY;
+      
+      if (isTop) {
+        centerY = (config.centerY / 100) * config.height;
+      } else {
+        // For bottom gradient, calculate center relative to the gradient's own coordinate system
+        centerY = (config.centerY / 100) * config.height;
+      }
+      
       const radius = Math.max(width, config.height) * 0.7;
       
       gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
     } else {
-      // Linear gradient - fixed positioning
+      // Linear gradient - independent positioning for top and bottom
       const angleRad = (config.angle * Math.PI) / 180;
       const gradientHeight = config.height;
       
@@ -135,12 +141,11 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         endX = width / 2 + Math.cos(angleRad) * gradientHeight / 2;
         endY = Math.sin(angleRad) >= 0 ? gradientHeight : 0;
       } else {
-        // Bottom gradient: from gradient height above bottom edge to bottom edge
-        const bottomStart = height - gradientHeight;
+        // Bottom gradient: flipped direction - from gradient height to 0 (bottom to top within its own space)
         startX = width / 2 - Math.cos(angleRad) * gradientHeight / 2;
-        startY = Math.sin(angleRad) >= 0 ? bottomStart : height;
+        startY = Math.sin(angleRad) >= 0 ? gradientHeight : 0;
         endX = width / 2 + Math.cos(angleRad) * gradientHeight / 2;
-        endY = Math.sin(angleRad) >= 0 ? height : bottomStart;
+        endY = Math.sin(angleRad) >= 0 ? 0 : gradientHeight;
       }
       
       gradient = ctx.createLinearGradient(startX, startY, endX, endY);
