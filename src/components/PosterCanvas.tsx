@@ -122,23 +122,25 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
       
       gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
     } else {
-      // Linear gradient
+      // Linear gradient - fixed positioning
       const angleRad = (config.angle * Math.PI) / 180;
       const gradientHeight = config.height;
       
       let startX, startY, endX, endY;
       
       if (isTop) {
+        // Top gradient: from top edge down to gradient height
         startX = width / 2 - Math.cos(angleRad) * gradientHeight / 2;
-        startY = gradientHeight / 2 - Math.sin(angleRad) * gradientHeight / 2;
+        startY = Math.sin(angleRad) >= 0 ? 0 : gradientHeight;
         endX = width / 2 + Math.cos(angleRad) * gradientHeight / 2;
-        endY = gradientHeight / 2 + Math.sin(angleRad) * gradientHeight / 2;
+        endY = Math.sin(angleRad) >= 0 ? gradientHeight : 0;
       } else {
+        // Bottom gradient: from gradient height above bottom edge to bottom edge
         const bottomStart = height - gradientHeight;
         startX = width / 2 - Math.cos(angleRad) * gradientHeight / 2;
-        startY = bottomStart + gradientHeight / 2 - Math.sin(angleRad) * gradientHeight / 2;
+        startY = Math.sin(angleRad) >= 0 ? bottomStart : height;
         endX = width / 2 + Math.cos(angleRad) * gradientHeight / 2;
-        endY = bottomStart + gradientHeight / 2 + Math.sin(angleRad) * gradientHeight / 2;
+        endY = Math.sin(angleRad) >= 0 ? height : bottomStart;
       }
       
       gradient = ctx.createLinearGradient(startX, startY, endX, endY);
@@ -162,29 +164,52 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   const drawGradient = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
     if (!props.gradientConfig.enabled) return;
 
-    // Save current context
-    const currentGlobalCompositeOperation = ctx.globalCompositeOperation;
+    // Save current context state
+    ctx.save();
 
-    // Draw top gradient
+    // Draw top gradient independently
     if (props.gradientConfig.top.enabled) {
-      const topHeight = Math.min(props.gradientConfig.top.height, height / 2);
+      const topHeight = props.gradientConfig.top.height;
       
-      ctx.globalCompositeOperation = props.gradientConfig.top.blendMode;
-      ctx.fillStyle = createGradientPattern(ctx, props.gradientConfig.top, width, height, true);
-      ctx.fillRect(0, 0, width, topHeight);
+      // Create a separate canvas for the top gradient to avoid blending issues
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = width;
+      tempCanvas.height = topHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      if (tempCtx) {
+        tempCtx.fillStyle = createGradientPattern(tempCtx, props.gradientConfig.top, width, topHeight, true);
+        tempCtx.fillRect(0, 0, width, topHeight);
+        
+        // Apply the gradient with the specified blend mode
+        ctx.globalCompositeOperation = props.gradientConfig.top.blendMode;
+        ctx.drawImage(tempCanvas, 0, 0);
+      }
     }
 
-    // Draw bottom gradient
+    // Draw bottom gradient independently
     if (props.gradientConfig.bottom.enabled) {
-      const bottomHeight = Math.min(props.gradientConfig.bottom.height, height / 2);
+      const bottomHeight = props.gradientConfig.bottom.height;
+      const bottomStart = height - bottomHeight;
       
-      ctx.globalCompositeOperation = props.gradientConfig.bottom.blendMode;
-      ctx.fillStyle = createGradientPattern(ctx, props.gradientConfig.bottom, width, height, false);
-      ctx.fillRect(0, height - bottomHeight, width, bottomHeight);
+      // Create a separate canvas for the bottom gradient
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = width;
+      tempCanvas.height = bottomHeight;
+      const tempCtx = tempCanvas.getContext('2d');
+      
+      if (tempCtx) {
+        tempCtx.fillStyle = createGradientPattern(tempCtx, props.gradientConfig.bottom, width, bottomHeight, false);
+        tempCtx.fillRect(0, 0, width, bottomHeight);
+        
+        // Apply the gradient with the specified blend mode
+        ctx.globalCompositeOperation = props.gradientConfig.bottom.blendMode;
+        ctx.drawImage(tempCanvas, 0, bottomStart);
+      }
     }
 
-    // Restore composite operation
-    ctx.globalCompositeOperation = currentGlobalCompositeOperation;
+    // Restore context state
+    ctx.restore();
   }, [props.gradientConfig, createGradientPattern]);
 
   const drawText = useCallback((ctx: CanvasRenderingContext2D, width: number, height: number) => {
