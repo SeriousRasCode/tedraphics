@@ -92,30 +92,30 @@ const Index = () => {
     enabled: true,
     top: {
       enabled: true,
-      height: 400,
+      height: 200,
       stops: [
         { color: '#083765', opacity: 80, position: 0 },
-        { color: '#083765', opacity: 0, position: 100 }
+        { color: '#1e40af', opacity: 40, position: 100 }
       ],
       type: 'linear',
       angle: 180,
       centerX: 50,
       centerY: 50,
-      blendMode: 'normal',
+      blendMode: 'source-over' as GlobalCompositeOperation,
       intensity: 100
     },
     bottom: {
       enabled: true,
-      height: 400,
+      height: 200,
       stops: [
-        { color: '#083765', opacity: 0, position: 0 },
-        { color: '#083765', opacity: 80, position: 100 }
+        { color: '#1e40af', opacity: 60, position: 0 },
+        { color: '#083765', opacity: 90, position: 100 }
       ],
       type: 'linear',
       angle: 0,
       centerX: 50,
       centerY: 50,
-      blendMode: 'normal',
+      blendMode: 'source-over' as GlobalCompositeOperation,
       intensity: 100
     }
   });

@@ -20,7 +20,7 @@ interface SimpleGradientConfig {
   angle: number; // for linear gradients (0-360 degrees)
   centerX: number; // for radial gradients (0-100%)
   centerY: number; // for radial gradients (0-100%)
-  blendMode: 'normal' | 'multiply' | 'screen' | 'overlay' | 'soft-light' | 'hard-light';
+  blendMode: GlobalCompositeOperation;
   intensity: number; // overall gradient intensity (0-100%)
 }
 
@@ -155,17 +155,21 @@ export const GradientControls = ({ gradient, onGradientChange }: GradientControl
 
             <div className="space-y-2">
               <Label className="text-white text-sm">Blend Mode</Label>
-              <Select value={config.blendMode} onValueChange={(blendMode: SimpleGradientConfig['blendMode']) => updateConfig({ blendMode })}>
+              <Select value={config.blendMode} onValueChange={(blendMode: GlobalCompositeOperation) => updateConfig({ blendMode })}>
                 <SelectTrigger className="bg-white/20 border-white/30 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="source-over">Normal</SelectItem>
                   <SelectItem value="multiply">Multiply</SelectItem>
                   <SelectItem value="screen">Screen</SelectItem>
                   <SelectItem value="overlay">Overlay</SelectItem>
                   <SelectItem value="soft-light">Soft Light</SelectItem>
                   <SelectItem value="hard-light">Hard Light</SelectItem>
+                  <SelectItem value="darken">Darken</SelectItem>
+                  <SelectItem value="lighten">Lighten</SelectItem>
+                  <SelectItem value="color-dodge">Color Dodge</SelectItem>
+                  <SelectItem value="color-burn">Color Burn</SelectItem>
                 </SelectContent>
               </Select>
             </div>
