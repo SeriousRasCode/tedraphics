@@ -1,6 +1,6 @@
 # 🖼️ Tedraphics
 
-**Tedraphics** is a Telegram-friendly web app that allows you to generate 1080×1080 social media posters with customizable gradients, fonts, and styles.
+**Tedraphics** is a Telegram web app that allows you to generate 1080×1080 social media posters with customizable gradients, fonts, and styles.
 
 🌐 Live Demo → [tedraphics.netlify.app](https://tedraphics.netlify.app)
 
@@ -41,3 +41,4 @@ npm install
 
 # Start dev server
 npm run dev
+
