@@ -15,28 +15,28 @@ export const ActionButtons = ({
   hideTelegramShare = false 
 }: ActionButtonsProps) => {
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-      <h3 className="text-lg font-semibold text-white mb-4">Actions</h3>
-      <div className="flex flex-col sm:flex-row gap-3">
+    <div className="mt-5 border-t border-white/10 pt-5">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <Button
           onClick={onDownload}
-          className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold flex-1"
+          className="h-12 flex-1 rounded-xl bg-amber-300 text-slate-950 font-semibold hover:bg-amber-200 focus-visible:ring-amber-200"
         >
           <Download className="w-4 h-4 mr-2" />
-          Download Poster
+          Download PNG
         </Button>
         
         {!hideTelegramShare && (
           <Button
             onClick={onTelegramShare}
             variant="outline"
-            className="border-white/30 text-white hover:bg-white/20 flex-1"
+            className="h-12 flex-1 rounded-xl border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
           >
             <Share2 className="w-4 h-4 mr-2" />
             Share to Telegram
           </Button>
         )}
       </div>
+      <p className="mt-3 text-center text-xs text-slate-400">1080 × 1080 px · PNG image</p>
     </div>
   );
 };
