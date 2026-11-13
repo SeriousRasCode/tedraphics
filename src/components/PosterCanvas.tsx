@@ -115,17 +115,19 @@ function preloadImage(src: string): Promise<HTMLImageElement> {
 }
 
 const ICON_SOURCES = {
-  telegram: '/lovable-uploads/64b58e21-712a-4d26-bed1-69b54bd1c3eb.png',
-  instagram: '/lovable-uploads/f87c9785-4207-4403-a81d-869cfbfe9fa4.png',
-  tiktok: '/lovable-uploads/6aeacb0f-703d-4837-af88-ff14ce749b41.png',
-  location: '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png',
-  time: '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png',
-  date: '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png',
+  telegram: '/icons/telegram.png',
+  instagram: '/icons/instagram.png',
+  tiktok: '/icons/tiktok.png',
+  location: '/icons/location.png',
+  time: '/icons/time.png',
+  date: '/icons/date.png',
 };
 
 const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [iconsLoaded, setIconsLoaded] = useState(false);
+  const [clipartLoaded, setClipartLoaded] = useState(0);
+  const drawVersion = useRef(0);
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
 
   // Preload all icons on mount
@@ -133,9 +135,12 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     const loadAllIcons = async () => {
       try {
         const entries = Object.entries(ICON_SOURCES);
-        const results = await Promise.all(entries.map(([, src]) => preloadImage(src)));
+        const results = await Promise.allSettled(entries.map(([, src]) => preloadImage(src)));
         const icons: Record<string, HTMLImageElement> = {};
-        entries.forEach(([key], i) => { icons[key] = results[i]; });
+        entries.forEach(([key], i) => {
+          const result = results[i];
+          if (result.status === 'fulfilled') icons[key] = result.value;
+        });
         iconsRef.current = icons;
         setIconsLoaded(true);
       } catch (e) {
@@ -196,6 +201,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   }, []);
 
   const drawPoster = useCallback(() => {
+    const version = ++drawVersion.current;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -365,7 +371,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
 
       const itemWidths = socialItems.map(item => iconSize + textMargin + ctx.measureText(item.text).width);
       const totalSocialWidth = itemWidths.reduce((a, b) => a + b, 0) + gap * (socialItems.length - 1);
-      let sx = (width - totalSocialWidth) / 2;
+      let sx = props.socialLinksPosition.x - totalSocialWidth / 2;
       const sy = props.socialLinksPosition.y;
 
       socialItems.forEach((item, i) => {
@@ -510,12 +516,17 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
       const img = new Image();
       img.crossOrigin = 'anonymous';
       img.onload = () => {
+        if (version !== drawVersion.current) return;
         try {
-          const cropX = props.imageCrop.x * img.width;
-          const cropY = props.imageCrop.y * img.height;
-          const cropW = img.width * props.imageCrop.scale;
-          const cropH = img.height * props.imageCrop.scale;
-          ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, width, height);
+          ctx.fillStyle = template.background;
+          ctx.fillRect(0, 0, width, height);
+          const scale = Math.max(width / img.width, height / img.height) * props.imageCrop.scale;
+          const imageWidth = img.width * scale;
+          const imageHeight = img.height * scale;
+          ctx.drawImage(img,
+            (width - imageWidth) / 2 + props.imageCrop.x,
+            (height - imageHeight) / 2 + props.imageCrop.y,
+            imageWidth, imageHeight);
         } catch {
           ctx.fillStyle = template.background;
           ctx.fillRect(0, 0, width, height);
@@ -523,6 +534,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         drawAllElements(ctx);
       };
       img.onerror = () => {
+        if (version !== drawVersion.current) return;
         ctx.fillStyle = template.background;
         ctx.fillRect(0, 0, width, height);
         drawAllElements(ctx);
@@ -533,13 +545,16 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
       ctx.fillRect(0, 0, width, height);
       drawAllElements(ctx);
     }
-  }, [props, createGradientPattern, iconsLoaded]);
+  }, [props, createGradientPattern, iconsLoaded, clipartLoaded]);
 
   // Preload clipart image when it changes
   useEffect(() => {
-    if (props.clipart.image && !imageCache.has(props.clipart.image)) {
-      preloadImage(props.clipart.image).catch(() => {});
-    }
+    if (!props.clipart.image || imageCache.has(props.clipart.image)) return;
+    let active = true;
+    preloadImage(props.clipart.image)
+      .then(() => { if (active) setClipartLoaded(value => value + 1); })
+      .catch(() => {});
+    return () => { active = false; };
   }, [props.clipart.image]);
 
   // Set up ref forwarding
