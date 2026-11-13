@@ -292,6 +292,7 @@ export const PosterControls = (props: PosterControlsProps) => {
               { label: 'Bottom Text Y', value: bottomTextPosition.y, onChange: (v: number) => onBottomTextPositionChange({ ...bottomTextPosition, y: v }), max: 1070, min: 950 },
               { label: 'Icons Y', value: additionalIconsY, onChange: onAdditionalIconsYChange, max: 1000, min: 800 },
               { label: 'Icons Gap', value: additionalIconsGap, onChange: onAdditionalIconsGapChange, max: 100, min: 10 },
+              { label: 'Social X', value: socialLinksPosition.x, onChange: (v: number) => onSocialLinksPositionChange({ ...socialLinksPosition, x: v }), max: 980, min: 100 },
               { label: 'Social Y', value: socialLinksPosition.y, onChange: (v: number) => onSocialLinksPositionChange({ ...socialLinksPosition, y: v }), max: 1050, min: 900 },
               { label: 'Social Gap', value: socialLinksGap, onChange: onSocialLinksGapChange, max: 100, min: 20 },
             ].map(({ label, value, onChange, max, min }) => (
@@ -432,9 +433,9 @@ export const PosterControls = (props: PosterControlsProps) => {
               <Label className="text-white">Additional Icons</Label>
               <div className="space-y-2">
                 {[
-                  { key: 'place' as const, icon: '/lovable-uploads/1f6bc006-c641-4689-8e9e-e9da10e585d8.png', label: 'Place' },
-                  { key: 'time' as const, icon: '/lovable-uploads/7475de3f-f477-4f7d-8688-911c55de8ea9.png', label: 'Time' },
-                  { key: 'date' as const, icon: '/lovable-uploads/6efc2e61-1d10-4ca2-8a06-0d41a15e2b7d.png', label: 'Date' },
+                  { key: 'place' as const, icon: '/icons/location.png', label: 'Place' },
+                  { key: 'time' as const, icon: '/icons/time.png', label: 'Time' },
+                  { key: 'date' as const, icon: '/icons/date.png', label: 'Date' },
                 ].map(({ key, icon, label }) => (
                   <div key={key} className="flex items-center gap-2">
                     <img src={icon} alt={label} className="w-4 h-4" />
