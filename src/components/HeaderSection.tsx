@@ -1,62 +1,39 @@
-
-import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Menu } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 export const HeaderSection = () => {
   return (
-    <div className="mb-6 sm:mb-12">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-600 mb-3 sm:mb-4 text-left">
-            Tedraphics
-          </h1>
-          <p className="text-lg sm:text-xl text-blue-100/90 mb-4 sm:mb-6 max-w-2xl text-left">
-            1080×1080px - 1:1
+    <header className="mb-7 border-b border-white/10 pb-6 sm:mb-9 sm:pb-8">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="mb-3 inline-flex items-center rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-amber-200">
+            Poster studio
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Tedraphics<span className="text-amber-300">.</span></h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300 sm:text-base">
+            Create a polished social poster in minutes, right from your browser.
           </p>
         </div>
-        
+
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/20">
-              <Menu className="w-4 h-4" />
+            <Button variant="outline" size="icon" aria-label="About Tedraphics" className="h-11 w-11 shrink-0 rounded-xl border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+              <Info className="h-5 w-5" aria-hidden="true" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-slate-800 border-slate-600 text-white">
+          <DialogContent className="border-slate-700 bg-slate-900 text-white">
             <DialogHeader>
-              <DialogTitle className="text-yellow-400">About Tedraphics</DialogTitle>
+              <DialogTitle className="text-amber-300">About Tedraphics</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">About</h3>
-                <p className="text-slate-300">
-                  Tedraphics is a powerful poster creation tool designed for creating beautiful 1080×1080 posters.
-                </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Developer</h3>
-                <p className="text-slate-300">Created by Tedros Teshome</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Version</h3>
-                <p className="text-slate-300">Version 2.1.0 ras</p>
-                <p className="text-sm text-slate-400">Built with React + Vite</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Features</h3>
-                <ul className="text-sm text-slate-300 space-y-1">
-                  <li>• Custom font uploads</li>
-                  <li>• Multiple frame styles</li>
-                  <li>• Gradient customization</li>
-                  <li>• Social media integration</li>
-                  <li>• Clipart support</li>
-                </ul>
-              </div>
+            <div className="space-y-3 text-sm leading-6 text-slate-300">
+              <p>Tedraphics helps you make 1080 × 1080 social media posters with your own text, images, and colors.</p>
+              <p>Your uploads stay in this browser. Use Download PNG to save the finished poster to your device.</p>
+              <p>Created by Tedros Teshome.</p>
             </div>
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </header>
   );
 };
