@@ -162,8 +162,8 @@ export const PosterControls = (props: PosterControlsProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Navigation Bar */}
-      <div className="flex flex-wrap gap-2 justify-center border-t border-white/20 pt-4">
+      {/* Fine tuning sections */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {[
           { key: 'typography', icon: Type, label: 'Typography' },
           { key: 'colors', icon: Palette, label: 'Colors' },
@@ -176,8 +176,9 @@ export const PosterControls = (props: PosterControlsProps) => {
           <Button
             key={key}
             variant="ghost" size="sm"
+            aria-expanded={Boolean(openSections[key])}
             onClick={() => onToggleSection(key)}
-            className={`text-white hover:bg-white/20 ${openSections[key] ? 'bg-white/20' : ''}`}
+            className={`h-11 justify-start rounded-xl border px-3 text-sm text-white hover:bg-white/10 hover:text-white focus-visible:ring-amber-300 ${openSections[key] ? 'border-amber-300/40 bg-amber-300/10' : 'border-white/10 bg-white/5'}`}
           >
             <Icon className="w-4 h-4 mr-2" />
             {label}
@@ -187,7 +188,7 @@ export const PosterControls = (props: PosterControlsProps) => {
 
       {/* Typography Section */}
       {openSections.typography && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+        <div id="typography-controls" className="bg-white/5 rounded-lg p-4 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-3">Typography</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {renderFontSelector('Title Font', 'titleFont', 'titleFont')}
@@ -228,7 +229,7 @@ export const PosterControls = (props: PosterControlsProps) => {
 
       {/* Colors Section */}
       {openSections.colors && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+        <div id="colors-controls" className="bg-white/5 rounded-lg p-4 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-3">Colors & Gradients</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -280,7 +281,7 @@ export const PosterControls = (props: PosterControlsProps) => {
 
       {/* Positions Section */}
       {openSections.positions && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+        <div id="positions-controls" className="bg-white/5 rounded-lg p-4 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-3">Positions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
@@ -307,7 +308,7 @@ export const PosterControls = (props: PosterControlsProps) => {
 
       {/* Styling Section */}
       {openSections.styling && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+        <div id="styling-controls" className="bg-white/5 rounded-lg p-4 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-3">Styling Options</h3>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -360,7 +361,7 @@ export const PosterControls = (props: PosterControlsProps) => {
 
       {/* Settings Section */}
       {openSections.settings && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+        <div id="settings-controls" className="bg-white/5 rounded-lg p-4 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-3">Settings</h3>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -455,7 +456,7 @@ export const PosterControls = (props: PosterControlsProps) => {
 
       {/* Crop Section */}
       {openSections.crop && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+        <div id="crop-controls" className="bg-white/5 rounded-lg p-4 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-3">Image Cropping</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -476,7 +477,7 @@ export const PosterControls = (props: PosterControlsProps) => {
 
       {/* Clipart Section */}
       {openSections.clipart && (
-        <div className="bg-white/5 rounded-lg p-4 space-y-4">
+        <div id="clipart-controls" className="bg-white/5 rounded-lg p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-white">Clipart</h3>
             {clipart.image && (

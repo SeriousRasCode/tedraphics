@@ -13,15 +13,15 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onTemplateChange,
 }) => {
   return (
-    <div className="mb-6">
-      <label className="block text-white text-sm font-medium mb-2">
-        Choose Template
+    <div>
+      <label htmlFor="poster-theme" className="block text-white text-sm font-medium mb-2">
+        Color theme
       </label>
       <Select
         value={selectedTemplate.toString()}
         onValueChange={(value) => onTemplateChange(parseInt(value))}
       >
-        <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+        <SelectTrigger id="poster-theme" className="h-11 w-full rounded-xl border-white/20 bg-white/10 text-white">
           <SelectValue placeholder="Select a template" />
         </SelectTrigger>
         <SelectContent className="bg-slate-800 border-slate-700">
@@ -31,7 +31,10 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               value={key}
               className="text-white hover:bg-slate-700"
             >
-              {template.name}
+              <span className="flex items-center gap-2">
+                <span aria-hidden="true" className="h-4 w-4 rounded-full border border-white/30" style={{ backgroundColor: template.colors.secondary }} />
+                {template.name}
+              </span>
             </SelectItem>
           ))}
         </SelectContent>

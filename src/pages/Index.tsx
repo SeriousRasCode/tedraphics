@@ -8,10 +8,12 @@ import { HeaderSection } from '@/components/HeaderSection';
 import { GradientConfig } from '@/components/GradientControls';
 import { ActionButtons } from '@/components/ActionButtons';
 import { Button } from '@/components/ui/button';
-import { Settings, FileText } from 'lucide-react';
+import { Settings, FileText, ArrowRight } from 'lucide-react';
+import { templates } from '@/utils/posterTemplates';
 
 const Index = () => {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
+  const [activeEditorSection, setActiveEditorSection] = useState<'content' | 'design'>('content');
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [title, setTitle] = useState('Your Title Here');
   const [mainText, setMainText] = useState('Main content goes here.');
@@ -103,6 +105,7 @@ const Index = () => {
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const backgroundStepRef = useRef<HTMLButtonElement>(null);
 
   const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
   const [socialLinksPosition, setSocialLinksPosition] = useState({ x: 540, y: 1030 });
@@ -124,11 +127,30 @@ const Index = () => {
   });
 
   const toggleSection = (section: string) => {
-    if (openSections[section]) {
-      setOpenSections({});
-    } else {
-      setOpenSections({ [section]: true });
-    }
+    setOpenSections(previous => ({ ...previous, [section]: !previous[section] }));
+  };
+
+  const handleTemplateChange = (templateId: number) => {
+    const template = templates[templateId];
+    if (!template) return;
+    setSelectedTemplate(templateId);
+    setGradientConfig(previous => ({
+      ...previous,
+      top: {
+        ...previous.top,
+        stops: [
+          { color: template.gradients.top.color1, opacity: template.gradients.top.opacity1, position: 0 },
+          { color: template.gradients.top.color2, opacity: template.gradients.top.opacity2, position: 100 },
+        ],
+      },
+      bottom: {
+        ...previous.bottom,
+        stops: [
+          { color: template.gradients.bottom.color1, opacity: template.gradients.bottom.opacity1, position: 0 },
+          { color: template.gradients.bottom.color2, opacity: template.gradients.bottom.opacity2, position: 100 },
+        ],
+      },
+    }));
   };
 
   const handleImageUpload = (file: File) => {
@@ -191,15 +213,21 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800">
-      <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-8">
+    <div className="min-h-screen bg-[#071629] text-white">
+      <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 sm:py-8 lg:px-10">
         <HeaderSection />
 
-        <div className="space-y-6 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0 max-w-7xl mx-auto">
+        <main className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.9fr)] lg:items-start lg:gap-8">
           
           {/* Preview */}
-          <div className="order-1 lg:order-2 bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-            <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4">Preview</h2>
+          <section aria-labelledby="preview-title" className="order-1 rounded-3xl border border-white/10 bg-[#10243d] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:order-2 lg:sticky lg:top-6">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h2 id="preview-title" className="text-xl font-semibold tracking-tight sm:text-2xl">Your poster</h2>
+                <p className="mt-1 text-sm text-slate-300">Edits appear here as you make them.</p>
+              </div>
+              <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">Live preview</span>
+            </div>
             <div className="flex justify-center">
               <PosterCanvas
                 ref={canvasRef}
@@ -238,50 +266,72 @@ const Index = () => {
                 gradientConfig={gradientConfig}
               />
             </div>
-          </div>
+            <ActionButtons
+              onDownload={handleDownload}
+              onTelegramShare={handleTelegramShare}
+              hideTelegramShare={true}
+            />
+          </section>
 
           {/* Controls */}
-          <div className="order-2 lg:order-1 space-y-4 sm:space-y-6">
+          <section aria-labelledby="editor-title" className="order-2 min-w-0 space-y-5 lg:order-1">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">Create</p>
+              <h2 id="editor-title" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Make it yours</h2>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">Add your message, choose a look, then fine tune the details.</p>
+            </div>
             
             {/* Top-level sections */}
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div role="group" aria-label="Editor steps" className="grid grid-cols-2 rounded-2xl border border-white/10 bg-white/5 p-1.5">
               <Button
-                variant="ghost" size="sm"
-                onClick={() => toggleSection('design-settings')}
-                className={`text-white hover:bg-white/20 ${openSections['design-settings'] ? 'bg-white/20' : ''}`}
+                aria-pressed={activeEditorSection === 'content'} id="content-tab"
+                variant="ghost"
+                onClick={() => setActiveEditorSection('content')}
+                className={`h-11 rounded-xl text-sm font-semibold text-white hover:bg-white/10 hover:text-white ${activeEditorSection === 'content' ? 'bg-white/15 shadow-sm' : ''}`}
               >
-                <Settings className="w-4 h-4 mr-2" />
-                Design Settings
+                <FileText className="mr-2 h-4 w-4" />
+                1. Content
               </Button>
               <Button
-                variant="ghost" size="sm"
-                onClick={() => toggleSection('content-style')}
-                className={`text-white hover:bg-white/20 ${openSections['content-style'] ? 'bg-white/20' : ''}`}
+                ref={backgroundStepRef}
+                aria-pressed={activeEditorSection === 'design'} id="design-tab"
+                variant="ghost"
+                onClick={() => setActiveEditorSection('design')}
+                className={`h-11 rounded-xl text-sm font-semibold text-white hover:bg-white/10 hover:text-white ${activeEditorSection === 'design' ? 'bg-white/15 shadow-sm' : ''}`}
               >
-                <FileText className="w-4 h-4 mr-2" />
-                Content & Style
+                <Settings className="mr-2 h-4 w-4" />
+                2. Background
               </Button>
             </div>
 
             {/* Design Settings */}
-            {openSections['design-settings'] && (
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-                <h3 className="text-lg font-semibold text-white mb-4">Design Settings</h3>
+            {activeEditorSection === 'design' && (
+              <div id="design-panel" role="region" aria-labelledby="design-tab" className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
+                <h3 className="mb-1 text-lg font-semibold text-white">Choose a background</h3>
+                <p className="mb-5 text-sm text-slate-300">Start with a color theme or upload your own image.</p>
                 <div className="space-y-4">
                   <TemplateSelector 
                     selectedTemplate={selectedTemplate}
-                    onTemplateChange={setSelectedTemplate}
+                    onTemplateChange={handleTemplateChange}
                   />
-                  <ImageUpload onImageUpload={handleImageUpload} />
+                  <ImageUpload
+                    onImageUpload={handleImageUpload}
+                    hasImage={Boolean(backgroundImage)}
+                    onRemove={() => {
+                      setBackgroundImage(null);
+                      setImageCrop({ x: 0, y: 0, scale: 1 });
+                    }}
+                  />
                 </div>
               </div>
             )}
 
             {/* Content & Style */}
-            {openSections['content-style'] && (
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-6 border border-white/20">
-                <h3 className="text-lg font-semibold text-white mb-4">Content & Style</h3>
-                <div className="bg-white/5 rounded-lg p-4 space-y-4">
+            {activeEditorSection === 'content' && (
+              <div id="content-panel" role="region" aria-labelledby="content-tab" className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
+                <h3 className="mb-1 text-lg font-semibold text-white">Write your message</h3>
+                <p className="mb-5 text-sm text-slate-300">The preview updates while you type.</p>
+                <div className="space-y-4">
                   <div className="space-y-3">
                     <div className="space-y-2">
                       <label htmlFor="title" className="text-white text-sm font-medium">Title</label>
@@ -289,7 +339,7 @@ const Index = () => {
                         id="title"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="w-full bg-white/20 border border-white/30 text-white placeholder:text-white/70 rounded px-3 py-2"
+                        className="min-h-11 w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
                         placeholder="Enter poster title"
                       />
                     </div>
@@ -299,7 +349,7 @@ const Index = () => {
                         id="mainText"
                         value={mainText}
                         onChange={(e) => setMainText(e.target.value)}
-                        className="w-full bg-white/20 border border-white/30 text-white placeholder:text-white/70 min-h-[100px] rounded px-3 py-2"
+                        className="min-h-[112px] w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
                         placeholder="Enter main content (supports line breaks)"
                       />
                     </div>
@@ -309,15 +359,26 @@ const Index = () => {
                         id="quotedText"
                         value={quotedText}
                         onChange={(e) => setQuotedText(e.target.value)}
-                        className="w-full bg-white/20 border border-white/30 text-white placeholder:text-white/70 rounded px-3 py-2"
+                        className="min-h-[80px] w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-white placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
                         placeholder="Enter quoted text"
                       />
                     </div>
                   </div>
+                  <Button type="button" onClick={() => {
+                    setActiveEditorSection('design');
+                    requestAnimationFrame(() => backgroundStepRef.current?.focus());
+                  }} className="h-11 w-full rounded-xl bg-amber-300 font-semibold text-slate-950 hover:bg-amber-200 sm:w-auto">
+                    Next: choose background <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
+                  </Button>
                 </div>
               </div>
             )}
 
+            <div className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold">Fine tune</h3>
+                <p className="mt-1 text-sm text-slate-300">Adjust type, colors, layout, and extras.</p>
+              </div>
             <PosterControls
               fonts={fonts}
               onFontsChange={setFonts}
@@ -379,14 +440,9 @@ const Index = () => {
               gradientConfig={gradientConfig}
               onGradientConfigChange={setGradientConfig}
             />
-
-            <ActionButtons 
-              onDownload={handleDownload}
-              onTelegramShare={handleTelegramShare}
-              hideTelegramShare={true}
-            />
-          </div>
-        </div>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   );
