@@ -1,18 +1,39 @@
 # Tedraphics
 
-Tedraphics is a browser based poster editor for square, 1080 × 1080 social media graphics. It supports templates, background images, gradients, text, clipart, and PNG downloads.
+Tedraphics is a browser-based editor for square social media posters. Create a 1080 × 1080 design, preview it as you edit, and save it as a PNG.
 
-## Development
+## Features
+
+- Six color themes with adjustable gradients
+- Your own background images and clipart
+- Editable title, body, quote, and social details
+- Amharic and Afaan Oromo text options
+- Controls for type, color, placement, frames, and image crop
+- A live preview and 1080 × 1080 PNG export
+
+## Create a poster
+
+1. Open **Content** and write your title, main text, and quote.
+2. Open **Background** to choose a color theme or upload an image.
+3. Use **Fine tune** for typography, gradients, positions, clipart, and other details.
+4. Check the live preview, then select **Download PNG**.
+
+Uploaded images are read in your browser and are not sent to a Tedraphics server. Edits are kept in memory for the current session, so download your poster before closing or refreshing the page.
+
+## Run locally
+
+Install Node.js and npm, then run:
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
-Open the local URL printed by Vite. Use `npm run build` to create a production build and `npm run lint` to check the source.
+Open the local URL shown by Vite. To check the source and produce a production build:
 
-## Poster editor
+```bash
+npm run lint
+npm run build
+```
 
-Choose a template, enter your content, and adjust the design controls. The preview is the exported 1080 × 1080 image. Download Poster saves a PNG. Uploaded backgrounds and clipart stay in your browser; they are not sent to a server.
-
-The app is built with React, TypeScript, Vite, Tailwind CSS, and shadcn/ui components.
+Tedraphics uses React, TypeScript, Vite, Tailwind CSS, and shadcn/ui components.
