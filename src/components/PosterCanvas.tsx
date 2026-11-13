@@ -575,6 +575,8 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
     <div className="w-full max-w-md mx-auto">
       <canvas
         ref={canvasRef}
+        role="img"
+        aria-label={`Poster preview: ${props.title}`}
         width={1080}
         height={1080}
         className="w-full h-auto border border-white/20 rounded-lg shadow-lg"
