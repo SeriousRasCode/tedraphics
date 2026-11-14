@@ -22,6 +22,17 @@ interface SoftCover {
   softness: number;
 }
 
+interface LinearOverlay {
+  id: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  color: string;
+  opacity: number;
+  enabled: boolean;
+}
+
 interface SimpleGradientConfig {
   enabled: boolean;
   height: number;
@@ -39,6 +50,7 @@ interface GradientConfig {
   top: SimpleGradientConfig;
   bottom: SimpleGradientConfig;
   covers: SoftCover[];
+  linearOverlays: LinearOverlay[];
 }
 
 interface GradientControlsProps {
@@ -49,22 +61,23 @@ interface GradientControlsProps {
   selectedCoverId: number | null;
   onSelectedCoverChange: (id: number | null) => void;
   onAddCover: (color: string, opacity: number, softness: number) => void;
+  selectedLinearId: number | null;
+  onSelectedLinearChange: (id: number | null) => void;
+  onAddLinear: (initial?: Partial<LinearOverlay>) => void;
+  onAddPhotoFades: () => void;
 }
 
-export const GradientControls = ({ gradient, onGradientChange, themeColor, hasImage, selectedCoverId, onSelectedCoverChange, onAddCover }: GradientControlsProps) => {
+export const GradientControls = ({ gradient, onGradientChange, themeColor, hasImage, selectedCoverId, onSelectedCoverChange, onAddCover, selectedLinearId, onSelectedLinearChange, onAddLinear, onAddPhotoFades }: GradientControlsProps) => {
   const selectedCover = gradient.covers.find(cover => cover.id === selectedCoverId);
-
-  const applyPhotoFade = () => {
-    const stops = [
-      { color: themeColor, opacity: 95, position: 0 },
-      { color: themeColor, opacity: 0, position: 100 },
-    ];
-    onGradientChange({
-      ...gradient,
-      enabled: true,
-      top: { ...gradient.top, enabled: true, type: 'linear', angle: 180, height: 340, blendMode: 'source-over', intensity: 100, stops },
-      bottom: { ...gradient.bottom, enabled: true, type: 'linear', angle: 0, height: 480, blendMode: 'source-over', intensity: 100, stops },
-    });
+  const selectedLinear = gradient.linearOverlays.find(layer => layer.id === selectedLinearId);
+  const updateLinear = (updates: Partial<LinearOverlay>) => onGradientChange({
+    ...gradient,
+    linearOverlays: gradient.linearOverlays.map(layer => layer.id === selectedLinearId ? { ...layer, ...updates } : layer),
+  });
+  const removeLinear = () => {
+    const linearOverlays = gradient.linearOverlays.filter(layer => layer.id !== selectedLinearId);
+    onGradientChange({ ...gradient, linearOverlays });
+    onSelectedLinearChange(linearOverlays[linearOverlays.length - 1]?.id ?? null);
   };
 
   const updateCover = (updates: Partial<SoftCover>) => {
@@ -341,21 +354,72 @@ export const GradientControls = ({ gradient, onGradientChange, themeColor, hasIm
   );
 
   return (
-    <div className="space-y-3 rounded-xl border border-white/10 bg-white/5 p-4">
-      <p className="text-sm font-semibold text-white">Make text easier to read</p>
+    <div id="gradient-tools" className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4 scroll-mt-20">
+      <div>
+        <p className="text-sm font-semibold text-white">Gradient layers</p>
+        <p className="mt-1 text-xs text-slate-300">Add as many fades as you need. Drag the two ends of a linear fade on the poster.</p>
+      </div>
       <div className="grid gap-2 sm:grid-cols-2">
+        <Button type="button" onClick={() => onAddLinear()} className="h-11 justify-start rounded-lg bg-amber-300 font-semibold text-slate-950 hover:bg-amber-200">
+          + Linear fade
+        </Button>
+        <Button type="button" variant="outline" onClick={() => onAddCover('#0f172a', 85, 70)} className="h-11 justify-start rounded-lg border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+          + Radial cover
+        </Button>
         {hasImage && (
-          <Button type="button" variant="outline" onClick={applyPhotoFade} className="h-11 justify-start gap-3 rounded-lg border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+          <Button type="button" variant="outline" onClick={onAddPhotoFades} className="h-11 justify-start gap-3 rounded-lg border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white sm:col-span-2">
             <span aria-hidden="true" className="h-6 w-6 rounded border border-white/20" style={{ background: `linear-gradient(to bottom, ${themeColor}, transparent 50%, ${themeColor})` }} />
-            Fade photo edges
+            Add top + bottom photo fades
           </Button>
         )}
-        <Button type="button" variant="outline" onClick={() => onAddCover('#0f172a', 85, 70)} className="h-11 justify-start rounded-lg border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
-          <span aria-hidden="true" className="mr-3 h-5 w-5 rounded-full border border-white/40 bg-slate-900" />
-          Cover an area
-        </Button>
       </div>
-      <p className="text-xs text-slate-300">Drag the cover on the poster. It stays behind your text.</p>
+      {gradient.linearOverlays.length > 0 && (
+        <div role="group" aria-label="Linear gradient layers" className="space-y-2">
+          {gradient.linearOverlays.map((layer, index) => (
+            <Button key={layer.id} type="button" variant="outline" aria-pressed={layer.id === selectedLinearId}
+              onClick={() => { onSelectedLinearChange(layer.id); onSelectedCoverChange(null); }}
+              className={`h-11 w-full justify-start rounded-lg text-white hover:text-white ${layer.id === selectedLinearId ? 'border-amber-300 bg-amber-300/10' : 'border-white/20 bg-white/5 hover:bg-white/10'}`}>
+              <span aria-hidden="true" className="mr-3 h-5 w-5 rounded border border-white/30" style={{ background: `linear-gradient(to bottom, ${layer.color}, transparent)` }} />
+              Linear fade {index + 1}{!layer.enabled && ' · hidden'}
+            </Button>
+          ))}
+        </div>
+      )}
+      {selectedLinear && (
+        <div className="space-y-4 rounded-lg border border-amber-300/30 bg-slate-950/30 p-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-medium text-white">Selected linear fade</p>
+            <Button type="button" variant="ghost" onClick={removeLinear} className="h-9 px-2 text-sm text-rose-300 hover:bg-rose-400/10 hover:text-rose-200">Remove</Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button type="button" variant="outline" onClick={() => onAddLinear({ ...selectedLinear, enabled: true })} className="h-10 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">Duplicate</Button>
+            <Button type="button" variant="outline" onClick={() => updateLinear({ enabled: !selectedLinear.enabled })} className="h-10 border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">{selectedLinear.enabled ? 'Hide' : 'Show'}</Button>
+          </div>
+          <div>
+            <p className="mb-2 text-xs font-medium text-slate-300">Quick direction</p>
+            <div role="group" aria-label="Linear fade direction" className="grid grid-cols-4 gap-1">
+              {[
+                { label: 'Top', startX: 540, startY: 90, endX: 540, endY: 420 },
+                { label: 'Bottom', startX: 540, startY: 990, endX: 540, endY: 660 },
+                { label: 'Left', startX: 90, startY: 540, endX: 460, endY: 540 },
+                { label: 'Right', startX: 990, startY: 540, endX: 620, endY: 540 },
+              ].map(direction => (
+                <Button key={direction.label} type="button" variant="outline" onClick={() => updateLinear(direction)}
+                  className="h-10 rounded-lg border-white/20 bg-white/5 px-1 text-xs text-white hover:bg-white/10 hover:text-white">{direction.label}</Button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2"><Label htmlFor="linear-color" className="text-sm text-white">Fade color</Label><input id="linear-color" type="color" value={selectedLinear.color} onChange={event => updateLinear({ color: event.target.value })} className="h-11 w-full cursor-pointer rounded-lg border border-white/20 bg-white/10 p-1" /></div>
+            <div className="space-y-2"><Label className="text-sm text-white">Strength: {selectedLinear.opacity}%</Label><Slider aria-label="Linear fade strength" value={[selectedLinear.opacity]} onValueChange={([opacity]) => updateLinear({ opacity })} min={0} max={100} step={1} /></div>
+          </div>
+          <p className="text-xs text-slate-300">Move either end on the poster to change the fade direction and length.</p>
+          <Button type="button" variant="outline"
+            onClick={() => document.getElementById('preview-title')?.scrollIntoView({ block: 'start', behavior: 'smooth' })}
+            className="h-11 w-full border-amber-300/40 bg-amber-300/10 text-amber-100 hover:bg-amber-300/20 hover:text-white lg:hidden">Move on poster ↑</Button>
+        </div>
+      )}
+      {gradient.covers.length > 0 && <div className="border-t border-white/10 pt-3"><p className="text-sm font-medium text-white">Radial covers</p></div>}
       {gradient.covers.length > 1 && (
         <div role="group" aria-label="Select a soft cover" className="flex flex-wrap gap-2">
           {gradient.covers.map((cover, index) => (
@@ -426,4 +490,4 @@ export const GradientControls = ({ gradient, onGradientChange, themeColor, hasIm
   );
 };
 
-export type { GradientConfig, GradientStop, SimpleGradientConfig, SoftCover };
+export type { GradientConfig, GradientStop, SimpleGradientConfig, SoftCover, LinearOverlay };
