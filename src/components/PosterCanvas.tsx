@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import { GradientConfig } from './GradientControls';
+import { GradientConfig, SimpleGradientConfig } from './GradientControls';
 import { templates } from '@/utils/posterTemplates';
 
 interface PosterCanvasProps {
@@ -90,10 +90,13 @@ interface PosterCanvasProps {
   };
   socialLinksColor: string;
   gradientConfig: GradientConfig;
+  activeCoverId: number | null;
+  onCoverMove: (id: number, x: number, y: number) => void;
 }
 
 // Preload images once and cache them
 const imageCache = new Map<string, HTMLImageElement>();
+const pendingImages = new Map<string, Promise<HTMLImageElement>>();
 
 function preloadImage(src: string): Promise<HTMLImageElement> {
   if (imageCache.has(src)) {
@@ -102,16 +105,24 @@ function preloadImage(src: string): Promise<HTMLImageElement> {
       return Promise.resolve(cached);
     }
   }
-  return new Promise((resolve, reject) => {
+  const pending = pendingImages.get(src);
+  if (pending) return pending;
+  const request = new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => {
       imageCache.set(src, img);
+      pendingImages.delete(src);
       resolve(img);
     };
-    img.onerror = reject;
+    img.onerror = () => {
+      pendingImages.delete(src);
+      reject(new Error(`Could not load image: ${src.slice(0, 80)}`));
+    };
     img.src = src;
   });
+  pendingImages.set(src, request);
+  return request;
 }
 
 const ICON_SOURCES = {
@@ -128,6 +139,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   const [iconsLoaded, setIconsLoaded] = useState(false);
   const [clipartLoaded, setClipartLoaded] = useState(0);
   const drawVersion = useRef(0);
+  const draggingCoverRef = useRef(false);
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
 
   // Preload all icons on mount
@@ -153,7 +165,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
 
   const createGradientPattern = useCallback((
     ctx: CanvasRenderingContext2D,
-    config: any,
+    config: SimpleGradientConfig,
     width: number,
     height: number,
     isTop: boolean
@@ -187,9 +199,9 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
       gradient = ctx.createLinearGradient(startX, startY, endX, endY);
     }
     
-    const sortedStops = [...config.stops].sort((a: any, b: any) => a.position - b.position);
+    const sortedStops = [...config.stops].sort((a, b) => a.position - b.position);
     
-    sortedStops.forEach((stop: any) => {
+    sortedStops.forEach((stop) => {
       const r = parseInt(stop.color.slice(1, 3), 16);
       const g = parseInt(stop.color.slice(3, 5), 16);
       const b = parseInt(stop.color.slice(5, 7), 16);
@@ -244,6 +256,25 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         }
 
         ctx.restore();
+      }
+
+      // Soft covers sit above the background and below poster text.
+      if (props.gradientConfig.enabled) {
+        props.gradientConfig.covers.forEach(cover => {
+          if (!/^#[0-9a-f]{6}$/i.test(cover.color)) return;
+          const radius = Math.max(1, cover.radius);
+          const r = parseInt(cover.color.slice(1, 3), 16);
+          const g = parseInt(cover.color.slice(3, 5), 16);
+          const b = parseInt(cover.color.slice(5, 7), 16);
+          const alpha = Math.min(100, Math.max(0, cover.opacity)) / 100;
+          const solidUntil = Math.min(0.99, 1 - Math.min(100, Math.max(0, cover.softness)) / 100);
+          const gradient = ctx.createRadialGradient(cover.x, cover.y, 0, cover.x, cover.y, radius);
+          gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alpha})`);
+          gradient.addColorStop(solidUntil, `rgba(${r}, ${g}, ${b}, ${alpha})`);
+          gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          ctx.fillStyle = gradient;
+          ctx.fillRect(cover.x - radius, cover.y - radius, radius * 2, radius * 2);
+        });
       }
 
       // --- Text ---
@@ -509,17 +540,13 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
       }
     };
 
-    // Clear canvas
-    ctx.clearRect(0, 0, width, height);
-
-    if (props.backgroundImage) {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        if (version !== drawVersion.current) return;
+    const renderBackground = (img?: HTMLImageElement) => {
+      if (version !== drawVersion.current) return;
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = template.background;
+      ctx.fillRect(0, 0, width, height);
+      if (img) {
         try {
-          ctx.fillStyle = template.background;
-          ctx.fillRect(0, 0, width, height);
           const scale = Math.max(width / img.width, height / img.height) * props.imageCrop.scale;
           const imageWidth = img.width * scale;
           const imageHeight = img.height * scale;
@@ -528,24 +555,24 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
             (height - imageHeight) / 2 + props.imageCrop.y,
             imageWidth, imageHeight);
         } catch {
-          ctx.fillStyle = template.background;
-          ctx.fillRect(0, 0, width, height);
+          // Keep the template background if an image cannot be drawn.
         }
-        drawAllElements(ctx);
-      };
-      img.onerror = () => {
-        if (version !== drawVersion.current) return;
-        ctx.fillStyle = template.background;
-        ctx.fillRect(0, 0, width, height);
-        drawAllElements(ctx);
-      };
-      img.src = props.backgroundImage;
-    } else {
-      ctx.fillStyle = template.background;
-      ctx.fillRect(0, 0, width, height);
+      }
       drawAllElements(ctx);
+    };
+
+    if (props.backgroundImage) {
+      const cached = imageCache.get(props.backgroundImage);
+      if (cached) {
+        renderBackground(cached);
+      } else {
+        renderBackground();
+        preloadImage(props.backgroundImage).then(renderBackground).catch(() => {});
+      }
+    } else {
+      renderBackground();
     }
-  }, [props, createGradientPattern, iconsLoaded, clipartLoaded]);
+  }, [props, createGradientPattern]);
 
   // Preload clipart image when it changes
   useEffect(() => {
@@ -569,10 +596,22 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   // Draw when props change
   useEffect(() => {
     drawPoster();
-  }, [drawPoster]);
+  }, [drawPoster, iconsLoaded, clipartLoaded]);
+
+  const activeCover = props.gradientConfig.enabled
+    ? props.gradientConfig.covers.find(cover => cover.id === props.activeCoverId)
+    : undefined;
+
+  const moveCoverToPointer = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!activeCover || !canvasRef.current) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = Math.round(Math.max(0, Math.min(1080, ((event.clientX - rect.left) / rect.width) * 1080)));
+    const y = Math.round(Math.max(0, Math.min(1080, ((event.clientY - rect.top) / rect.height) * 1080)));
+    props.onCoverMove(activeCover.id, x, y);
+  };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg">
       <canvas
         ref={canvasRef}
         role="img"
@@ -582,6 +621,45 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         className="w-full h-auto border border-white/20 rounded-lg shadow-lg"
         style={{ maxWidth: '100%', height: 'auto' }}
       />
+      {activeCover && (
+        <>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute rounded-full border border-dashed border-white/80 shadow-[0_0_0_1px_rgba(0,0,0,0.5)]"
+            style={{ left: `${activeCover.x / 10.8}%`, top: `${activeCover.y / 10.8}%`, width: `${activeCover.radius / 5.4}%`, aspectRatio: '1', transform: 'translate(-50%, -50%)' }}
+          />
+          <button
+            type="button"
+            aria-label="Move selected soft cover"
+            title="Drag to position the soft cover. Arrow keys move it precisely."
+            className="absolute flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-amber-300 text-slate-950 shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-200"
+            style={{ left: `${activeCover.x / 10.8}%`, top: `${activeCover.y / 10.8}%`, transform: 'translate(-50%, -50%)', touchAction: 'none' }}
+            onPointerDown={event => {
+              event.preventDefault();
+              draggingCoverRef.current = true;
+              event.currentTarget.setPointerCapture(event.pointerId);
+              moveCoverToPointer(event);
+            }}
+            onPointerMove={event => { if (draggingCoverRef.current) moveCoverToPointer(event); }}
+            onPointerUp={() => { draggingCoverRef.current = false; }}
+            onPointerCancel={() => { draggingCoverRef.current = false; }}
+            onKeyDown={event => {
+              const step = event.shiftKey ? 25 : 5;
+              const moves: Record<string, [number, number]> = {
+                ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step],
+              };
+              const move = moves[event.key];
+              if (!move) return;
+              event.preventDefault();
+              props.onCoverMove(activeCover.id,
+                Math.max(0, Math.min(1080, activeCover.x + move[0])),
+                Math.max(0, Math.min(1080, activeCover.y + move[1])));
+            }}
+          >
+            <span aria-hidden="true" className="text-lg font-bold leading-none">+</span>
+          </button>
+        </>
+      )}
     </div>
   );
 });
