@@ -398,10 +398,10 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         { icon: icons.telegram, text: props.socialLinks.telegram },
         { icon: icons.instagram, text: props.socialLinks.instagram },
         { icon: icons.tiktok, text: props.socialLinks.tiktok },
-      ];
+      ].filter(item => item.text.trim());
 
       const itemWidths = socialItems.map(item => iconSize + textMargin + ctx.measureText(item.text).width);
-      const totalSocialWidth = itemWidths.reduce((a, b) => a + b, 0) + gap * (socialItems.length - 1);
+      const totalSocialWidth = itemWidths.reduce((a, b) => a + b, 0) + gap * Math.max(0, socialItems.length - 1);
       let sx = props.socialLinksPosition.x - totalSocialWidth / 2;
       const sy = props.socialLinksPosition.y;
 
@@ -425,10 +425,10 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         { icon: icons.location, text: props.additionalIcons.place },
         { icon: icons.time, text: props.additionalIcons.time },
         { icon: icons.date, text: props.additionalIcons.date },
-      ];
+      ].filter(item => item.text.trim());
 
       const aiItemWidths = additionalItems.map(item => aiSize + textMargin + ctx.measureText(item.text).width);
-      const totalAiWidth = aiItemWidths.reduce((a, b) => a + b, 0) + aiGap * (additionalItems.length - 1);
+      const totalAiWidth = aiItemWidths.reduce((a, b) => a + b, 0) + aiGap * Math.max(0, additionalItems.length - 1);
       let ax = (width - totalAiWidth) / 2;
 
       additionalItems.forEach((item, i) => {
@@ -611,7 +611,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-lg">
+    <div className="relative mx-auto w-full max-w-[240px] overflow-hidden rounded-lg sm:max-w-md">
       <canvas
         ref={canvasRef}
         role="img"
