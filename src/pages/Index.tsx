@@ -7,13 +7,10 @@ import { toast } from 'sonner';
 import { HeaderSection } from '@/components/HeaderSection';
 import { GradientControls, GradientConfig } from '@/components/GradientControls';
 import { ActionButtons } from '@/components/ActionButtons';
-import { Button } from '@/components/ui/button';
-import { Settings, FileText, ArrowRight } from 'lucide-react';
 import { templates } from '@/utils/posterTemplates';
 
 const Index = () => {
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>({});
-  const [activeEditorSection, setActiveEditorSection] = useState<'content' | 'design'>('content');
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [title, setTitle] = useState('Your Title Here');
   const [mainText, setMainText] = useState('Main content goes here.');
@@ -21,9 +18,9 @@ const Index = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(1);
   const [language, setLanguage] = useState<'amharic' | 'oromic'>('amharic');
   const [socialLinks, setSocialLinks] = useState({
-    telegram: '@username',
-    instagram: '@username',
-    tiktok: '@username'
+    telegram: '',
+    instagram: '',
+    tiktok: ''
   });
   const [textPositions, setTextPositions] = useState({
     titleY: 120,
@@ -50,7 +47,7 @@ const Index = () => {
     quoteFont: null as string | null,
     topBottomFont: null as string | null
   });
-  const [bilingualEnabled, setBilingualEnabled] = useState(true);
+  const [bilingualEnabled, setBilingualEnabled] = useState(false);
   const [frameStyle, setFrameStyle] = useState<'none' | 'simple' | 'elegant' | 'bold' | 'rounded' | 'double' | 'dashed' | 'dotted' | 'shadow' | 'glow' | 'vintage' | 'modern' | 'neon' | 'artistic' | 'minimal' | 'partial-top-right' | 'partial-bottom-left' | 'partial-diagonal'>('none');
   const [textColors, setTextColors] = useState({
     titleColor: 'gradient',
@@ -60,9 +57,9 @@ const Index = () => {
   });
   const [mainTextWidth, setMainTextWidth] = useState(700);
   const [additionalIcons, setAdditionalIcons] = useState({
-    place: 'Jimma University',
-    time: '2:00 PM',
-    date: 'December 30, 2024'
+    place: '',
+    time: '',
+    date: ''
   });
   const [additionalIconsY, setAdditionalIconsY] = useState(940);
   const [socialLinksGap, setSocialLinksGap] = useState(50);
@@ -108,7 +105,6 @@ const Index = () => {
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const coverIdRef = useRef(0);
-  const backgroundStepRef = useRef<HTMLButtonElement>(null);
 
   const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
   const [socialLinksPosition, setSocialLinksPosition] = useState({ x: 540, y: 1030 });
@@ -152,7 +148,6 @@ const Index = () => {
       covers: [...previous.covers, { id, x: 540, y: 540, radius: 260, color, opacity, softness }],
     }));
     setSelectedCoverId(id);
-    setActiveEditorSection('design');
   };
 
   const handleTemplateChange = (templateId: number) => {
@@ -248,10 +243,8 @@ const Index = () => {
           <section aria-labelledby="preview-title" className="order-1 rounded-3xl border border-white/10 bg-[#10243d] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:order-2 lg:sticky lg:top-6">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h2 id="preview-title" className="text-xl font-semibold tracking-tight sm:text-2xl">Your poster</h2>
-                <p className="mt-1 text-sm text-slate-300">Edits appear here as you make them.</p>
+                <h2 id="preview-title" className="text-xl font-semibold tracking-tight sm:text-2xl">Preview</h2>
               </div>
-              <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">Live preview</span>
             </div>
             <div className="flex justify-center">
               <PosterCanvas
@@ -289,83 +282,21 @@ const Index = () => {
                 customBilingualTexts={customBilingualTexts}
                 socialLinksColor={socialLinksColor}
                 gradientConfig={gradientConfig}
-                activeCoverId={activeEditorSection === 'design' ? selectedCoverId : null}
+                activeCoverId={selectedCoverId}
                 onCoverMove={handleCoverMove}
               />
             </div>
             <ActionButtons
               onDownload={handleDownload}
-              onAddCover={() => addSoftCover('#0f172a', 85, 70)}
               onTelegramShare={handleTelegramShare}
               hideTelegramShare={true}
             />
           </section>
 
           {/* Controls */}
-          <section aria-labelledby="editor-title" className="order-2 min-w-0 space-y-5 lg:order-1">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">Create</p>
-              <h2 id="editor-title" className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">Make it yours</h2>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-slate-300">Add your message, choose a look, then fine tune the details.</p>
-            </div>
-            
-            {/* Top-level sections */}
-            <div role="group" aria-label="Editor steps" className="grid grid-cols-2 rounded-2xl border border-white/10 bg-white/5 p-1.5">
-              <Button
-                aria-pressed={activeEditorSection === 'content'} id="content-tab"
-                variant="ghost"
-                onClick={() => setActiveEditorSection('content')}
-                className={`h-11 rounded-xl text-sm font-semibold text-white hover:bg-white/10 hover:text-white ${activeEditorSection === 'content' ? 'bg-white/15 shadow-sm' : ''}`}
-              >
-                <FileText className="mr-2 h-4 w-4" />
-                1. Content
-              </Button>
-              <Button
-                ref={backgroundStepRef}
-                aria-pressed={activeEditorSection === 'design'} id="design-tab"
-                variant="ghost"
-                onClick={() => setActiveEditorSection('design')}
-                className={`h-11 rounded-xl text-sm font-semibold text-white hover:bg-white/10 hover:text-white ${activeEditorSection === 'design' ? 'bg-white/15 shadow-sm' : ''}`}
-              >
-                <Settings className="mr-2 h-4 w-4" />
-                2. Background
-              </Button>
-            </div>
-
-            {/* Design Settings */}
-            {activeEditorSection === 'design' && (
-              <div id="design-panel" role="region" aria-labelledby="design-tab" className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
-                <h3 className="mb-1 text-lg font-semibold text-white">Choose a background</h3>
-                <p className="mb-5 text-sm text-slate-300">Choose a theme, add an image, or soften an area with a gradient cover.</p>
-                <div className="space-y-4">
-                  <TemplateSelector 
-                    selectedTemplate={selectedTemplate}
-                    onTemplateChange={handleTemplateChange}
-                  />
-                  <ImageUpload
-                    onImageUpload={handleImageUpload}
-                    hasImage={Boolean(backgroundImage)}
-                    onRemove={() => {
-                      setBackgroundImage(null);
-                      setImageCrop({ x: 0, y: 0, scale: 1 });
-                    }}
-                  />
-                  <GradientControls
-                    gradient={gradientConfig}
-                    onGradientChange={setGradientConfig}
-                    themeColor={templates[selectedTemplate].gradients.top.color1}
-                    selectedCoverId={selectedCoverId}
-                    onSelectedCoverChange={setSelectedCoverId}
-                    onAddCover={addSoftCover}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Content & Style */}
-            {activeEditorSection === 'content' && (
-              <div id="content-panel" role="region" aria-labelledby="content-tab" className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
-                <h3 className="mb-1 text-lg font-semibold text-white">Write your message</h3>
+          <section aria-label="Poster editor" className="order-2 min-w-0 space-y-5 lg:order-1">
+              <div className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
+                <h3 className="mb-1 text-lg font-semibold text-white">1. Your message</h3>
                 <p className="mb-5 text-sm text-slate-300">The preview updates while you type.</p>
                 <div className="space-y-4">
                   <div className="space-y-3">
@@ -380,7 +311,7 @@ const Index = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="mainText" className="text-white text-sm font-medium">Main Text</label>
+                      <label htmlFor="mainText" className="text-white text-sm font-medium">Details</label>
                       <textarea
                         id="mainText"
                         value={mainText}
@@ -390,7 +321,7 @@ const Index = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="quotedText" className="text-white text-sm font-medium">Quoted Text</label>
+                      <label htmlFor="quotedText" className="text-white text-sm font-medium">Highlight</label>
                       <textarea
                         id="quotedText"
                         value={quotedText}
@@ -400,21 +331,37 @@ const Index = () => {
                       />
                     </div>
                   </div>
-                  <Button type="button" onClick={() => {
-                    setActiveEditorSection('design');
-                    requestAnimationFrame(() => backgroundStepRef.current?.focus());
-                  }} className="h-11 w-full rounded-xl bg-amber-300 font-semibold text-slate-950 hover:bg-amber-200 sm:w-auto">
-                    Next: choose background <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
-                  </Button>
                 </div>
               </div>
-            )}
 
             <div className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
-              <div className="mb-4">
-                <h3 className="text-lg font-semibold">Fine tune</h3>
-                <p className="mt-1 text-sm text-slate-300">Adjust type, colors, layout, and extras.</p>
+              <h3 className="mb-1 text-lg font-semibold text-white">2. Background</h3>
+              <p className="mb-5 text-sm text-slate-300">Pick a color or add your photo.</p>
+              <div className="space-y-4">
+                <TemplateSelector selectedTemplate={selectedTemplate} onTemplateChange={handleTemplateChange} />
+                <ImageUpload
+                  onImageUpload={handleImageUpload}
+                  hasImage={Boolean(backgroundImage)}
+                  onRemove={() => {
+                    setBackgroundImage(null);
+                    setImageCrop({ x: 0, y: 0, scale: 1 });
+                  }}
+                />
+                <GradientControls
+                  gradient={gradientConfig}
+                  onGradientChange={setGradientConfig}
+                  themeColor={templates[selectedTemplate].gradients.top.color1}
+                  hasImage={Boolean(backgroundImage)}
+                  selectedCoverId={selectedCoverId}
+                  onSelectedCoverChange={setSelectedCoverId}
+                  onAddCover={addSoftCover}
+                />
               </div>
+            </div>
+
+            <details className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
+              <summary className="cursor-pointer rounded-lg text-base font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">More options</summary>
+              <p className="mb-5 mt-2 text-sm text-slate-300">Fonts, layout, icons, and extra text.</p>
             <PosterControls
               fonts={fonts}
               onFontsChange={setFonts}
@@ -474,7 +421,7 @@ const Index = () => {
               quoteBoxStyle={quoteBoxStyle}
               onQuoteBoxStyleChange={setQuoteBoxStyle}
             />
-            </div>
+            </details>
           </section>
         </main>
       </div>
