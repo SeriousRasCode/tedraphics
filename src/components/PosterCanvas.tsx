@@ -92,6 +92,8 @@ interface PosterCanvasProps {
   gradientConfig: GradientConfig;
   activeCoverId: number | null;
   onCoverMove: (id: number, x: number, y: number) => void;
+  activeLinearId: number | null;
+  onLinearMove: (id: number, end: 'start' | 'end', x: number, y: number) => void;
 }
 
 // Preload images once and cache them
@@ -140,6 +142,7 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   const [clipartLoaded, setClipartLoaded] = useState(0);
   const drawVersion = useRef(0);
   const draggingCoverRef = useRef(false);
+  const draggingLinearRef = useRef<'start' | 'end' | null>(null);
   const iconsRef = useRef<Record<string, HTMLImageElement>>({});
 
   // Preload all icons on mount
@@ -256,6 +259,22 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         }
 
         ctx.restore();
+      }
+
+      // Each linear fade is an independent overlay and can cross the poster in any direction.
+      if (props.gradientConfig.enabled) {
+        props.gradientConfig.linearOverlays.forEach(layer => {
+          if (!layer.enabled || !/^#[0-9a-f]{6}$/i.test(layer.color)) return;
+          const endX = layer.endX === layer.startX && layer.endY === layer.startY ? layer.endX + 1 : layer.endX;
+          const fade = ctx.createLinearGradient(layer.startX, layer.startY, endX, layer.endY);
+          const r = parseInt(layer.color.slice(1, 3), 16);
+          const g = parseInt(layer.color.slice(3, 5), 16);
+          const b = parseInt(layer.color.slice(5, 7), 16);
+          fade.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${Math.min(100, Math.max(0, layer.opacity)) / 100})`);
+          fade.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+          ctx.fillStyle = fade;
+          ctx.fillRect(0, 0, width, height);
+        });
       }
 
       // Soft covers sit above the background and below poster text.
@@ -601,17 +620,51 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
   const activeCover = props.gradientConfig.enabled
     ? props.gradientConfig.covers.find(cover => cover.id === props.activeCoverId)
     : undefined;
+  const activeLinear = props.gradientConfig.enabled
+    ? props.gradientConfig.linearOverlays.find(layer => layer.id === props.activeLinearId)
+    : undefined;
+
+  const pointerPosition = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    return {
+      x: Math.round(Math.max(0, Math.min(1080, ((event.clientX - rect.left) / rect.width) * 1080))),
+      y: Math.round(Math.max(0, Math.min(1080, ((event.clientY - rect.top) / rect.height) * 1080))),
+    };
+  };
 
   const moveCoverToPointer = (event: React.PointerEvent<HTMLButtonElement>) => {
-    if (!activeCover || !canvasRef.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = Math.round(Math.max(0, Math.min(1080, ((event.clientX - rect.left) / rect.width) * 1080)));
-    const y = Math.round(Math.max(0, Math.min(1080, ((event.clientY - rect.top) / rect.height) * 1080)));
-    props.onCoverMove(activeCover.id, x, y);
+    const position = pointerPosition(event);
+    if (activeCover && position) props.onCoverMove(activeCover.id, position.x, position.y);
+  };
+
+  const linearHandle = (end: 'start' | 'end') => {
+    if (!activeLinear) return null;
+    const x = end === 'start' ? activeLinear.startX : activeLinear.endX;
+    const y = end === 'start' ? activeLinear.startY : activeLinear.endY;
+    return (
+      <button key={end} type="button" aria-label={`Move linear fade ${end}`} title={`Drag the ${end} of the fade. Arrow keys move it precisely.`}
+        className={`absolute flex h-11 w-11 items-center justify-center rounded-full border-2 border-white text-xs font-bold shadow-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-200 ${end === 'start' ? 'bg-amber-300 text-slate-950' : 'bg-slate-950 text-white'}`}
+        style={{ left: `${x / 10.8}%`, top: `${y / 10.8}%`, transform: 'translate(-50%, -50%)', touchAction: 'none' }}
+        onPointerDown={event => { event.preventDefault(); draggingLinearRef.current = end; event.currentTarget.setPointerCapture(event.pointerId); const position = pointerPosition(event); if (position) props.onLinearMove(activeLinear.id, end, position.x, position.y); }}
+        onPointerMove={event => { if (draggingLinearRef.current !== end) return; const position = pointerPosition(event); if (position) props.onLinearMove(activeLinear.id, end, position.x, position.y); }}
+        onPointerUp={() => { draggingLinearRef.current = null; }}
+        onPointerCancel={() => { draggingLinearRef.current = null; }}
+        onKeyDown={event => {
+          const step = event.shiftKey ? 25 : 5;
+          const moves: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+          const move = moves[event.key];
+          if (!move) return;
+          event.preventDefault();
+          props.onLinearMove(activeLinear.id, end, Math.max(0, Math.min(1080, x + move[0])), Math.max(0, Math.min(1080, y + move[1])));
+        }}>
+        {end === 'start' ? '100%' : '0%'}
+      </button>
+    );
   };
 
   return (
-    <div className="relative mx-auto w-full max-w-[240px] overflow-hidden rounded-lg sm:max-w-md">
+    <div className="relative mx-auto w-full max-w-[280px] overflow-hidden rounded-lg sm:max-w-[560px] lg:max-w-[min(560px,calc(100vh-420px))]">
       <canvas
         ref={canvasRef}
         role="img"
@@ -621,6 +674,15 @@ const PosterCanvas = React.forwardRef<HTMLCanvasElement, PosterCanvasProps>((pro
         className="w-full h-auto border border-white/20 rounded-lg shadow-lg"
         style={{ maxWidth: '100%', height: 'auto' }}
       />
+      {activeLinear && (
+        <>
+          <svg aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 1080 1080" preserveAspectRatio="none">
+            <line x1={activeLinear.startX} y1={activeLinear.startY} x2={activeLinear.endX} y2={activeLinear.endY} stroke="white" strokeWidth="3" strokeDasharray="12 9" />
+          </svg>
+          {linearHandle('start')}
+          {linearHandle('end')}
+        </>
+      )}
       {activeCover && (
         <>
           <div
