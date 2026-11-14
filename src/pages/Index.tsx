@@ -5,7 +5,7 @@ import { PosterControls } from '@/components/PosterControls';
 import { ImageUpload } from '@/components/ImageUpload';
 import { toast } from 'sonner';
 import { HeaderSection } from '@/components/HeaderSection';
-import { GradientConfig } from '@/components/GradientControls';
+import { GradientControls, GradientConfig } from '@/components/GradientControls';
 import { ActionButtons } from '@/components/ActionButtons';
 import { Button } from '@/components/ui/button';
 import { Settings, FileText, ArrowRight } from 'lucide-react';
@@ -72,8 +72,10 @@ const Index = () => {
     x: 540, y: 540, width: 100, height: 100
   });
   const [socialLinksColor, setSocialLinksColor] = useState('#ffffff');
+  const [selectedCoverId, setSelectedCoverId] = useState<number | null>(null);
   const [gradientConfig, setGradientConfig] = useState<GradientConfig>({
     enabled: true,
+    covers: [],
     top: {
       enabled: true,
       height: 200,
@@ -105,6 +107,7 @@ const Index = () => {
   });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const coverIdRef = useRef(0);
   const backgroundStepRef = useRef<HTMLButtonElement>(null);
 
   const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
@@ -128,6 +131,28 @@ const Index = () => {
 
   const toggleSection = (section: string) => {
     setOpenSections(previous => ({ ...previous, [section]: !previous[section] }));
+  };
+
+  const handleCoverMove = (id: number, x: number, y: number) => {
+    setGradientConfig(previous => {
+      const current = previous.covers.find(cover => cover.id === id);
+      if (!current || (current.x === x && current.y === y)) return previous;
+      return {
+        ...previous,
+        covers: previous.covers.map(cover => cover.id === id ? { ...cover, x, y } : cover),
+      };
+    });
+  };
+
+  const addSoftCover = (color: string, opacity: number, softness: number) => {
+    const id = ++coverIdRef.current;
+    setGradientConfig(previous => ({
+      ...previous,
+      enabled: true,
+      covers: [...previous.covers, { id, x: 540, y: 540, radius: 260, color, opacity, softness }],
+    }));
+    setSelectedCoverId(id);
+    setActiveEditorSection('design');
   };
 
   const handleTemplateChange = (templateId: number) => {
@@ -264,10 +289,13 @@ const Index = () => {
                 customBilingualTexts={customBilingualTexts}
                 socialLinksColor={socialLinksColor}
                 gradientConfig={gradientConfig}
+                activeCoverId={activeEditorSection === 'design' ? selectedCoverId : null}
+                onCoverMove={handleCoverMove}
               />
             </div>
             <ActionButtons
               onDownload={handleDownload}
+              onAddCover={() => addSoftCover('#0f172a', 85, 70)}
               onTelegramShare={handleTelegramShare}
               hideTelegramShare={true}
             />
@@ -308,7 +336,7 @@ const Index = () => {
             {activeEditorSection === 'design' && (
               <div id="design-panel" role="region" aria-labelledby="design-tab" className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
                 <h3 className="mb-1 text-lg font-semibold text-white">Choose a background</h3>
-                <p className="mb-5 text-sm text-slate-300">Start with a color theme or upload your own image.</p>
+                <p className="mb-5 text-sm text-slate-300">Choose a theme, add an image, or soften an area with a gradient cover.</p>
                 <div className="space-y-4">
                   <TemplateSelector 
                     selectedTemplate={selectedTemplate}
@@ -321,6 +349,14 @@ const Index = () => {
                       setBackgroundImage(null);
                       setImageCrop({ x: 0, y: 0, scale: 1 });
                     }}
+                  />
+                  <GradientControls
+                    gradient={gradientConfig}
+                    onGradientChange={setGradientConfig}
+                    themeColor={templates[selectedTemplate].gradients.top.color1}
+                    selectedCoverId={selectedCoverId}
+                    onSelectedCoverChange={setSelectedCoverId}
+                    onAddCover={addSoftCover}
                   />
                 </div>
               </div>
@@ -437,8 +473,6 @@ const Index = () => {
               onQuoteBoxSizeChange={setQuoteBoxSize}
               quoteBoxStyle={quoteBoxStyle}
               onQuoteBoxStyleChange={setQuoteBoxStyle}
-              gradientConfig={gradientConfig}
-              onGradientConfigChange={setGradientConfig}
             />
             </div>
           </section>

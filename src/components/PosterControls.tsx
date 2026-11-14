@@ -6,8 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { GradientControls, GradientConfig } from './GradientControls';
 import { Type, Move, Palette, Image, Settings, Crop, ImageIcon, Trash2, X } from 'lucide-react';
+import type { PosterCanvasProps } from './PosterCanvas';
+
+type FrameStyle = PosterCanvasProps['frameStyle'];
 
 interface PosterControlsProps {
   language: 'amharic' | 'oromic';
@@ -28,8 +30,8 @@ interface PosterControlsProps {
   onCustomFontsChange: (fonts: { titleFont: string | null; textFont: string | null; quoteFont: string | null; topBottomFont: string | null }) => void;
   bilingualEnabled: boolean;
   onBilingualEnabledChange: (enabled: boolean) => void;
-  frameStyle: string;
-  onFrameStyleChange: (style: any) => void;
+  frameStyle: FrameStyle;
+  onFrameStyleChange: (style: FrameStyle) => void;
   textColors: { titleColor: string; textColor: string; quoteColor: string; topBottomColor: string };
   onTextColorsChange: (colors: { titleColor: string; textColor: string; quoteColor: string; topBottomColor: string }) => void;
   mainTextWidth: number;
@@ -73,8 +75,6 @@ interface PosterControlsProps {
   onToggleSection: (section: string) => void;
   socialLinksColor: string;
   onSocialLinksColorChange: (color: string) => void;
-  gradientConfig: GradientConfig;
-  onGradientConfigChange: (config: GradientConfig) => void;
 }
 
 export const PosterControls = (props: PosterControlsProps) => {
@@ -94,7 +94,6 @@ export const PosterControls = (props: PosterControlsProps) => {
     topTextEnabled, onTopTextEnabledChange, bottomTextEnabled, onBottomTextEnabledChange,
     customBilingualTexts, onCustomBilingualTextsChange, openSections, onToggleSection,
     socialLinksColor, onSocialLinksColorChange,
-    gradientConfig, onGradientConfigChange
   } = props;
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, fontType: keyof typeof customFonts) => {
@@ -230,7 +229,7 @@ export const PosterControls = (props: PosterControlsProps) => {
       {/* Colors Section */}
       {openSections.colors && (
         <div id="colors-controls" className="bg-white/5 rounded-lg p-4 space-y-4">
-          <h3 className="text-lg font-semibold text-white mb-3">Colors & Gradients</h3>
+          <h3 className="text-lg font-semibold text-white mb-3">Text colors</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[
@@ -271,11 +270,6 @@ export const PosterControls = (props: PosterControlsProps) => {
             </div>
           </div>
 
-          {/* Background Gradient Controls */}
-          <GradientControls
-            gradient={gradientConfig}
-            onGradientChange={onGradientConfigChange}
-          />
         </div>
       )}
 
@@ -313,7 +307,7 @@ export const PosterControls = (props: PosterControlsProps) => {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-white">Frame Style</Label>
-              <Select value={frameStyle} onValueChange={(value) => onFrameStyleChange(value)}>
+              <Select value={frameStyle} onValueChange={(value) => onFrameStyleChange(value as FrameStyle)}>
                 <SelectTrigger className="bg-white/20 border-white/30 text-white">
                   <SelectValue />
                 </SelectTrigger>
