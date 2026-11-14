@@ -13,11 +13,10 @@ Tedraphics is a browser-based editor for square social media posters. Create a 1
 
 ## Create a poster
 
-1. Open **Content** and write your title, main text, and quote.
-2. Open **Background** to choose a color theme or upload an image.
-3. In **Background**, select **Apply photo fade** to blend a photo into the theme color. For a smaller area, select **+ Soft cover** beside the preview or choose a Dark, Light, or Warm cover. Drag its handle over the area you want to soften; adjust the sliders only if needed.
-4. Use **Fine tune** for typography, text colors, positions, clipart, and other details.
-5. Check the live preview, then select **Download PNG**.
+1. Write your title, details, and highlight in **Your message**.
+2. Pick a color theme or upload a photo in **Background**.
+3. If text needs more contrast, choose **Fade photo edges** or **Cover an area**. Drag the cover directly on the preview. Open **Adjust cover** only when you need a different color, size, or strength.
+4. Select **Download PNG**. Open **More options** for fonts, layout, icons, and extra text.
 
 Uploaded images are read in your browser and are not sent to a Tedraphics server. Edits are kept in memory for the current session, so download your poster before closing or refreshing the page.
 

@@ -45,12 +45,13 @@ interface GradientControlsProps {
   gradient: GradientConfig;
   onGradientChange: (gradient: GradientConfig) => void;
   themeColor: string;
+  hasImage: boolean;
   selectedCoverId: number | null;
   onSelectedCoverChange: (id: number | null) => void;
   onAddCover: (color: string, opacity: number, softness: number) => void;
 }
 
-export const GradientControls = ({ gradient, onGradientChange, themeColor, selectedCoverId, onSelectedCoverChange, onAddCover }: GradientControlsProps) => {
+export const GradientControls = ({ gradient, onGradientChange, themeColor, hasImage, selectedCoverId, onSelectedCoverChange, onAddCover }: GradientControlsProps) => {
   const selectedCover = gradient.covers.find(cover => cover.id === selectedCoverId);
 
   const applyPhotoFade = () => {
@@ -340,134 +341,87 @@ export const GradientControls = ({ gradient, onGradientChange, themeColor, selec
   );
 
   return (
-    <div className="space-y-5 rounded-xl border border-white/10 bg-white/5 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <Label htmlFor="gradient-enabled" className="text-base font-semibold text-white">Gradient overlays</Label>
-          <p className="mt-1 text-xs text-slate-300">Soften or cover parts of your background.</p>
-        </div>
-        <Switch
-          id="gradient-enabled"
-          checked={gradient.enabled}
-          onCheckedChange={(enabled) => updateGradient({ enabled })}
-          aria-label="Enable gradient overlays"
-        />
+    <div className="space-y-3 rounded-xl border border-white/10 bg-white/5 p-4">
+      <p className="text-sm font-semibold text-white">Make text easier to read</p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        {hasImage && (
+          <Button type="button" variant="outline" onClick={applyPhotoFade} className="h-11 justify-start gap-3 rounded-lg border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+            <span aria-hidden="true" className="h-6 w-6 rounded border border-white/20" style={{ background: `linear-gradient(to bottom, ${themeColor}, transparent 50%, ${themeColor})` }} />
+            Fade photo edges
+          </Button>
+        )}
+        <Button type="button" variant="outline" onClick={() => onAddCover('#0f172a', 85, 70)} className="h-11 justify-start rounded-lg border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+          <span aria-hidden="true" className="mr-3 h-5 w-5 rounded-full border border-white/40 bg-slate-900" />
+          Cover an area
+        </Button>
       </div>
-
-      {gradient.enabled && (
-        <>
-          <section aria-labelledby="photo-fade-title" className="space-y-3 border-t border-white/10 pt-4">
-            <div>
-              <h4 id="photo-fade-title" className="font-semibold text-white">Photo fade</h4>
-              <p className="mt-1 text-xs leading-5 text-slate-300">Blend the top and bottom of your photo into the theme color, like the reference posters.</p>
-            </div>
-            <Button type="button" variant="outline" onClick={applyPhotoFade} className="h-11 w-full justify-start gap-3 rounded-lg border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white">
-              <span aria-hidden="true" className="h-7 w-7 rounded border border-white/20" style={{ background: `linear-gradient(to bottom, ${themeColor}, transparent 50%, ${themeColor})` }} />
-              Apply photo fade
+      <p className="text-xs text-slate-300">Drag the cover on the poster. It stays behind your text.</p>
+      {gradient.covers.length > 1 && (
+        <div role="group" aria-label="Select a soft cover" className="flex flex-wrap gap-2">
+          {gradient.covers.map((cover, index) => (
+            <Button key={cover.id} type="button" variant="outline" aria-pressed={cover.id === selectedCoverId}
+              onClick={() => onSelectedCoverChange(cover.id)}
+              className={`h-10 rounded-lg text-white hover:text-white ${cover.id === selectedCoverId ? 'border-amber-300 bg-amber-300/10' : 'border-white/20 bg-white/5 hover:bg-white/10'}`}>
+              Cover {index + 1}
             </Button>
-          </section>
-          <section aria-labelledby="soft-covers-title" className="space-y-4 border-t border-white/10 pt-4">
-            <div>
-              <h4 id="soft-covers-title" className="font-semibold text-white">Soft covers</h4>
-              <p className="mt-1 text-xs leading-5 text-slate-300">Pick a look, then drag its handle over the area to soften.</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2" aria-label="Quick cover styles">
-              {[
-                { label: 'Dark cover', color: '#0f172a', opacity: 85, softness: 70 },
-                { label: 'Light cover', color: '#ffffff', opacity: 75, softness: 80 },
-                { label: 'Warm glow', color: '#f59e0b', opacity: 55, softness: 90 },
-              ].map(preset => (
-                <Button
-                  key={preset.label}
-                  type="button"
-                  variant="outline"
-                  onClick={() => onAddCover(preset.color, preset.opacity, preset.softness)}
-                  className="h-14 flex-col gap-1 rounded-lg border-white/20 bg-white/5 px-1 text-xs text-white hover:bg-white/10 hover:text-white"
-                >
-                  <span aria-hidden="true" className="h-4 w-4 rounded-full border border-white/40" style={{ backgroundColor: preset.color }} />
-                  {preset.label}
-                </Button>
-              ))}
-            </div>
-
-            {gradient.covers.length > 0 && (
-              <div role="group" aria-label="Select a soft cover" className="flex flex-wrap gap-2">
-                {gradient.covers.map((cover, index) => (
-                  <Button
-                    key={cover.id}
-                    type="button"
-                    variant="outline"
-                    aria-pressed={cover.id === selectedCoverId}
-                    onClick={() => onSelectedCoverChange(cover.id)}
-                    className={`h-10 rounded-lg text-white hover:text-white ${cover.id === selectedCoverId ? 'border-amber-300 bg-amber-300/10' : 'border-white/20 bg-white/5 hover:bg-white/10'}`}
-                  >
-                    <span aria-hidden="true" className="mr-2 h-4 w-4 rounded-full border border-white/40" style={{ backgroundColor: cover.color }} />
-                    Cover {index + 1}
+          ))}
+        </div>
+      )}
+      {selectedCover && (
+        <div className="space-y-3 rounded-lg border border-amber-300/30 bg-slate-950/30 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-medium text-white">Cover selected</p>
+            <Button type="button" variant="ghost" onClick={removeCover} className="h-9 px-2 text-sm text-rose-300 hover:bg-rose-400/10 hover:text-rose-200">Remove</Button>
+          </div>
+          <Button type="button" variant="outline"
+            onClick={() => document.getElementById('preview-title')?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}
+            className="h-11 w-full rounded-lg border-amber-300/40 bg-amber-300/10 text-amber-100 hover:bg-amber-300/20 hover:text-white lg:hidden">
+            Move on poster ↑
+          </Button>
+          <details>
+            <summary className="cursor-pointer rounded py-2 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">Adjust cover</summary>
+            <div className="space-y-4 pt-3">
+              <div className="grid grid-cols-3 gap-2" aria-label="Cover colors">
+                {[
+                  { label: 'Dark', color: '#0f172a', opacity: 85 },
+                  { label: 'Light', color: '#ffffff', opacity: 75 },
+                  { label: 'Warm', color: '#f59e0b', opacity: 55 },
+                ].map(preset => (
+                  <Button key={preset.label} type="button" variant="outline"
+                    onClick={() => updateCover({ color: preset.color, opacity: preset.opacity })}
+                    className="h-11 rounded-lg border-white/20 bg-white/5 text-xs text-white hover:bg-white/10 hover:text-white">
+                    {preset.label}
                   </Button>
                 ))}
               </div>
-            )}
-
-            {selectedCover && (
-              <div className="space-y-4 rounded-xl border border-white/10 bg-slate-950/30 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium text-white">Selected cover</p>
-                  <Button type="button" variant="ghost" onClick={removeCover} className="h-9 px-2 text-sm text-rose-300 hover:bg-rose-400/10 hover:text-rose-200">Remove</Button>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => document.getElementById('preview-title')?.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}
-                  className="h-11 w-full rounded-lg border-amber-300/40 bg-amber-300/10 text-amber-100 hover:bg-amber-300/20 hover:text-white lg:hidden"
-                >
-                  Move on poster ↑
-                </Button>
-                <div className="h-12 rounded-lg border border-white/10 bg-slate-700" style={{ backgroundImage: `radial-gradient(circle, ${selectedCover.color} 0%, transparent 80%)` }} aria-hidden="true" />
-                <div className="space-y-2">
-                  <Label htmlFor="soft-cover-color" className="text-sm text-white">Cover color</Label>
-                  <input id="soft-cover-color" type="color" value={selectedCover.color} onChange={event => updateCover({ color: event.target.value })} className="h-11 w-full cursor-pointer rounded-lg border border-white/20 bg-white/10 p-1" />
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label className="text-sm text-white">Strength · {selectedCover.opacity}%</Label>
-                    <Slider aria-label="Cover strength" value={[selectedCover.opacity]} onValueChange={([opacity]) => updateCover({ opacity })} min={0} max={100} step={1} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm text-white">Size · {selectedCover.radius}px</Label>
-                    <Slider aria-label="Cover size" value={[selectedCover.radius]} onValueChange={([radius]) => updateCover({ radius })} min={40} max={850} step={10} />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2">
-                    <Label className="text-sm text-white">Soft edge · {selectedCover.softness}%</Label>
-                    <Slider aria-label="Cover soft edge" value={[selectedCover.softness]} onValueChange={([softness]) => updateCover({ softness })} min={0} max={100} step={1} />
-                    <p className="text-xs text-slate-400">Higher values blend more gradually into the image.</p>
-                  </div>
-                </div>
-                <details className="text-sm text-slate-300">
-                  <summary className="cursor-pointer rounded py-2 font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">Precise position</summary>
-                  <div className="grid gap-4 pt-3 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label className="text-sm text-white">Horizontal · {Math.round(selectedCover.x)}px</Label>
-                      <Slider aria-label="Cover horizontal position" value={[selectedCover.x]} onValueChange={([x]) => updateCover({ x })} min={0} max={1080} step={5} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm text-white">Vertical · {Math.round(selectedCover.y)}px</Label>
-                      <Slider aria-label="Cover vertical position" value={[selectedCover.y]} onValueChange={([y]) => updateCover({ y })} min={0} max={1080} step={5} />
-                    </div>
-                  </div>
-                </details>
+              <div className="space-y-2">
+                <Label htmlFor="soft-cover-color" className="text-sm text-white">Custom color</Label>
+                <input id="soft-cover-color" type="color" value={selectedCover.color} onChange={event => updateCover({ color: event.target.value })} className="h-11 w-full cursor-pointer rounded-lg border border-white/20 bg-white/10 p-1" />
               </div>
-            )}
-          </section>
-
-          <details className="border-t border-white/10 pt-4">
-            <summary className="cursor-pointer rounded py-2 text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">Advanced top and bottom gradients</summary>
-            <div className="space-y-5 pt-4">
-              {renderGradientSection(gradient.top, updateTopGradient, updateTopStop, addTopStop, removeTopStop, 'Top gradient')}
-              {renderGradientSection(gradient.bottom, updateBottomGradient, updateBottomStop, addBottomStop, removeBottomStop, 'Bottom gradient')}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2"><Label className="text-sm text-white">Strength: {selectedCover.opacity}%</Label><Slider aria-label="Cover strength" value={[selectedCover.opacity]} onValueChange={([opacity]) => updateCover({ opacity })} min={0} max={100} step={1} /></div>
+                <div className="space-y-2"><Label className="text-sm text-white">Size: {selectedCover.radius}px</Label><Slider aria-label="Cover size" value={[selectedCover.radius]} onValueChange={([radius]) => updateCover({ radius })} min={40} max={850} step={10} /></div>
+                <div className="space-y-2 sm:col-span-2"><Label className="text-sm text-white">Soft edge: {selectedCover.softness}%</Label><Slider aria-label="Cover soft edge" value={[selectedCover.softness]} onValueChange={([softness]) => updateCover({ softness })} min={0} max={100} step={1} /></div>
+              </div>
+              <details className="text-sm text-slate-300">
+                <summary className="cursor-pointer rounded py-2 font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">Precise position</summary>
+                <div className="grid gap-4 pt-3 sm:grid-cols-2">
+                  <div className="space-y-2"><Label className="text-sm text-white">Horizontal: {Math.round(selectedCover.x)}px</Label><Slider aria-label="Cover horizontal position" value={[selectedCover.x]} onValueChange={([x]) => updateCover({ x })} min={0} max={1080} step={5} /></div>
+                  <div className="space-y-2"><Label className="text-sm text-white">Vertical: {Math.round(selectedCover.y)}px</Label><Slider aria-label="Cover vertical position" value={[selectedCover.y]} onValueChange={([y]) => updateCover({ y })} min={0} max={1080} step={5} /></div>
+                </div>
+              </details>
             </div>
           </details>
-        </>
+        </div>
       )}
+      <details className="border-t border-white/10 pt-3">
+        <summary className="cursor-pointer rounded py-2 text-sm font-medium text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">More gradient settings</summary>
+        <div className="space-y-5 pt-4">
+          <div className="flex items-center justify-between gap-3"><Label htmlFor="gradient-enabled" className="text-sm text-white">Show gradient overlays</Label><Switch id="gradient-enabled" checked={gradient.enabled} onCheckedChange={(enabled) => updateGradient({ enabled })} /></div>
+          {renderGradientSection(gradient.top, updateTopGradient, updateTopStop, addTopStop, removeTopStop, 'Top gradient')}
+          {renderGradientSection(gradient.bottom, updateBottomGradient, updateBottomStop, addBottomStop, removeBottomStop, 'Bottom gradient')}
+        </div>
+      </details>
     </div>
   );
 };
