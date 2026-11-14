@@ -5,14 +5,12 @@ import { Download, Share2 } from 'lucide-react';
 
 interface ActionButtonsProps {
   onDownload: () => void;
-  onAddCover: () => void;
   onTelegramShare: () => void;
   hideTelegramShare?: boolean;
 }
 
 export const ActionButtons = ({ 
   onDownload, 
-  onAddCover,
   onTelegramShare, 
   hideTelegramShare = false 
 }: ActionButtonsProps) => {
@@ -26,15 +24,6 @@ export const ActionButtons = ({
           <Download className="w-4 h-4 mr-2" />
           Download PNG
         </Button>
-        <Button
-          type="button"
-          onClick={onAddCover}
-          variant="outline"
-          className="h-12 flex-1 rounded-xl border-white/30 bg-white/5 font-semibold text-white hover:bg-white/10 hover:text-white"
-        >
-          + Soft cover
-        </Button>
-        
         {!hideTelegramShare && (
           <Button
             onClick={onTelegramShare}
