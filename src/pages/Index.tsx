@@ -5,8 +5,10 @@ import { PosterControls } from '@/components/PosterControls';
 import { ImageUpload } from '@/components/ImageUpload';
 import { toast } from 'sonner';
 import { HeaderSection } from '@/components/HeaderSection';
-import { GradientControls, GradientConfig } from '@/components/GradientControls';
+import { GradientControls, GradientConfig, LinearOverlay } from '@/components/GradientControls';
 import { ActionButtons } from '@/components/ActionButtons';
+import { Button } from '@/components/ui/button';
+import { Type, Image as ImageIcon, Blend, SlidersHorizontal, Download } from 'lucide-react';
 import { templates } from '@/utils/posterTemplates';
 
 const Index = () => {
@@ -70,9 +72,11 @@ const Index = () => {
   });
   const [socialLinksColor, setSocialLinksColor] = useState('#ffffff');
   const [selectedCoverId, setSelectedCoverId] = useState<number | null>(null);
+  const [selectedLinearId, setSelectedLinearId] = useState<number | null>(null);
   const [gradientConfig, setGradientConfig] = useState<GradientConfig>({
     enabled: true,
     covers: [],
+    linearOverlays: [],
     top: {
       enabled: true,
       height: 200,
@@ -105,6 +109,8 @@ const Index = () => {
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const coverIdRef = useRef(0);
+  const linearIdRef = useRef(0);
+  const moreOptionsRef = useRef<HTMLDetailsElement>(null);
 
   const [additionalIconsGap, setAdditionalIconsGap] = useState(30);
   const [socialLinksPosition, setSocialLinksPosition] = useState({ x: 540, y: 1030 });
@@ -129,6 +135,12 @@ const Index = () => {
     setOpenSections(previous => ({ ...previous, [section]: !previous[section] }));
   };
 
+  const showPosterOnMobile = () => {
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      requestAnimationFrame(() => document.getElementById('preview-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+  };
+
   const handleCoverMove = (id: number, x: number, y: number) => {
     setGradientConfig(previous => {
       const current = previous.covers.find(cover => cover.id === id);
@@ -148,6 +160,52 @@ const Index = () => {
       covers: [...previous.covers, { id, x: 540, y: 540, radius: 260, color, opacity, softness }],
     }));
     setSelectedCoverId(id);
+    setSelectedLinearId(null);
+    showPosterOnMobile();
+  };
+
+  const addLinearOverlay = (initial?: Partial<LinearOverlay>) => {
+    const id = ++linearIdRef.current;
+    setGradientConfig(previous => ({
+      ...previous,
+      enabled: true,
+      linearOverlays: [...previous.linearOverlays, {
+        startX: 540, startY: 90, endX: 540, endY: 500,
+        color: templates[selectedTemplate].gradients.top.color1, opacity: 90, enabled: true,
+        ...initial, id,
+      }],
+    }));
+    setSelectedLinearId(id);
+    setSelectedCoverId(null);
+    showPosterOnMobile();
+  };
+
+  const addPhotoFades = () => {
+    const topId = ++linearIdRef.current;
+    const bottomId = ++linearIdRef.current;
+    const color = templates[selectedTemplate].gradients.top.color1;
+    setGradientConfig(previous => ({
+      ...previous, enabled: true,
+      top: { ...previous.top, enabled: false },
+      bottom: { ...previous.bottom, enabled: false },
+      linearOverlays: [
+        ...previous.linearOverlays,
+        { id: topId, startX: 540, startY: 90, endX: 540, endY: 390, color, opacity: 95, enabled: true },
+        { id: bottomId, startX: 540, startY: 990, endX: 540, endY: 680, color, opacity: 95, enabled: true },
+      ],
+    }));
+    setSelectedLinearId(topId);
+    setSelectedCoverId(null);
+    showPosterOnMobile();
+  };
+
+  const handleLinearMove = (id: number, end: 'start' | 'end', x: number, y: number) => {
+    setGradientConfig(previous => ({
+      ...previous,
+      linearOverlays: previous.linearOverlays.map(layer => layer.id === id
+        ? { ...layer, [end === 'start' ? 'startX' : 'endX']: x, [end === 'start' ? 'startY' : 'endY']: y }
+        : layer),
+    }));
   };
 
   const handleTemplateChange = (templateId: number) => {
@@ -234,13 +292,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[#071629] text-white">
-      <div className="mx-auto max-w-[1440px] px-4 py-5 sm:px-6 sm:py-8 lg:px-10">
+      <div className="mx-auto max-w-[1680px] px-4 pb-28 pt-5 sm:px-6 sm:pt-8 lg:px-10 lg:pb-8">
         <HeaderSection />
 
-        <main className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.9fr)] lg:items-start lg:gap-8">
+        <main className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-6">
           
           {/* Preview */}
-          <section aria-labelledby="preview-title" className="order-1 rounded-3xl border border-white/10 bg-[#10243d] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:order-2 lg:sticky lg:top-6">
+          <section aria-labelledby="preview-title" className="order-1 rounded-3xl border border-white/10 bg-[#10243d] p-4 shadow-2xl shadow-black/20 sm:p-6 lg:sticky lg:top-6">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
                 <h2 id="preview-title" className="text-xl font-semibold tracking-tight sm:text-2xl">Preview</h2>
@@ -284,6 +342,8 @@ const Index = () => {
                 gradientConfig={gradientConfig}
                 activeCoverId={selectedCoverId}
                 onCoverMove={handleCoverMove}
+                activeLinearId={selectedLinearId}
+                onLinearMove={handleLinearMove}
               />
             </div>
             <ActionButtons
@@ -294,8 +354,8 @@ const Index = () => {
           </section>
 
           {/* Controls */}
-          <section aria-label="Poster editor" className="order-2 min-w-0 space-y-5 lg:order-1">
-              <div className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
+          <section aria-label="Poster editor" className="order-2 min-w-0 space-y-5">
+              <div id="message-panel" className="scroll-mt-4 rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
                 <h3 className="mb-1 text-lg font-semibold text-white">1. Your message</h3>
                 <p className="mb-5 text-sm text-slate-300">The preview updates while you type.</p>
                 <div className="space-y-4">
@@ -334,7 +394,7 @@ const Index = () => {
                 </div>
               </div>
 
-            <div className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
+            <div id="background-panel" className="scroll-mt-4 rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
               <h3 className="mb-1 text-lg font-semibold text-white">2. Background</h3>
               <p className="mb-5 text-sm text-slate-300">Pick a color or add your photo.</p>
               <div className="space-y-4">
@@ -353,13 +413,17 @@ const Index = () => {
                   themeColor={templates[selectedTemplate].gradients.top.color1}
                   hasImage={Boolean(backgroundImage)}
                   selectedCoverId={selectedCoverId}
-                  onSelectedCoverChange={setSelectedCoverId}
+                  onSelectedCoverChange={id => { setSelectedCoverId(id); if (id !== null) setSelectedLinearId(null); }}
                   onAddCover={addSoftCover}
+                  selectedLinearId={selectedLinearId}
+                  onSelectedLinearChange={id => { setSelectedLinearId(id); if (id !== null) setSelectedCoverId(null); }}
+                  onAddLinear={addLinearOverlay}
+                  onAddPhotoFades={addPhotoFades}
                 />
               </div>
             </div>
 
-            <details className="rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
+            <details ref={moreOptionsRef} id="more-options" className="scroll-mt-4 rounded-2xl border border-white/10 bg-[#10243d] p-4 sm:p-6">
               <summary className="cursor-pointer rounded-lg text-base font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">More options</summary>
               <p className="mb-5 mt-2 text-sm text-slate-300">Fonts, layout, icons, and extra text.</p>
             <PosterControls
@@ -425,6 +489,24 @@ const Index = () => {
           </section>
         </main>
       </div>
+      <nav aria-label="Mobile editor tools" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-white/15 bg-[#10243d]/95 px-2 py-2 shadow-2xl shadow-black/40 backdrop-blur lg:hidden" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
+        {[
+          { label: 'Text', icon: Type, id: 'message-panel' },
+          { label: 'Image', icon: ImageIcon, id: 'background-panel' },
+          { label: 'Gradients', icon: Blend, id: 'gradient-tools' },
+          { label: 'More', icon: SlidersHorizontal, id: 'more-options' },
+        ].map(tool => (
+          <Button key={tool.id} type="button" variant="ghost" onClick={() => {
+            if (tool.id === 'more-options' && moreOptionsRef.current) moreOptionsRef.current.open = true;
+            document.getElementById(tool.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }} className="h-14 flex-col gap-1 rounded-lg px-1 text-xs text-white hover:bg-white/10 hover:text-white">
+            <tool.icon className="h-5 w-5" aria-hidden="true" />{tool.label}
+          </Button>
+        ))}
+        <Button type="button" variant="ghost" onClick={handleDownload} className="h-14 flex-col gap-1 rounded-lg px-1 text-xs font-semibold text-amber-300 hover:bg-white/10 hover:text-amber-200">
+          <Download className="h-5 w-5" aria-hidden="true" />Save
+        </Button>
+      </nav>
     </div>
   );
 };
